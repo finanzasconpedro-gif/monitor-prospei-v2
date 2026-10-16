@@ -239,7 +239,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
           <h2>Comprar hoy</h2>
-          <p class="sub">Solo las que cumplen los 5 criterios a la vez: técnico ≥ 65, fundamental ≥ 60, ninguna luz roja, recorrido a valor justo ≥ 10% y zona Compra o señal de entrada (corrección con rebote o ruptura de máximos). Sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días.</p>
+          <p class="sub">Solo las que cumplen los 5 criterios a la vez: técnico ≥ 65, fundamental ≥ 60, ninguna luz roja, recorrido a valor justo de al menos la mitad de su volatilidad anual (entre 10% y 30%: más margen en las acciones que más se mueven) y zona Compra o señal de entrada (corrección con rebote o ruptura de máximos). Sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días.</p>
         </div>
         <div id="verdict-count" style="display:flex;gap:4px;flex-wrap:wrap"></div>
       </div>
@@ -346,7 +346,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       </div>
       <h3 style="margin:4px 0 8px;font-size:15px" id="vm-tbl-title">En zona de compra</h3>
       <div class="tw"><table id="tb-vm"></table></div>
-      <p class="note" style="margin-top:10px">Tocá una fila para ver su recorrido en el mapa. Valor justo estimado = promedio de tres métodos: ganancia esperada × P/E mediano de su industria (o sector si tiene menos de 5 pares), ganancia esperada × su propio P/E promedio de los últimos años, y precio objetivo de los analistas. Está <b>calibrado contra el mercado</b>: la acción típica del S&amp;P 500 queda justo en su valor justo, así el eje muestra cuánto más barata o cara está cada una frente al resto. Descuentos de más de 35% se marcan como "valuación dudosa". Si los datos de una acción quedan fuera de la escala, al tocarla el mapa se amplía para mostrar su recorrido completo. Herramienta de screening, no es una recomendación.</p>
+      <p class="note" style="margin-top:10px">Tocá una fila para ver su recorrido en el mapa. Valor justo estimado = promedio de tres métodos: ganancia esperada × P/E mediano de su industria (o sector si tiene menos de 5 pares), ganancia esperada × su propio P/E promedio de los últimos años, y precio objetivo de los analistas. Está <b>calibrado contra el mercado</b>: la acción típica del S&amp;P 500 queda justo en su valor justo, así el eje muestra cuánto más barata o cara está cada una frente al resto. Descuentos de más de 35% se marcan como "valuación dudosa". En los ADRs de Argentina y Brasil, los múltiplos de sus pares de EE.UU. se <b>ajustan por riesgo país</b> (el descuento típico de su mercado) y los analistas por el optimismo típico de ese mercado: el monitor elige las mejores <i>dentro</i> de cada país. Si una ADR informa sus balances en pesos o reales, no se usan su precio/ventas ni su historia de múltiplos, porque no son comparables con el precio en dólares. Si los datos de una acción quedan fuera de la escala, al tocarla el mapa se amplía para mostrar su recorrido completo. Herramienta de screening, no es una recomendación.</p>
     </div>
   </section>
 
@@ -1359,7 +1359,7 @@ function openDetail(t){
     ${o.closes?chartSvg(o.closes):'<p class="note">El gráfico está disponible para los papeles del top.</p>'}
     ${earlyHtml(o)}
     ${valLensHtml(o)}
-    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b> · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
+    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
     <div class="lists">
       <div class="pro"><h4>Por qué aparece como oportunidad</h4><ul>${li(o.pro)}</ul></div>
       <div class="gro"><h4>Perspectiva de crecimiento</h4><ul>${li(o.grow)}</ul></div>
@@ -1374,7 +1374,7 @@ function openDetail(t){
         ${kv('MACD',o.macd_h>0?'Positivo':'Negativo')}
       </div></div>
       <div><h4 style="margin:0 0 6px">Análisis fundamental</h4><div class="kv">
-        ${kv('P/E histórico',o.pe>0?fmt(o.pe,1)+'x':'—')}${kv('P/E esperado',o.fpe>0?fmt(o.fpe,1)+'x':'—')}${o.val_model==='book'?kv('P/VL de '+(o.peer_lbl||'pares'),o.peer_pb?fmt(o.peer_pb,2)+'x':'—'):kv('P/E esperado '+(o.peer_lbl==='su industria'?'industria':'sector'),o.sec_fpe?fmt(o.sec_fpe,1)+'x':'—')}${kv('P/E promedio histórico',o.pe_hist?fmt(o.pe_hist,1)+'x ('+(o.hist_n||'')+' años)':'—')}${kv('Precio / ventas (hoy · histórico)',o.ps?fmt(o.ps,1)+'x · '+(o.ps_hist?fmt(o.ps_hist,1)+'x':'—'):'—')}${kv('Dividendo promedio 5 años',o.div5?fmt(o.div5,2)+'%':'—')}
+        ${kv('P/E histórico',o.pe>0?fmt(o.pe,1)+'x':'—')}${kv('P/E esperado',o.fpe>0?fmt(o.fpe,1)+'x':'—')}${o.val_model==='book'?kv('P/VL de '+(o.peer_lbl||'pares')+(o.cty_lbl?' (aj. riesgo país)':''),o.peer_pb?fmt(o.peer_pb,2)+'x':'—'):kv('P/E esperado '+(o.peer_lbl==='su industria'?'industria':'sector')+(o.cty_lbl?' (aj. riesgo país)':''),o.sec_fpe?fmt(o.sec_fpe,1)+'x':'—')}${kv('P/E promedio histórico',o.pe_hist?fmt(o.pe_hist,1)+'x ('+(o.hist_n||'')+' años)':'—')}${kv('Precio / ventas (hoy · histórico)',o.ps?fmt(o.ps,1)+'x · '+(o.ps_hist?fmt(o.ps_hist,1)+'x':'—'):'—')}${kv('Dividendo promedio 5 años',o.div5?fmt(o.div5,2)+'%':'—')}
         ${kv('PEG',o.val_model!=='pe'||o.eps_gap>0.4?'no aplica':o.peg>0?fmt(o.peg,2):'—')}${kv('Precio / valor libros (hoy · histórico)',o.pb>0?fmt(o.pb,2)+'x'+(o.pb_hist?' · '+fmt(o.pb_hist,2)+'x':''):'—')}
         ${kv('Crec. ventas (a/a)',pct(o.rev_g,1))}${kv('Crec. ganancias (a/a)',pct(o.eps_g,1))}
         ${kv('ROE',o.roe==null?'—':fmt(o.roe*100,1)+'%')}${kv('Margen neto',o.margin==null?'—':fmt(o.margin*100,1)+'%')}
@@ -1433,7 +1433,7 @@ function valLensHtml(o){
     (o.fpe>0&&o.sec_fpe?`P/E esp. ${fmt(o.fpe,1)}x vs ${fmt(o.sec_fpe,1)}x`:'');
   if(M==='book'&&o.pb&&o.pb_hist)hd.unshift(`P/VL ${fmt(o.pb,2)}x vs ${fmt(o.pb_hist,2)}x`);
   return `<div class="lensbox"><div class="lens-h"><b>Valuación: tres miradas</b> <span class="note">· método: ${esc(VMODEL[M]||M)}</span> <span class="fase" style="${verdict[0]==='up'?'background:var(--upbg);color:var(--up)':verdict[0]==='down'?'background:var(--downbg);color:var(--down)':''}">${esc(verdict[1])}</span></div>
-    <div class="lens-g">${cell('vs '+esc(o.peer_lbl||'su sector'),o.v_peer,peerDet,-0.15,0.15)}
+    <div class="lens-g">${cell('vs '+esc((o.peer_lbl||'su sector')+(o.cty_lbl||'')),o.v_peer,peerDet,-0.15,0.15)}
     ${cell('vs su propia historia',o.v_hist,hd.join(' · ')||'Sin historial disponible',-0.10,0.10)}
     ${cell('vs analistas',o.v_an,o.n_an>=3&&o.target?`Objetivo US$ ${fmt(o.target)} (${o.n_an} analistas${o.n_an<5?', peso reducido':''})`:'Menos de 3 analistas',-0.20,0,1)}</div>
     ${o.audit&&o.audit.length?`<details style="margin-top:8px"><summary class="note" style="cursor:pointer">🔎 Cómo se valuó y particularidades de los datos (${o.audit.length})</summary><ul class="note" style="margin:6px 0 0;padding-left:18px">${o.audit.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`:''}</div>`;
