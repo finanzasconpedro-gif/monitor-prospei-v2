@@ -1,7 +1,7 @@
 """
 Track récord de la señal "Comprar hoy" del Monitor PROSPEI.
 
-Mira hacia atrás 4 años, día por día, en las 3 empresas de mayor capitalización de cada sector del S&P 500,
+Mira hacia atrás 10 años, día por día, en las 3 empresas de mayor capitalización de cada sector del S&P 500,
 y registra cada vez que se dio la señal. Después mide qué pasó con el precio 3, 6 y 12 meses más tarde.
 
 Todo es "punto en el tiempo": en cada fecha solo se usa información que existía ese día
@@ -27,7 +27,8 @@ import requests
 
 import screener as S
 
-YEARS = 4
+YEARS = 10                    # años que se prueban (desde 2016: incluye fines de 2018, el COVID de 2020 y 2022)
+HIST_YEARS = 5                # años extra de precios antes del período, para las medias, máximos y tendencias
 GAP = 20                      # ruedas sin señal para contar una señal nueva (evita contar la misma compra muchas veces)
 H = {"3m": 63, "6m": 126, "12m": 252}
 TARGET, STOP, TS_DAYS = 0.10, -0.08, 126
@@ -36,6 +37,24 @@ GOAL = 0.70
 # Se carga como secreto del repositorio: Settings → Secrets and variables → Actions → SEC_UA
 SEC_UA = os.environ.get("SEC_UA") or "PROSPEI Monitor research github.com/finanzasconpedro-gif"
 BROAD_N, SEED = 100, 7        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
+# Muestra amplia CONGELADA: las 100 acciones sorteadas para el informe de validación de octubre 2026.
+# Antes se sorteaba en cada corrida sobre data.json, cuyo orden cambia todos los días con el ranking, y salían
+# otras 100 acciones: los resultados no eran comparables de un mes a otro ni entre monitores. Se queda fija
+# aunque alguna salga del S&P 500 (eso además reduce el sesgo de supervivencia hacia adelante).
+# Para sortear una muestra nueva: BROAD_FIXED = None.
+BROAD_FIXED = {
+    "Comunicaciones": ["APP", "TKO", "VZ"],
+    "Consumo básico": ["DLTR", "KDP", "KHC", "KVUE", "MNST", "TGT"],
+    "Consumo discrecional": ["APTV", "DHI", "DPZ", "GM", "HAS", "HLT", "MAR", "MCD", "ULTA"],
+    "Energía": ["BKR", "SLB", "TPL", "TRGP"],
+    "Financiero": ["AFL", "AMP", "BEN", "BNY", "C", "CFG", "CME", "EG", "HIG", "HOOD", "JKHY", "KEY", "MRSH", "PYPL", "RF", "WTW"],
+    "Industrial": ["ADP", "AXON", "BE", "CPRT", "CTAS", "EMR", "EXPD", "FDX", "GD", "GNRC", "HUBB", "IR", "NSC", "RSG", "SWK", "TDG", "TXT"],
+    "Materiales": ["AMCR", "AVY", "NUE", "PPG", "VMC"],
+    "Real estate": ["AMT", "ESS", "EXR", "INVH", "REG", "VMRK"],
+    "Salud": ["AMGN", "CAH", "CNC", "COR", "DVA", "GILD", "LH", "MTD", "RVTY", "TECH", "UNH", "WST"],
+    "Tecnología": ["COHR", "CRWD", "CTSH", "FTNT", "HPE", "HPQ", "JBL", "KEYS", "MPWR", "MRVL", "MU", "NTAP", "Q", "ROP", "SWKS", "TER"],
+    "Utilities": ["AEE", "AEP", "AWK", "D", "ED", "ETR"],
+}
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción clase A
 
 FALLBACK = {   # por si no está data.json: 3 de mayor capitalización por sector (aprox.)
@@ -76,11 +95,13 @@ def pick_universes():
     """top: las 3 más grandes de cada sector. broad: 100 al azar del S&P 500, repartidas por sector."""
     top = pick_universe()
     tops = {t for v in top.values() for t in v}
+    if BROAD_FIXED:
+        return {"top": top, "broad": {sec: list(v) for sec, v in BROAD_FIXED.items()}}
     broad = {}
     try:
         rows = json.load(open("data.json", encoding="utf-8"))["rows"]
         df = pd.DataFrame([{"t": r["t"], "sector": r["sector"], "region": r.get("region")} for r in rows])
-        df = df[(df.region == "EE.UU.") & ~df.t.isin(tops)]
+        df = df[(df.region == "EE.UU.") & ~df.t.isin(tops)].sort_values("t")   # orden fijo: el sorteo no depende del ranking del día
         frac = min(1.0, BROAD_N / len(df))
         for sec, g in df.groupby("sector"):
             broad[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac))), random_state=SEED).t)
@@ -475,7 +496,7 @@ def main():
 
     frames = []
     for i in range(0, len(tick), 100):
-        frames.append(yf.download(tick[i:i + 100] + ["SPY"], period="10y", interval="1d", auto_adjust=True,
+        frames.append(yf.download(tick[i:i + 100] + ["SPY"], start=(pd.Timestamp.today() - pd.DateOffset(years=YEARS + HIST_YEARS)).strftime("%Y-%m-%d"), interval="1d", auto_adjust=True,
                                   actions=True, group_by="ticker", threads=True, progress=False))
         time.sleep(1)
     lv = lambda d: set(d.columns.get_level_values(0))
@@ -491,7 +512,7 @@ def main():
                 ev = [(pd.Timestamp(k).tz_localize(None) if pd.Timestamp(k).tzinfo else pd.Timestamp(k), float(v)) for k, v in sp_[sp_ > 0].items() if float(v) != 1.0]
                 if ev:
                     splits[s_] = ev
-    print("Acciones con splits en 10 años:", len(splits))
+    print(f"Acciones con splits en {YEARS + HIST_YEARS} años:", len(splits))
     close = close.ffill(limit=3)
     tick = [t for t in tick if t in close.columns and t in vol.columns and close[t].notna().sum() > 300]
     sp = [s for s, _, _ in S.sp500()]
