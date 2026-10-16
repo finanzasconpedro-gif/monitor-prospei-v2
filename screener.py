@@ -124,6 +124,8 @@ def technical(c, v):
         "hi52": hi, "lo52": lo, "dd": p / hi - 1, "from_lo": p / lo - 1,
         "vol_ratio": vol_ratio,
         "volat": float(dr.std() * math.sqrt(252)),
+        # volatilidad de 1 año: más estable, es la que fija el recorrido mínimo exigido a valor justo
+        "volat_y": float(np.diff(np.log(c[-253:])).std() * math.sqrt(252)),
     }
 
 
@@ -481,9 +483,9 @@ def reasons(r):
     # Fundamental
     if r.val_model == "book" and pd.notna(r.pb) and pd.notna(r.peer_pb):
         if r.pb < r.peer_pb * 0.85:
-            pro.append(f"Cotiza a {fx(r.pb,2)} veces su valor libros contra {fx(r.peer_pb,2)}x de {r.peer_lbl}: descuento sobre su patrimonio.")
+            pro.append(f"Cotiza a {fx(r.pb,2)} veces su valor libros contra {fx(r.peer_pb,2)}x de {r.peer_lbl}{r.cty_lbl}: descuento sobre su patrimonio.")
         elif r.pb > r.peer_pb * 1.4:
-            con.append(f"Cotiza a {fx(r.pb,2)} veces su valor libros, caro frente a {fx(r.peer_pb,2)}x de {r.peer_lbl}.")
+            con.append(f"Cotiza a {fx(r.pb,2)} veces su valor libros, caro frente a {fx(r.peer_pb,2)}x de {r.peer_lbl}{r.cty_lbl}.")
         if pd.notna(r.pb_hist):
             dv = r.pb / r.pb_hist - 1
             if dv < -0.15:
@@ -492,14 +494,14 @@ def reasons(r):
                 con.append(f"Su P/VL ({fx(r.pb,2)}x) está {fx(dv*100,0)}% arriba de su promedio histórico ({fx(r.pb_hist,2)}x).")
     elif r.val_model == "sales" and pd.notna(r.ps) and pd.notna(r.peer_ps):
         if r.ps < r.peer_ps * 0.85:
-            pro.append(f"Precio/ventas de {fx(r.ps,1)}x contra {fx(r.peer_ps,1)}x de {r.peer_lbl}: descuento por ventas.")
+            pro.append(f"Precio/ventas de {fx(r.ps,1)}x contra {fx(r.peer_ps,1)}x de {r.peer_lbl}{r.cty_lbl}: descuento por ventas.")
         elif r.ps > r.peer_ps * 1.4:
-            con.append(f"Precio/ventas de {fx(r.ps,1)}x, caro frente a {fx(r.peer_ps,1)}x de {r.peer_lbl}.")
+            con.append(f"Precio/ventas de {fx(r.ps,1)}x, caro frente a {fx(r.peer_ps,1)}x de {r.peer_lbl}{r.cty_lbl}.")
     if r.val_model == "pe" and not r.eps_gap_flag and pd.notna(r.fpe) and r.fpe > 0:
         if pd.notna(r.sec_fpe) and r.fpe < r.sec_fpe * 0.85 and not r.cyc:
-            pro.append(f"P/E esperado de {fx(r.fpe,1)}x contra {fx(r.sec_fpe,1)}x de la mediana de {r.peer_lbl}: cotiza con descuento.")
+            pro.append(f"P/E esperado de {fx(r.fpe,1)}x contra {fx(r.sec_fpe,1)}x de la mediana de {r.peer_lbl}{r.cty_lbl}: cotiza con descuento.")
         elif pd.notna(r.sec_fpe) and r.fpe > r.sec_fpe * 1.4:
-            con.append(f"P/E esperado de {fx(r.fpe,1)}x, caro frente a {fx(r.sec_fpe,1)}x de {r.peer_lbl}.")
+            con.append(f"P/E esperado de {fx(r.fpe,1)}x, caro frente a {fx(r.sec_fpe,1)}x de {r.peer_lbl}{r.cty_lbl}.")
     elif pd.notna(r.pe) and r.pe < 0 or (pd.notna(r.eps) and r.eps < 0):
         con.append("Sin ganancias en los últimos 12 meses.")
     if pd.notna(r.roe) and r.roe > 0.20:
@@ -515,7 +517,7 @@ def reasons(r):
         elif dv > 0.25:
             con.append(f"Cotiza a P/E {fx(r.pe,1)}x contra su promedio de los últimos {int(r.hist_n or 4)} años ({fx(r.pe_hist,1)}x): {fx(dv*100,0)}% más cara que su propia norma.")
         elif r.v_peer is not None and pd.notna(r.v_peer) and r.v_peer < -0.15:
-            con.append(f"Su P/E es bajo frente a {r.peer_lbl}, pero similar a su propio promedio histórico ({fx(r.pe_hist,1)}x): el descuento puede ser estructural, no una oportunidad.")
+            con.append(f"Su P/E es bajo frente a {r.peer_lbl}{r.cty_lbl}, pero similar a su propio promedio histórico ({fx(r.pe_hist,1)}x): el descuento puede ser estructural, no una oportunidad.")
     if pd.notna(r.div) and pd.notna(r.div5) and r.div > 0 and r.div5 > 0 and r.div > r.div5 * 1.2:
         pro.append(f"Su dividendo rinde {fx(r.div,2)}%, por encima de su promedio de 5 años ({fx(r.div5,2)}%): el precio está bajo frente a su historia.")
     if r.cyc:
@@ -657,6 +659,31 @@ def audit_and_model(df):
             df.loc[i, [c for c in ["fwd_eps", "fpe", "peg", "fwd_eps_g"] if c in df.columns]] = np.nan
             a.append("Ganancia esperada en otra moneda: P/E esperado no comparable." if adr
                      else "La ganancia esperada de Yahoo no coincide con su P/E esperado: se descarta.")
+        # ADRs con balances en otra moneda (pesos, reales): Yahoo divide la capitalización en dólares por las
+        # ventas en moneda local (precio/ventas de 0,001 en las argentinas) y arma la historia de múltiplos con
+        # el precio del ADR en dólares contra la ganancia por acción en moneda local. Nada de eso es comparable.
+        if adr:
+            fc = getattr(r, "fin_cur", "") or ""
+            if fc and fc != "USD":
+                df.loc[i, ["ps", "pe_hist", "ps_hist", "pb_hist"]] = np.nan
+                a.append(f"Balances en {fc}: su precio/ventas y su historia de múltiplos no son comparables con el "
+                         "precio del ADR en dólares; no se usan.")
+            # P/VL: por identidad contable P/VL = P/E x ROE. Si no se cumple, el valor libros de Yahoo está por acción
+            # ordinaria o en otra moneda (le pasa a algunos bancos argentinos) y el P/VL no sirve.
+            pb_c, pe_c, roe_c = df.at[i, "pb"], df.at[i, "pe"], df.at[i, "roe"]
+            if pd.notna(pb_c) and pb_c > 0 and pd.notna(pe_c) and pe_c > 0 and pd.notna(roe_c) and roe_c > 0:
+                if not (0.5 < pb_c / (pe_c * roe_c) < 2):
+                    df.loc[i, ["pb", "pb_hist", "bvps"]] = np.nan
+                    a.append(f"Precio/valor libros de Yahoo ({fx(pb_c)}x) no cierra con su P/E y su ROE "
+                             f"({fx(pe_c * roe_c)}x): valor libros por acción ordinaria o en otra moneda; no se usa.")
+            # aunque informe en dólares, la historia se descarta si no es comparable con el múltiplo de hoy
+            # (por ejemplo, ganancia por acción ordinaria en vez de por ADR)
+            for cur_c, h_c, lbl in (("pe", "pe_hist", "P/E"), ("ps", "ps_hist", "Precio/ventas"), ("pb", "pb_hist", "P/VL")):
+                cv, hv = df.at[i, cur_c], df.at[i, h_c]
+                if pd.notna(cv) and pd.notna(hv) and cv > 0 and hv > 0 and not (1 / 3 < cv / hv < 3):
+                    df.at[i, h_c] = np.nan
+                    a.append(f"{lbl} histórico ({fx(hv)}x) no comparable con el actual ({fx(cv)}x): "
+                             "moneda o acciones por ADR distintas; no se usa.")
         # valores atípicos
         if pd.notna(r.pe) and r.pe > 200:
             a.append(f"P/E histórico atípico ({r.pe:.0f}x): ganancia de 12 meses muy chica.")
@@ -705,6 +732,63 @@ def audit_and_model(df):
     return df
 
 
+def peer_gap(df):
+    """Mirada 'vs pares': cuánto más barata (negativo) o cara cotiza frente al múltiplo de sus pares."""
+    m = df.val_model
+    v_pe = df.fpe / df.sec_fpe - 1
+    v_pe = v_pe.where(~df.eps_gap_flag, df.ps / df.peer_ps - 1)          # ganancia no comparable: se usa P/V
+    v = np.select([m == "pe", m == "book", m == "sales"],
+                  [v_pe, df.pb / df.peer_pb - 1, df.ps / df.peer_ps - 1], np.nan)
+    return pd.Series(v, index=df.index, dtype=float).clip(-0.9, 1.5)
+
+
+CTY_MIN_N = 4             # mínimo de ADRs de un país (por familia de modelo) para medir su descuento estructural
+CTY_RANGE = (0.25, 1.5)   # límites del ajuste por riesgo país
+CTY_K = {}                # ajuste vigente por país y familia (se exporta en data.json)
+
+
+def country_adjust(df):
+    """Riesgo país. Un banco argentino nunca va a cotizar al P/VL de un banco de EE.UU.: ese descuento es
+    estructural (riesgo soberano, moneda, acceso al crédito), no una oportunidad. Por eso cada ADR se compara
+    contra el múltiplo de sus pares de EE.UU. multiplicado por el descuento típico de su mercado: la mediana,
+    entre los ADRs de ese país, de su múltiplo dividido el de sus pares.
+    Así el ADR típico de cada país queda en su valor justo y el monitor elige los mejores DENTRO de ese
+    mercado. Si el país en conjunto está barato frente a su propia historia, lo sigue mostrando la mirada
+    'vs su historia' (cuando su historia en dólares es confiable), que no se ajusta. Se mide por separado
+    para cada múltiplo (P/E esperado, valor libros, precio/ventas); con menos de 4 casos se usa el del P/E."""
+    global CTY_K
+    CTY_K = {}
+    df["cty_k"] = 1.0
+    df["cty_lbl"] = ""
+    # familia = el múltiplo que se compara contra los pares: P/E esperado, P/VL o precio/ventas
+    fam = pd.Series(np.select([df.val_model == "book", (df.val_model == "pe") & ~df.eps_gap_flag],
+                              ["pb", "pe"], "ps"), index=df.index)
+    lbl = {"pe": "P/E", "pb": "valor libros", "ps": "precio/ventas"}
+    ratio = 1 + df.v_peer
+    for reg in sorted(set(df.region) - {"EE.UU."}):
+        m_reg = (df.region == reg) & ratio.notna()
+        ks = {f: float(ratio[m_reg & (fam == f)].median()) for f in ("pe", "pb", "ps")
+              if (m_reg & (fam == f)).sum() >= CTY_MIN_N}
+        for f in ("pe", "pb", "ps"):
+            k = ks.get(f, ks.get("pe"))       # familia con pocos casos: se usa el descuento del P/E de ese país
+            if k is None or not math.isfinite(k):
+                continue
+            k = min(max(k, CTY_RANGE[0]), CTY_RANGE[1])
+            rows = (df.region == reg) & (fam == f)
+            df.loc[rows, "cty_k"] = k
+            df.loc[rows, "cty_lbl"] = f", ajustado por riesgo {reg}"
+            if rows.any():
+                CTY_K[f"{reg} · {lbl[f]}"] = round(k, 3)
+    for c in ("sec_fpe", "peer_pb", "peer_ps"):
+        df[c] = df[c] * df.cty_k
+    df["v_peer"] = peer_gap(df)
+    for i in df.index[(df.cty_lbl != "") & df.v_peer.notna()]:
+        k = df.at[i, "cty_k"]
+        df.at[i, "audit"].append(f"Pares de EE.UU. ajustados por riesgo {df.at[i, 'region']}: las empresas de su mercado cotizan, "
+                                 f"en la mediana, a {fx(k, 2)} veces el múltiplo de sus pares, y ese descuento no se cuenta como oportunidad.")
+    return df
+
+
 def build(universe, prices, infos, hist=None):
     hist = hist or {}
     rows = []
@@ -744,6 +828,7 @@ def build(universe, prices, infos, hist=None):
                          rec=num(inf.get("recommendationMean")),
                          n_an=num(inf.get("numberOfAnalystOpinions")) or 0,
                          industry=inf.get("industry") or "",
+                         fin_cur=str(inf.get("financialCurrency") or "").upper(),
                          fcf=num(inf.get("freeCashflow")),
                          earn_days=days_to(inf.get("earningsTimestampStart") or inf.get("earningsTimestamp")),
                          closes=c[-450:]))
@@ -762,29 +847,28 @@ def build(universe, prices, infos, hist=None):
     df["et_n"] = df[et_cols].fillna(False).astype(bool).sum(axis=1)
     df["et_ctx"] = (df.trend_n <= 0) & (df.dd <= -0.05)   # viene de una caída y todavía sin tendencia alcista
     # se calcula ANTES del puntaje fundamental porque lo usa la regla cíclica
-    # P/E de pares: mediana de su industria si tiene al menos 5 empresas comparables; si no, de su sector
-    fpe_pos = df.fpe.where(df.fpe > 0)
+    # P/E de pares: mediana de su industria si tiene al menos 5 empresas comparables; si no, de su sector.
+    # Los pares son solo empresas de EE.UU.: los ADRs no entran en la mediana (bajarían la de su industria por
+    # su riesgo país) y se comparan contra ella con el ajuste de country_adjust().
+    us_peer = df.region == "EE.UU."
+    fpe_pos = df.fpe.where((df.fpe > 0) & us_peer)
     ind_n = fpe_pos.groupby(df.industry).transform("count")
     ind_med = fpe_pos.groupby(df.industry).transform("median")
     sec_med = fpe_pos.groupby(df.sector).transform("median")
     use_ind = (ind_n >= 5) & (df.industry != "")
     df["sec_fpe"] = ind_med.where(use_ind, sec_med)
     # precio/valor libros y precio/ventas de pares (para los modelos "book" y "sales")
-    pb_pos = df.pb.where((df.pb > 0) & (df.val_model == "book"))
+    pb_pos = df.pb.where((df.pb > 0) & (df.val_model == "book") & us_peer)
     pb_ind_n = pb_pos.groupby(df.industry).transform("count")
     df["peer_pb"] = pb_pos.groupby(df.industry).transform("median").where(pb_ind_n >= 5, float(pb_pos.median()) if pb_pos.notna().any() else np.nan)
-    ps_pos = df.ps.where(df.ps > 0)
+    ps_pos = df.ps.where((df.ps > 0) & us_peer)
     ps_ind_n = ps_pos.groupby(df.industry).transform("count")
     df["peer_ps"] = ps_pos.groupby(df.industry).transform("median").where(ps_ind_n >= 5, ps_pos.groupby(df.sector).transform("median"))
     df["peer_lbl"] = np.where(use_ind, "su industria", "su sector")
     df["peer_grp"] = np.where(use_ind, df.industry, df.sector)
     # ---- tres miradas de valuación (negativo = más barata)
     m = df.val_model
-    v_pe = df.fpe / df.sec_fpe - 1
-    v_pe = v_pe.where(~df.eps_gap_flag, df.ps / df.peer_ps - 1)          # ganancia no comparable: se usa P/V
-    df["v_peer"] = np.select([m == "pe", m == "book", m == "sales"],
-                             [v_pe, df.pb / df.peer_pb - 1, df.ps / df.peer_ps - 1], np.nan)
-    df["v_peer"] = df.v_peer.clip(-0.9, 1.5)
+    df["v_peer"] = peer_gap(df)
     pe_now = df.pe.where((df.pe > 0) & (m == "pe") & ~df.eps_gap_flag)
     div_rev = (df.div5 / df["div"] - 1).where((df["div"] > 0) & (df.div5 > 0))
     vh = pd.concat([pe_now / df.pe_hist - 1,
@@ -794,6 +878,9 @@ def build(universe, prices, infos, hist=None):
     df["v_hist"] = vh.mean(axis=1, skipna=True).where(vh.notna().any(axis=1))
     df["v_an"] = (-df.upside).where(df.n_an >= 3)
     df["peer_lbl"] = np.where(df.val_model == "book", np.where(pb_ind_n >= 5, "su industria", "bancos y aseguradoras"), df.peer_lbl)
+    # riesgo país: los múltiplos de pares de los ADRs se ajustan por el descuento típico de su mercado
+    # (va antes de la regla cíclica y del puntaje, que usan el P/E de pares y la mirada "vs pares")
+    df = country_adjust(df)
     cyc_ind = df.industry.isin(CYCLICAL)
     peak_eps = (df.eps_g > 0.5) | ((df.fwd_eps < df.eps) & (df.eps > 0))
     df["cyc"] = (cyc_ind & peak_eps & (df.fpe > 0) & (df.fpe < 0.6 * df.sec_fpe)).fillna(False).astype(bool)
@@ -991,7 +1078,9 @@ def add_rotation(df, series):
 VM_WEEKS = 26
 
 
-AN_K = 1.0   # sesgo optimista típico de los precios objetivo (se calcula cada día)
+AN_K = 1.0   # sesgo optimista típico de los precios objetivo en EE.UU. (se calcula cada día)
+AN_K_REG = {}   # ídem para cada mercado de ADRs (los analistas de Argentina suelen ser mucho más optimistas)
+AN_K_MIN_N = 8  # mínimo de ADRs de un país con 3+ analistas para calibrarlo aparte; si no, se usa el de EE.UU.
 
 
 def fair_value(r):
@@ -1008,18 +1097,18 @@ def fair_value(r):
         else:
             base = r.fwd_eps if pd.notna(r.fwd_eps) and r.fwd_eps > 0 else None
         if base and pd.notna(r.sec_fpe) and r.sec_fpe > 0:
-            add(base * r.sec_fpe, 1, f"P/E de {r.peer_lbl}" + (" con ganancia de ciclo normalizada" if r.cyc else ""))
+            add(base * r.sec_fpe, 1, f"P/E de {r.peer_lbl}{r.cty_lbl}" + (" con ganancia de ciclo normalizada" if r.cyc else ""))
         if base and pd.notna(r.pe_hist) and not r.cyc:
             add(base * r.pe_hist, 1, "P/E histórico propio")
     elif m == "book" and pd.notna(r.bvps) and r.bvps > 0:
         if pd.notna(r.peer_pb):
-            add(r.bvps * r.peer_pb, 1, f"P/VL de {r.peer_lbl}")
+            add(r.bvps * r.peer_pb, 1, f"P/VL de {r.peer_lbl}{r.cty_lbl}")
         if pd.notna(r.pb_hist):
             add(r.bvps * r.pb_hist, 1, "P/VL histórico propio")
     if m in ("sales",) or (m == "pe" and r.eps_gap_flag):
         rps = r.p / r.ps if pd.notna(r.ps) and r.ps > 0 else None
         if rps and pd.notna(r.peer_ps):
-            add(rps * r.peer_ps, 1, f"P/V de {r.peer_lbl}")
+            add(rps * r.peer_ps, 1, f"P/V de {r.peer_lbl}{r.cty_lbl}")
         if rps and pd.notna(r.ps_hist):
             add(rps * r.ps_hist, 1, "P/V histórico propio")
     if m == "reit":
@@ -1027,7 +1116,10 @@ def fair_value(r):
         if d0 and d5 and pd.notna(d0) and pd.notna(d5) and d0 > 0 and d5 > 0:
             add(r.p * d0 / d5, 1, "dividendo vs su promedio de 5 años")
     if r.n_an >= 3 and pd.notna(r.target):
-        add(r.target / AN_K, 1.0 if r.n_an >= 5 else 0.5, "analistas ajustados por optimismo" + ("" if r.n_an >= 5 else ", pocos: peso reducido"))
+        k_reg = AN_K_REG.get(r.region)
+        add(r.target / (k_reg or AN_K), 1.0 if r.n_an >= 5 else 0.5,
+            "analistas ajustados por optimismo" + (f" típico de {r.region}" if k_reg else "")
+            + ("" if r.n_an >= 5 else ", pocos: peso reducido"))
     if not vals:
         return None, None
     return float(np.average(vals, weights=w)), " + ".join(src)
@@ -1086,11 +1178,17 @@ def add_value_momentum(df, series):
     out = {k: [] for k in ["vm", "fair", "fair_raw", "fair_src", "fair_up", "vm_z", "vm_zp", "vm_st", "vm_doubt"]}
     # calibración: solo el precio objetivo de los analistas, que tiene un sesgo optimista sistemático
     # (la mediana del S&P suele quedar 8-12% arriba del precio). Los métodos por múltiplos ya son relativos.
-    global AN_K
+    global AN_K, AN_K_REG
     us = df[(df.region == "EE.UU.") & (df.n_an >= 5) & df.target.notna()]
     ratios = (us.target / us.p).clip(0.5, 2)
     AN_K = float(ratios.median()) if len(ratios) >= 20 else 1.0
     df.attrs["vm_k"] = AN_K
+    # cada mercado de ADRs con su propio sesgo: en Argentina el precio objetivo típico queda muy arriba del precio
+    AN_K_REG = {}
+    for reg in sorted(set(df.region) - {"EE.UU."}):
+        g = df[(df.region == reg) & (df.n_an >= 3) & df.target.notna() & (df.p > 0)]
+        if len(g) >= AN_K_MIN_N:
+            AN_K_REG[reg] = float((g.target / g.p).clip(0.5, 2).median())
     raw = [fair_value(r) for r in df.itertuples()]
     for (fair_r, src), r in zip(raw, df.itertuples()):
         fair = fair_r
@@ -1172,7 +1270,21 @@ def add_verdicts(df, prev, mkt_up=True):
     return df
 
 
-V_AT, V_AF, V_UP = 65, 60, 0.10      # umbrales: técnico, fundamental, recorrido mínimo a valor justo
+V_AT, V_AF = 65, 60      # umbrales: técnico y fundamental
+# Recorrido mínimo a valor justo según la volatilidad de cada acción: un 10% en una defensiva (volatilidad
+# anual ~18%) es un margen amplio, pero en una tecnológica o un ADR argentino (40-60%) es ruido de pocas
+# semanas. Se exige la mitad de su volatilidad anual, con un piso de 10% y un techo de 30%.
+UP_MIN, UP_MAX, UP_VOL = 0.10, 0.30, 0.5
+
+
+def up_req(r):
+    """Recorrido mínimo exigido a valor justo para esta acción."""
+    v = getattr(r, "volat_y", None)
+    if v is None or not pd.notna(v) or v <= 0:
+        v = getattr(r, "volat", None)
+    if v is None or not pd.notna(v) or v <= 0:
+        return UP_MIN
+    return float(min(UP_MAX, max(UP_MIN, UP_VOL * v)))
 # El Golden Cross no habilita "Comprar": en el track récord (4 años, 100 acciones al azar) llegó tarde y
 # rindió peor que comprar sin señal. Queda como dato informativo en la ficha.
 ENTRY_SETUPS = {"Corrección con señal de rebote", "Ruptura de máximos"}
@@ -1181,15 +1293,19 @@ ENTRY_SETUPS = {"Corrección con señal de rebote", "Ruptura de máximos"}
 def verdict(r, mkt_up=True):
     L = lights(r)
     up = r.fair_up if r.fair_up is not None and pd.notna(r.fair_up) else None
+    req = up_req(r)
+    vol = getattr(r, "volat_y", None)
+    vol = vol if vol is not None and pd.notna(vol) and vol > 0 else r.volat
+    req_txt = f"{req*100:.0f}%" + (f" (por su volatilidad de {vol*100:.0f}% anual)" if req > UP_MIN else "")
     doubt = bool(getattr(r, "vm_doubt", False))
     entry = (r.vm_z == "Compra") or (r.setup in ENTRY_SETUPS)
     checks = [
         (r.at >= V_AT, f"técnico ≥ {V_AT} (tiene {r.at:.0f})"),
         (r.af >= V_AF, f"fundamental ≥ {V_AF} (tiene {r.af:.0f})"),
         (all(L[k] != 0 for k in ("cal", "val", "tec")), "ninguna luz roja en calidad, valuación o técnico"),
-        (up is not None and up >= V_UP and not doubt,
+        (up is not None and up >= req and not doubt,
          "valuación confiable (hoy está marcada como dudosa)" if doubt else
-         f"recorrido a valor justo ≥ {V_UP*100:.0f}%" + (f" (tiene {up*100:+.0f}%)" if up is not None else "")),
+         f"recorrido a valor justo ≥ {req_txt}" + (f", tiene {up*100:+.0f}%" if up is not None else "")),
         (entry, "zona Compra o señal de entrada (corrección con rebote o ruptura de máximos)"),
     ]
     falta = [t for ok, t in checks if not ok]
@@ -1211,13 +1327,16 @@ def verdict(r, mkt_up=True):
         why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
         return "Evitar", f"Evitar por ahora: {why}."
     # 3) Mantener
-    if r.vm_z == "Mantener" or (up is not None and up < V_UP and r.trend_n >= 1):
+    if r.vm_z == "Mantener" or (up is not None and up < req and r.trend_n >= 1):
         if up is not None and up < 0:
             return "Mantener", f"Ya supera su valor justo estimado (recorrido {up_txt}): si ya se tiene, mantener; no sumar."
+        if up is not None and up >= UP_MIN and req > UP_MIN:
+            return "Mantener", (f"Recorrido {up_txt}, menor al {req*100:.0f}% que se exige por su volatilidad: "
+                                "si ya se tiene, mantener; no sumar.")
         return "Mantener", f"Cerca de su valor justo (recorrido {up_txt}): si ya se tiene, mantener; no sumar."
     # 4) Comprar en partes
     early = (getattr(r, "et_ctx", False) and r.et_n >= 4) or r.setup == "Golden Cross en formación"
-    if (r.af >= 55 and L["cal"] != 0 and L["val"] != 0 and up is not None and up >= V_UP and not doubt
+    if (r.af >= 55 and L["cal"] != 0 and L["val"] != 0 and up is not None and up >= req and not doubt
             and (early or entry) and not earn_soon):
         how = "giro temprano" if early else "señal de entrada"
         return "Comprar en partes", f"Entrada escalonada por {how}, con stop. Para compra plena falta: {', '.join(falta)}."
@@ -1249,7 +1368,7 @@ def save_signals(df, spy, path=SIGNAL_LOG):
             continue
         log.append({"date": today, "t": r.t, "name": r.name, "sector": r.sector, "verdict": r.verdict,
                     "setup": r.setup, "p": r2(r.p, 2), "spy": r2(spy_p, 2), "fair": r2(r.fair, 2),
-                    "fair_up": r2(r.fair_up), "at": r2(r.at, 0), "af": r2(r.af, 0)})
+                    "fair_up": r2(r.fair_up), "up_req": r2(up_req(r), 3), "at": r2(r.at, 0), "af": r2(r.af, 0)})
         added += 1
     with open(path, "w", encoding="utf-8") as f:
         json.dump(no_nan(log), f, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
@@ -1307,7 +1426,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
             "setup", "elig", "rank", "val_model", "eps_gap", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
-            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off"]
+            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
@@ -1317,6 +1436,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             vp = r.verdict_prev if isinstance(r.verdict_prev, str) else None
             d["verdict"], d["verdict_why"], d["verdict_prev"], d["verdict_new"] = r.verdict, r.verdict_why, vp, bool(r.verdict_new)
         d["earn_days"] = int(r.earn_days) if pd.notna(r.earn_days) else None
+        d["up_req"] = r2(up_req(r), 3)
         d["pro"], d["con"], d["grow"] = reasons(r)
         if getattr(r, "vm", None):
             d.update(vm=r.vm, fair=r2(r.fair, 2), fair_raw=r2(r.fair_raw, 2), vm_doubt=bool(r.vm_doubt), fair_src=r.fair_src, fair_up=r2(r.fair_up), vm_z=r.vm_z,
@@ -1338,6 +1458,8 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "audit_summary": audit_summary(df),
             "market": df.attrs.get("market", {"up": True}),
             "macro": macro or {}, "vm_k": r2(df.attrs.get("vm_k", 1.0), 3),
+            "vm_k_reg": {k: r2(v, 3) for k, v in AN_K_REG.items()}, "cty_k": CTY_K,
+            "up_rule": {"min": UP_MIN, "max": UP_MAX, "vol": UP_VOL},
             "rows": out_rows}
 
 
