@@ -202,7 +202,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <section id="t-one">
     <div class="card">
       <h2>Probar una empresa</h2>
-      <p class="sub">Escribí un ticker del monitor (por ejemplo MU) para ver en qué momentos de los últimos 4 años hubiera dado la señal de compra y cómo le fue después.</p>
+      <p class="sub">Escribí un ticker del monitor (por ejemplo MU) para ver en qué momentos de los últimos 10 años hubiera dado la señal de compra y cómo le fue después.</p>
       <div class="bar"><input id="one-q" list="one-list" placeholder="Ticker, ej. MU" autocomplete="off" style="font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);width:200px;text-transform:uppercase"><datalist id="one-list"></datalist><button class="chip on" id="one-go">Ver</button></div>
       <div id="one-body"></div>
     </div>
@@ -219,7 +219,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <section id="t-bt">
     <div class="card">
       <h2>Track récord de "Comprar hoy"</h2>
-      <p class="sub">Cada día de los últimos 4 años se reconstruyó la señal con la información que existía ese día y se midió qué pasó después. Se prueba en dos grupos: las 3 más grandes de cada sector (las ganadoras de hoy) y una muestra de 100 acciones al azar del S&amp;P 500, que incluye las que anduvieron mal y es la prueba más exigente. Una señal cuenta una sola vez: para contar otra en la misma acción tienen que pasar 20 ruedas sin señal. Se compra al cierre del día siguiente.</p>
+      <p class="sub">Cada día de los últimos 10 años se reconstruyó la señal con la información que existía ese día y se midió qué pasó después. Se prueba en dos grupos: las 3 más grandes de cada sector (las ganadoras de hoy) y una muestra de 100 acciones al azar del S&amp;P 500, que incluye las que anduvieron mal y es la prueba más exigente. Una señal cuenta una sola vez: para contar otra en la misma acción tienen que pasar 20 ruedas sin señal. Se compra al cierre del día siguiente.</p>
       <div class="bar" id="bt-uni"></div>
       <div id="bt-body"><p class="note">Cargando…</p></div>
     </div>
@@ -316,7 +316,7 @@ async function showOne(t){
   const kp=(l,v,s2)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s2}</div></div>`;
   el.innerHTML=`<h3 style="margin:14px 0 4px">${esc(t)} <span class="note">${esc(o.n)} · ${esc(o.s)}</span></h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0">
-      ${kp('Señales con la regla actual',cur.length,`de ${all.length} señales técnicas en 4 años`)}
+      ${kp('Señales con la regla actual',cur.length,`de ${all.length} señales técnicas en 10 años`)}
       ${kp('Positivas a 6 meses (regla actual)',mc?P0(mc.win):'—',mc?`${mc.n} con resultado · promedio ${pct(mc.avg,1)}`:'sin señales con 6 meses cumplidos')}
       ${kp('Todas las señales técnicas',ma?P0(ma.win):'—',ma?`positivas a 6 meses · promedio ${pct(ma.avg,1)}`:'—')}
       ${kp('Comprando cualquier día',b&&b.n?P0(b.win):'—',b&&b.n?`positivas a 6 meses · promedio ${pct(b.avg,1)}`:'—')}
@@ -325,7 +325,7 @@ async function showOne(t){
     <svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block;margin:6px 0">${yl}${xl}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>${marks}</svg>
     <div class="note" style="margin-bottom:10px">${leg} · pasá el mouse por un punto para ver el detalle.</div>
     ${all.length?`<div class="tw"><table><thead><tr><th>Fecha</th><th>Señal</th><th>Tipo</th><th class="n">Técnico</th><th class="n">Precio</th><th class="n">3 meses</th><th class="n">6 meses</th><th class="n">12 meses</th><th class="n">vs S&amp;P 6m</th><th>Objetivo / stop</th></tr></thead><tbody>
-    ${all.slice().reverse().map(e=>{const k=KIND(e),r=v=>`<span class="${cls(v)}">${pct(v,1)}</span>`;return `<tr><td>${esc(e.date.split('-').reverse().join('/'))}</td><td>${setupChip(e.setup)}</td><td><span style="color:${k[2]};font-weight:600">●</span> <span class="note">${k[1]}</span></td><td class="n">${e.at}</td><td class="n">US$ ${fmt(e.p)}</td><td class="n">${r(e['3m'])}</td><td class="n">${r(e['6m'])}</td><td class="n">${r(e['12m'])}</td><td class="n">${e['6m']!=null&&e.spy_6m!=null?r(e['6m']-e.spy_6m):'—'}</td><td>${e.ts==='objetivo'?'<span class="up">✓ objetivo</span>':e.ts==='stop'?'<span class="down">✗ stop</span>':e.ts==='abierta'?'<span class="note">sin tocar</span>':'<span class="note">en curso</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">En los últimos 4 años esta acción no dio ninguna señal de compra técnica.</p>'}
+    ${all.slice().reverse().map(e=>{const k=KIND(e),r=v=>`<span class="${cls(v)}">${pct(v,1)}</span>`;return `<tr><td>${esc(e.date.split('-').reverse().join('/'))}</td><td>${setupChip(e.setup)}</td><td><span style="color:${k[2]};font-weight:600">●</span> <span class="note">${k[1]}</span></td><td class="n">${e.at}</td><td class="n">US$ ${fmt(e.p)}</td><td class="n">${r(e['3m'])}</td><td class="n">${r(e['6m'])}</td><td class="n">${r(e['12m'])}</td><td class="n">${e['6m']!=null&&e.spy_6m!=null?r(e['6m']-e.spy_6m):'—'}</td><td>${e.ts==='objetivo'?'<span class="up">✓ objetivo</span>':e.ts==='stop'?'<span class="down">✗ stop</span>':e.ts==='abierta'?'<span class="note">sin tocar</span>':'<span class="note">en curso</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">En los últimos 10 años esta acción no dio ninguna señal de compra técnica.</p>'}
     <p class="note" style="margin-top:8px">La regla actual del monitor además exige valor justo y analistas, que no tienen historia: lo verde es lo más parecido que se puede reconstruir.</p>`;
 }
 S.btu='broad';
