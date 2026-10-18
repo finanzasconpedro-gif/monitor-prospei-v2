@@ -1,7 +1,7 @@
 """
 Track récord de la señal "Comprar hoy" del Monitor PROSPEI.
 
-Mira hacia atrás 10 años, día por día, en las 3 empresas de mayor capitalización de cada sector del S&P 500,
+Mira hacia atrás 10 años (YEARS), día por día, en las 3 empresas de mayor capitalización de cada sector del S&P 500,
 y registra cada vez que se dio la señal. Después mide qué pasó con el precio 3, 6 y 12 meses más tarde.
 
 Todo es "punto en el tiempo": en cada fecha solo se usa información que existía ese día
@@ -27,8 +27,7 @@ import requests
 
 import screener as S
 
-YEARS = 10                    # años que se prueban (desde 2016: incluye fines de 2018, el COVID de 2020 y 2022)
-HIST_YEARS = 5                # años extra de precios antes del período, para las medias, máximos y tendencias
+YEARS = 10                    # años de prueba (2016-2026: incluye 2018, el COVID en 2020 y 2022)
 GAP = 20                      # ruedas sin señal para contar una señal nueva (evita contar la misma compra muchas veces)
 H = {"3m": 63, "6m": 126, "12m": 252}
 TARGET, STOP, TS_DAYS = 0.10, -0.08, 126
@@ -37,24 +36,6 @@ GOAL = 0.70
 # Se carga como secreto del repositorio: Settings → Secrets and variables → Actions → SEC_UA
 SEC_UA = os.environ.get("SEC_UA") or "PROSPEI Monitor research github.com/finanzasconpedro-gif"
 BROAD_N, SEED = 100, 7        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
-# Muestra amplia CONGELADA: las 100 acciones sorteadas para el informe de validación de octubre 2026.
-# Antes se sorteaba en cada corrida sobre data.json, cuyo orden cambia todos los días con el ranking, y salían
-# otras 100 acciones: los resultados no eran comparables de un mes a otro ni entre monitores. Se queda fija
-# aunque alguna salga del S&P 500 (eso además reduce el sesgo de supervivencia hacia adelante).
-# Para sortear una muestra nueva: BROAD_FIXED = None.
-BROAD_FIXED = {
-    "Comunicaciones": ["APP", "TKO", "VZ"],
-    "Consumo básico": ["DLTR", "KDP", "KHC", "KVUE", "MNST", "TGT"],
-    "Consumo discrecional": ["APTV", "DHI", "DPZ", "GM", "HAS", "HLT", "MAR", "MCD", "ULTA"],
-    "Energía": ["BKR", "SLB", "TPL", "TRGP"],
-    "Financiero": ["AFL", "AMP", "BEN", "BNY", "C", "CFG", "CME", "EG", "HIG", "HOOD", "JKHY", "KEY", "MRSH", "PYPL", "RF", "WTW"],
-    "Industrial": ["ADP", "AXON", "BE", "CPRT", "CTAS", "EMR", "EXPD", "FDX", "GD", "GNRC", "HUBB", "IR", "NSC", "RSG", "SWK", "TDG", "TXT"],
-    "Materiales": ["AMCR", "AVY", "NUE", "PPG", "VMC"],
-    "Real estate": ["AMT", "ESS", "EXR", "INVH", "REG", "VMRK"],
-    "Salud": ["AMGN", "CAH", "CNC", "COR", "DVA", "GILD", "LH", "MTD", "RVTY", "TECH", "UNH", "WST"],
-    "Tecnología": ["COHR", "CRWD", "CTSH", "FTNT", "HPE", "HPQ", "JBL", "KEYS", "MPWR", "MRVL", "MU", "NTAP", "Q", "ROP", "SWKS", "TER"],
-    "Utilities": ["AEE", "AEP", "AWK", "D", "ED", "ETR"],
-}
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción clase A
 
 FALLBACK = {   # por si no está data.json: 3 de mayor capitalización por sector (aprox.)
@@ -72,8 +53,12 @@ VARIANTS = {
     "D": "C + los mismos fundamentos de B (la regla propuesta para el monitor)",
     "E": "D + filtro de mercado: solo cuando el S&P 500 está arriba de su media de 200 días",
     "F": "C + crecimiento (ganancia y ventas de 12 meses creciendo contra el año anterior) + filtro de mercado",
+    "G": "Solo corrección con señal de rebote (puntaje técnico ≥ 65, sin balance en 7 días): sin ruptura ni Golden Cross",
+    "H": "G + momentum: la acción está entre el 30% del S&P 500 que más subió en 6 meses (sin contar el último mes)",
 }
-KEYS = ("A", "B", "C", "D", "E", "F")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H")
+SPLIT = "2022-01-01"   # diseño: antes de esta fecha · validación: desde esta fecha
+MOM_MIN = 0.70
 EXIT_H = 252     # se compara cada regla de venta contra mantener 12 meses
 EXIT_RULES = {
     "stop10": "Stop fijo: vender si pierde 10% desde la compra",
@@ -85,6 +70,8 @@ EXIT_RULES = {
     "risk2": "Riesgo de baja: 2 de 3 señales técnicas (tendencia bajista, perforó mínimo, Death Cross)",
     "cartera": "Todas las reglas de Vender de Mi cartera juntas (la primera que se active)",
     "cartera_r": "Mi cartera + riesgo de baja",
+    "fund": "Fundamentos: la ganancia de 12 meses cae contra el año anterior en dos trimestres seguidos (o pasa a pérdida)",
+    "fund_t": "Fundamentos en baja + tendencia bajista juntos (propuesta para Vender en Mi cartera)",
 }
 # reglas originales del monitor (la A incluye el Golden Cross; el monitor ya lo sacó en base a esta prueba)
 ENTRY_A = {"Corrección con señal de rebote", "Golden Cross", "Ruptura de máximos"}
@@ -95,13 +82,11 @@ def pick_universes():
     """top: las 3 más grandes de cada sector. broad: 100 al azar del S&P 500, repartidas por sector."""
     top = pick_universe()
     tops = {t for v in top.values() for t in v}
-    if BROAD_FIXED:
-        return {"top": top, "broad": {sec: list(v) for sec, v in BROAD_FIXED.items()}}
     broad = {}
     try:
         rows = json.load(open("data.json", encoding="utf-8"))["rows"]
         df = pd.DataFrame([{"t": r["t"], "sector": r["sector"], "region": r.get("region")} for r in rows])
-        df = df[(df.region == "EE.UU.") & ~df.t.isin(tops)].sort_values("t")   # orden fijo: el sorteo no depende del ranking del día
+        df = df[(df.region == "EE.UU.") & ~df.t.isin(tops)]
         frac = min(1.0, BROAD_N / len(df))
         for sec, g in df.groupby("sector"):
             broad[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac))), random_state=SEED).t)
@@ -129,7 +114,7 @@ def pick_universe():
 # ------------------------------------------------------------------ SEC (balances punto en el tiempo)
 SEC_FAILS = [0]          # fallas seguidas: si la SEC deja de responder, se sigue sin balances en vez de trabarse
 T0 = time.time()
-TIME_BUDGET_FUND = 50 * 60   # tope de minutos para bajar balances; después se sigue con lo que haya
+TIME_BUDGET_FUND = 90 * 60   # tope de minutos para bajar balances; después se sigue con lo que haya
 
 
 def sec_get(url, timeout=25):
@@ -257,9 +242,21 @@ def sec_earn_dates(cik):
     try:
         r = sec_get(f"https://data.sec.gov/submissions/CIK{cik:010d}.json", 30).json()
         time.sleep(0.12)
-        rec = r.get("filings", {}).get("recent", {})
-        return sorted({pd.Timestamp(d) for f, d, it in zip(rec.get("form", []), rec.get("filingDate", []), rec.get("items", []))
-                       if f == "8-K" and "2.02" in str(it)})
+        pages = [r.get("filings", {}).get("recent", {})]
+        # las empresas grandes tienen miles de presentaciones: las más viejas están en archivos aparte
+        lim = (pd.Timestamp.today() - pd.DateOffset(years=YEARS + 1)).strftime("%Y-%m-%d")
+        for fobj in r.get("filings", {}).get("files", []):
+            if str(fobj.get("filingTo", "9999")) >= lim:
+                try:
+                    pages.append(sec_get(f"https://data.sec.gov/submissions/{fobj['name']}", 30).json())
+                    time.sleep(0.12)
+                except Exception:
+                    pass
+        out = set()
+        for rec in pages:
+            out |= {pd.Timestamp(d) for f, d, it in zip(rec.get("form", []), rec.get("filingDate", []), rec.get("items", []))
+                    if f == "8-K" and "2.02" in str(it)}
+        return sorted(out)
     except Exception:
         return []
 
@@ -387,7 +384,10 @@ def run_ticker(args):
         if cc_ and fd is not None:
             eg, rg = fd[4][i], fd[3][i]
             grow = bool(np.isfinite(eg) and eg > 0 and np.isfinite(rg) and rg > 0)
-        sig = {"A": a, "B": b, "C": cc_, "D": b and cc_, "E": b and cc_ and up, "F": grow and up}
+        g_ = bool(r.at >= S.V_AT and r.setup == "Corrección con señal de rebote" and not earn)
+        h_ = g_ and np.isfinite(mom[i]) and mom[i] >= MOM_MIN
+        sig = {"A": a, "B": b, "C": cc_, "D": b and cc_, "E": b and cc_ and up, "F": grow and up,
+               "G": g_, "H": bool(h_)}
         new = {k: sig[k] and i - last.get(k, -999) > GAP for k in sig}
         if i % 5 == 0 or any(new.values()):
             p0 = c[i + 1]
@@ -425,6 +425,14 @@ def run_ticker(args):
     elow[ki] = pd.to_numeric(df.et_low, errors="coerce").values
     slp[ki] = pd.to_numeric(df.slope200_pct, errors="coerce").values
     dcross[ki] = df.cross.isin(["Death Cross reciente", "Death Cross en formación"]).values
+    # deterioro de fundamentos: ganancia 12m cae contra el año anterior (o pasa a pérdida), en dos trimestres seguidos
+    det = np.zeros(N_, dtype=bool)
+    if fd is not None:
+        e0 = fd[0]
+        prev = np.r_[np.full(252, np.nan), e0[:-252]] if N_ > 252 else np.full(N_, np.nan)
+        bad = ((np.isfinite(fd[4]) & (fd[4] < 0)) | (np.isfinite(e0) & (e0 <= 0) & np.isfinite(prev) & (prev > 0)))
+        bad_q = np.r_[np.zeros(63, dtype=bool), bad[:-63]] if N_ > 63 else np.zeros(N_, dtype=bool)
+        det = bad & bad_q
     exits = []
     for e in eps["C"]:
         i0 = int(np.searchsorted(dates, np.datetime64(e["date"])))
@@ -450,6 +458,8 @@ def run_ticker(args):
                     "risk2": risk >= 2}
             fire["cartera"] = fire["stop10t"] or fire["hard20"] or fire["trail15m"] or fire["bear"]
             fire["cartera_r"] = fire["cartera"] or fire["risk2"]
+            fire["fund"] = bool(det[j])
+            fire["fund_t"] = bool(det[j]) and np.isfinite(t_) and t_ <= -1
             for k_, f_ in fire.items():
                 if f_ and k_ not in done:
                     px = c[j + 1] if np.isfinite(c[j + 1]) else pj      # se vende al cierre del día siguiente
@@ -460,6 +470,12 @@ def run_ticker(args):
             out[k_] = done.get(k_, (float(hold), None))
         exits.append(out)
     return t, {"eps": eps, "base": base, "exits": exits}
+
+
+def split_stats(rows):
+    d = [r for r in rows if r["date"] < SPLIT]
+    v = [r for r in rows if r["date"] >= SPLIT]
+    return {"d": {h: stats(d, h) for h in ("6m", "12m")}, "v": {h: stats(v, h) for h in ("6m", "12m")}}
 
 
 def by(rows, field):
@@ -496,7 +512,7 @@ def main():
 
     frames = []
     for i in range(0, len(tick), 100):
-        frames.append(yf.download(tick[i:i + 100] + ["SPY"], start=(pd.Timestamp.today() - pd.DateOffset(years=YEARS + HIST_YEARS)).strftime("%Y-%m-%d"), interval="1d", auto_adjust=True,
+        frames.append(yf.download(tick[i:i + 100] + ["SPY"], period="20y", interval="1d", auto_adjust=True,
                                   actions=True, group_by="ticker", threads=True, progress=False))
         time.sleep(1)
     lv = lambda d: set(d.columns.get_level_values(0))
@@ -512,7 +528,7 @@ def main():
                 ev = [(pd.Timestamp(k).tz_localize(None) if pd.Timestamp(k).tzinfo else pd.Timestamp(k), float(v)) for k, v in sp_[sp_ > 0].items() if float(v) != 1.0]
                 if ev:
                     splits[s_] = ev
-    print(f"Acciones con splits en {YEARS + HIST_YEARS} años:", len(splits))
+    print("Acciones con splits en 10 años:", len(splits))
     close = close.ffill(limit=3)
     tick = [t for t in tick if t in close.columns and t in vol.columns and close[t].notna().sum() > 300]
     sp = [s for s, _, _ in S.sp500()]
@@ -601,6 +617,7 @@ def main():
             "by_sector": {k: by(bk[k], "sector") for k in KEYS},
             "by_setup": {k: by(bk[k], "setup") for k in KEYS},
             "by_year": {k: by(bk[k], "year") for k in KEYS + ("base",)},
+            "split": {k: split_stats(bk[k]) for k in KEYS + ("base",)},
             "episodes": sorted([{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items() if k not in ("b", "c", "d", "m", "g")}
                                 for r in bk["A"]], key=lambda r: r["date"], reverse=True),
             "b_set": bset,
@@ -610,7 +627,7 @@ def main():
     out = {
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "period": {"from": str(idx[days[0]].date()), "to": str(end.date())},
-        "goal": GOAL, "gap": GAP, "target": TARGET, "stop": STOP, "ts_days": TS_DAYS,
+        "split_date": SPLIT, "goal": GOAL, "gap": GAP, "target": TARGET, "stop": STOP, "ts_days": TS_DAYS,
         "sec": {"ok": sec_ok, "total": len(tick), "error": sec_msg},
         "universes": {u: pack(u) for u in unis if member[u]},
     }
