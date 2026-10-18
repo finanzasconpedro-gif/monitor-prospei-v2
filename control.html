@@ -202,7 +202,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <section id="t-one">
     <div class="card">
       <h2>Probar una empresa</h2>
-      <p class="sub">Escribí un ticker del monitor (por ejemplo MU) para ver en qué momentos de los últimos 10 años hubiera dado la señal de compra y cómo le fue después.</p>
+      <p class="sub">Escribí un ticker del monitor (por ejemplo MU) para ver en qué momentos de los últimos años hubiera dado la señal de compra y cómo le fue después.</p>
       <div class="bar"><input id="one-q" list="one-list" placeholder="Ticker, ej. MU" autocomplete="off" style="font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);width:200px;text-transform:uppercase"><datalist id="one-list"></datalist><button class="chip on" id="one-go">Ver</button></div>
       <div id="one-body"></div>
     </div>
@@ -219,7 +219,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <section id="t-bt">
     <div class="card">
       <h2>Track récord de "Comprar hoy"</h2>
-      <p class="sub">Cada día de los últimos 10 años se reconstruyó la señal con la información que existía ese día y se midió qué pasó después. Se prueba en dos grupos: las 3 más grandes de cada sector (las ganadoras de hoy) y una muestra de 100 acciones al azar del S&amp;P 500, que incluye las que anduvieron mal y es la prueba más exigente. Una señal cuenta una sola vez: para contar otra en la misma acción tienen que pasar 20 ruedas sin señal. Se compra al cierre del día siguiente.</p>
+      <p class="sub">Cada día del período analizado (ver fechas abajo) se reconstruyó la señal con la información que existía ese día y se midió qué pasó después. Se prueba en dos grupos: las 3 más grandes de cada sector (las ganadoras de hoy) y una muestra de 100 acciones al azar del S&amp;P 500, que incluye las que anduvieron mal y es la prueba más exigente. Una señal cuenta una sola vez: para contar otra en la misma acción tienen que pasar 20 ruedas sin señal. Se compra al cierre del día siguiente.</p>
       <div class="bar" id="bt-uni"></div>
       <div id="bt-body"><p class="note">Cargando…</p></div>
     </div>
@@ -316,7 +316,7 @@ async function showOne(t){
   const kp=(l,v,s2)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s2}</div></div>`;
   el.innerHTML=`<h3 style="margin:14px 0 4px">${esc(t)} <span class="note">${esc(o.n)} · ${esc(o.s)}</span></h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0">
-      ${kp('Señales con la regla actual',cur.length,`de ${all.length} señales técnicas en 10 años`)}
+      ${kp('Señales con la regla actual',cur.length,`de ${all.length} señales técnicas en el período`)}
       ${kp('Positivas a 6 meses (regla actual)',mc?P0(mc.win):'—',mc?`${mc.n} con resultado · promedio ${pct(mc.avg,1)}`:'sin señales con 6 meses cumplidos')}
       ${kp('Todas las señales técnicas',ma?P0(ma.win):'—',ma?`positivas a 6 meses · promedio ${pct(ma.avg,1)}`:'—')}
       ${kp('Comprando cualquier día',b&&b.n?P0(b.win):'—',b&&b.n?`positivas a 6 meses · promedio ${pct(b.avg,1)}`:'—')}
@@ -325,14 +325,15 @@ async function showOne(t){
     <svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block;margin:6px 0">${yl}${xl}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>${marks}</svg>
     <div class="note" style="margin-bottom:10px">${leg} · pasá el mouse por un punto para ver el detalle.</div>
     ${all.length?`<div class="tw"><table><thead><tr><th>Fecha</th><th>Señal</th><th>Tipo</th><th class="n">Técnico</th><th class="n">Precio</th><th class="n">3 meses</th><th class="n">6 meses</th><th class="n">12 meses</th><th class="n">vs S&amp;P 6m</th><th>Objetivo / stop</th></tr></thead><tbody>
-    ${all.slice().reverse().map(e=>{const k=KIND(e),r=v=>`<span class="${cls(v)}">${pct(v,1)}</span>`;return `<tr><td>${esc(e.date.split('-').reverse().join('/'))}</td><td>${setupChip(e.setup)}</td><td><span style="color:${k[2]};font-weight:600">●</span> <span class="note">${k[1]}</span></td><td class="n">${e.at}</td><td class="n">US$ ${fmt(e.p)}</td><td class="n">${r(e['3m'])}</td><td class="n">${r(e['6m'])}</td><td class="n">${r(e['12m'])}</td><td class="n">${e['6m']!=null&&e.spy_6m!=null?r(e['6m']-e.spy_6m):'—'}</td><td>${e.ts==='objetivo'?'<span class="up">✓ objetivo</span>':e.ts==='stop'?'<span class="down">✗ stop</span>':e.ts==='abierta'?'<span class="note">sin tocar</span>':'<span class="note">en curso</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">En los últimos 10 años esta acción no dio ninguna señal de compra técnica.</p>'}
+    ${all.slice().reverse().map(e=>{const k=KIND(e),r=v=>`<span class="${cls(v)}">${pct(v,1)}</span>`;return `<tr><td>${esc(e.date.split('-').reverse().join('/'))}</td><td>${setupChip(e.setup)}</td><td><span style="color:${k[2]};font-weight:600">●</span> <span class="note">${k[1]}</span></td><td class="n">${e.at}</td><td class="n">US$ ${fmt(e.p)}</td><td class="n">${r(e['3m'])}</td><td class="n">${r(e['6m'])}</td><td class="n">${r(e['12m'])}</td><td class="n">${e['6m']!=null&&e.spy_6m!=null?r(e['6m']-e.spy_6m):'—'}</td><td>${e.ts==='objetivo'?'<span class="up">✓ objetivo</span>':e.ts==='stop'?'<span class="down">✗ stop</span>':e.ts==='abierta'?'<span class="note">sin tocar</span>':'<span class="note">en curso</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">En el período analizado esta acción no dio ninguna señal de compra técnica.</p>'}
     <p class="note" style="margin-top:8px">La regla actual del monitor además exige valor justo y analistas, que no tienen historia: lo verde es lo más parecido que se puede reconstruir.</p>`;
 }
 S.btu='broad';
-const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado'};
+const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado',G:'solo corrección con rebote',H:'corrección + momentum'};
+S.btg='A';
 function exitsHtml(B){
   const X=B.exits;if(!X||!X.hold)return '';const h=X.hold;
-  const keys=['stop10','stop10t','hard20','trail15','trail15m','bear','risk2','cartera','cartera_r'].filter(k=>X[k]);
+  const keys=['stop10','stop10t','hard20','trail15','trail15m','bear','risk2','cartera','cartera_r','fund','fund_t'].filter(k=>X[k]);
   const d=(v,b,dd=1)=>v==null?'—':`<span class="${v-b>0.0005?'up':v-b<-0.0005?'down':''}">${pct(v,dd)}</span>`;
   const row=(k,v)=>`<tr${k==='hold'?' style="font-weight:600"':''}><td>${esc(v.label)}</td><td class="n">${k==='hold'?'—':P0(v.fired)}</td><td class="n">${Math.round(v.days)}</td>
     <td class="n">${k==='hold'?pct(v.avg,1):d(v.avg,h.avg)}</td><td class="n">${k==='hold'?pct(v.med,1):d(v.med,h.med)}</td><td class="n">${k==='hold'?P0(v.win):d(v.win,h.win,0).replace('+','')}</td>
@@ -344,6 +345,15 @@ function exitsHtml(B){
     <tbody>${row('hold',h)}${keys.map(k=>row(k,X[k])).join('')}</tbody></table></div>
     <p class="note" style="margin-top:6px"><b>Acertó</b> = de las veces que la regla vendió, en qué porcentaje el precio de venta fue mejor que el de 12 meses después. <b>Evitó / costó</b> = diferencia promedio contra mantener en esos casos. Una buena regla de venta mejora el "peor 10%" sin resignar mucho promedio.</p>`;
 }
+function splitHtml(B,VK){
+  const SP=B.split;if(!SP||!SP.base)return '';const yr=String(B.split_date||'2022').slice(0,4);
+  const cell=(v,b,k)=>!v||!v.n?'<td class="n">—</td>':`<td class="n">${k==='win'?P0(v.win):pct(v.avg,1)}${b&&b.n&&k!=null?` <span style="font-size:11px" class="${(v[k]-b[k])>0.0005?'up':(v[k]-b[k])<-0.0005?'down':'note'}">(${(v[k]-b[k]>=0?'+':'')+fmt((v[k]-b[k])*100,k==='win'?0:1)})</span>`:''}</td>`;
+  const row=(k,lbl)=>{const s=SP[k],b=SP.base;if(!s)return '';return `<tr${k==='base'?' style="font-weight:600"':''}><td>${lbl}</td><td class="n">${s.d['6m'].n||0}</td>${cell(s.d['6m'],k==='base'?null:b.d['6m'],'win')}${cell(s.d['6m'],k==='base'?null:b.d['6m'],'avg')}<td class="n">${s.v['6m'].n||0}</td>${cell(s.v['6m'],k==='base'?null:b.v['6m'],'win')}${cell(s.v['6m'],k==='base'?null:b.v['6m'],'avg')}</tr>`};
+  return `<h3 style="margin:22px 0 4px">¿Se sostiene en el tiempo? Diseño vs. validación</h3>
+    <p class="sub">Se parte el período en dos: hasta ${+yr-1} (donde se "eligen" las reglas) y desde ${yr} (prueba independiente). Una regla que de verdad suma tiene que ganarle a la referencia <b>en los dos tramos</b>; si solo gana en uno, probablemente sea casualidad. Entre paréntesis: diferencia contra comprar cualquier día en ese mismo tramo.</p>
+    <div class="tw"><table><thead><tr><th></th><th class="n">Señales hasta ${+yr-1}</th><th class="n">Positivas 6m</th><th class="n">Promedio 6m</th><th class="n">Señales desde ${yr}</th><th class="n">Positivas 6m</th><th class="n">Promedio 6m</th></tr></thead>
+    <tbody>${VK.filter(k=>SP[k]).map(k=>row(k,'<b>'+k+'</b> · '+VSHORT[k])).join('')}${row('base','Referencia: cualquier día')}</tbody></table></div>`;
+}
 function renderBT(){
   const B0=S.bt,US=B0.universes||{top:B0};if(!US[S.btu])S.btu=Object.keys(US)[0];
   const B={...B0,...US[S.btu]};S.btc=B;
@@ -352,7 +362,7 @@ function renderBT(){
   const secWarn=B0.sec&&B0.sec.ok<B0.sec.total*0.8?`<div class="cedbox" style="margin-bottom:10px">⚠️ Solo se pudieron bajar los balances de ${B0.sec.ok} de ${B0.sec.total} empresas de la SEC${B0.sec.error?': '+esc(B0.sec.error):''}. La variante B queda incompleta.</div>`:'';
   const A=B.variants.A,Bv=B.variants.B,base=B.base,g=B.goal;
   const tile=(lbl,v,meta,good)=>`<div class="kpi"><div class="l">${lbl}</div><div class="v ${good==null?'':good?'up':'down'}">${v}</div><div class="s">${meta}</div></div>`;
-  const V=B.variants,VK=['A','B','C','D','E','F'];
+  const V=B.variants,VK=['A','B','C','D','E','F','G','H'];if(!V[S.btg])S.btg='A';const GK=S.btg;
   const row=(name,v)=>`<tr><td><b>${name}</b></td><td class="n">${v['6m'].n||0}</td>${['3m','6m','12m'].map(h=>`<td class="n ${v[h].n?(v[h].win>=g?'up':''):''}">${P0(v[h].win)}</td>`).join('')}<td class="n">${P0(v['6m'].beat)}</td><td class="n ${cls(v['6m'].avg)}">${pct(v['6m'].avg,1)}</td><td class="n ${cls(v['6m'].med)}">${pct(v['6m'].med,1)}</td><td class="n down">${pct(v['6m'].p10,1)}</td><td class="n">${P0(v.ts.target)}</td></tr>`;
   const grp=(obj,title)=>`<div style="min-width:0"><h4 style="margin:16px 0 6px">${title}</h4><div class="tw"><table><thead><tr><th></th><th class="n">Señales</th><th class="n">Positivas 6m</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Promedio 6m</th><th class="n">Positivas 12m</th></tr></thead><tbody>${Object.entries(obj).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.n}</td><td class="n ${v['6m'].n&&v['6m'].win>=g?'up':''}">${P0(v['6m'].win)}${v['6m'].n?` <span class="note">(${v['6m'].n})</span>`:''}</td><td class="n">${P0(v['6m'].beat)}</td><td class="n ${cls(v['6m'].avg)}">${pct(v['6m'].avg,1)}</td><td class="n">${P0(v['12m'].win)}</td></tr>`).join('')}</tbody></table></div></div>`;
   $('#bt-body').innerHTML=secWarn+`
@@ -364,13 +374,16 @@ function renderBT(){
     <div class="tw"><table><thead><tr><th></th><th class="n">Señales</th><th class="n">Positivas 3m</th><th class="n">Positivas 6m</th><th class="n">Positivas 12m</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Promedio 6m</th><th class="n">Mediana 6m</th><th class="n">Peor 10% 6m</th><th class="n">+${P0(B.target)} antes que ${P0(B.stop)}</th></tr></thead>
       <tbody>${VK.filter(k=>V[k]).map(k=>row(k+' · '+VSHORT[k],V[k])).join('')}${row('Referencia: cualquier día',base)}</tbody></table></div>
     <details style="margin-top:10px"><summary class="note" style="cursor:pointer">Qué es cada variante y qué no se pudo reconstruir</summary>
-      <ul class="note" style="padding-left:18px"><li><b>A:</b> ${esc(A.label)}.</li><li><b>B:</b> ${esc(Bv.label)}.${['C','D','E','F'].filter(k=>V[k]).map(k=>`<li><b>${k}:</b> ${esc(V[k].label)}.</li>`).join('')} Fundamentos de los balances presentados a la SEC hasta ese día.</li>
-      <li>El precio objetivo de los analistas, la ganancia esperada y el valor justo <b>no tienen historia gratuita</b>: por eso el veredicto completo (con recorrido mínimo a valor justo según la volatilidad de cada acción) no se puede reproducir hacia atrás. Para medirlo exacto, el monitor guarda desde ahora las señales de cada día.</li>
+      <ul class="note" style="padding-left:18px"><li><b>A:</b> ${esc(A.label)}.</li><li><b>B:</b> ${esc(Bv.label)}.${['C','D','E','F','G','H'].filter(k=>V[k]).map(k=>`<li><b>${k}:</b> ${esc(V[k].label)}.</li>`).join('')} Fundamentos de los balances presentados a la SEC hasta ese día.</li>
+      <li>El precio objetivo de los analistas, la ganancia esperada y el valor justo <b>no tienen historia gratuita</b>: por eso el veredicto completo (con recorrido a valor justo ≥ 10%) no se puede reproducir hacia atrás. Para medirlo exacto, el monitor guarda desde ahora las señales de cada día.</li>
       <li>Se eligieron las empresas más grandes de <b>hoy</b>: son las que mejor les fue, lo que favorece los resultados (sesgo de supervivencia). Comparar contra la referencia corrige buena parte de ese sesgo.</li>
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
-    <div class="grid2">${grp(B.by_setup.A,'Por tipo de señal (A)')}${grp(B.by_year.A,'Por año (A)')}</div>
-    ${grp(B.by_sector.A,'Por sector (A)')}
+    ${splitHtml(B,VK)}
+    <div class="bar" style="margin:18px 0 0;flex-wrap:wrap;gap:6px"><span class="note" style="align-self:center">Detalle de la variante:</span>${VK.filter(k=>V[k]&&V[k]['6m'].n).map(k=>`<button class="chip ${k===GK?'on':''}" data-btg="${k}">${k}</button>`).join('')}</div>
+    <div class="grid2">${B.by_setup[GK]?grp(B.by_setup[GK],`Por tipo de señal (${GK})`):''}${grp(B.by_year[GK],`Por año (${GK})`)}</div>
+    ${grp(B.by_sector[GK],`Por sector (${GK})`)}
     ${exitsHtml(B)}`;
+  $$('[data-btg]').forEach(b=>b.onclick=()=>{S.btg=b.dataset.btg;renderBT()});
   const sel=$('#bt-sec');sel.innerHTML='<option value="">Todos los sectores</option>'+Object.keys(B.by_sector.A).map(k=>`<option>${esc(k)}</option>`).join('');
   sel.onchange=renderBTEp;
   $$('[data-btf]').forEach(b=>b.onclick=()=>{S.btf=b.dataset.btf;$$('[data-btf]').forEach(x=>x.classList.toggle('on',x===b));renderBTEp()});
