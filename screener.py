@@ -1289,6 +1289,54 @@ def up_req(r):
 # rindió peor que comprar sin señal. Queda como dato informativo en la ficha.
 ENTRY_SETUPS = {"Corrección con señal de rebote", "Ruptura de máximos"}
 
+# ---------------------------------------------------------------- perfiles por sector
+# Surgen del track récord de 10 años (300 acciones al azar del S&P 500 en tres muestras): qué señales de compra
+# rindieron más que comprar cualquier día EN ESE MISMO SECTOR, y en cuántas de las tres muestras se repitió.
+#   entry   : señales de entrada que habilitan "Comprar" en el sector
+#   mom     : exige momentum (estar entre el 30% del S&P 500 que más subió en 6 meses, sin el último mes)
+#   growth  : exige ganancias y ventas creciendo contra el año anterior
+#   val     : peso de la valuación. "full" = exige el recorrido a valor justo completo y sin luz roja de valuación;
+#             "low" = solo pide que no cotice por encima de su valor justo (en estos sectores filtrar por P/E
+#             barato restó rendimiento: dejaba afuera a las que seguían subiendo)
+#   partes  : si el "Comprar en partes" por giro temprano tuvo ventaja en el sector
+#   edge    : False = ninguna señal le ganó a comprar cualquier día: el monitor no da "Comprar" por timing
+CORR, RUPT = "Corrección con señal de rebote", "Ruptura de máximos"
+SECTOR_PROFILE = {
+    "Tecnología": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=False, edge=True,
+                       why="prioriza corrección con momentum y crecimiento de ganancias; el P/E contra su historia pesa poco"),
+    "Comunicaciones": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=False, val="low", partes=False, edge=True,
+                           why="prioriza corrección con momentum; el P/E contra su historia pesa poco"),
+    "Industrial": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=True, edge=True,
+                       why="prioriza corrección con momentum y crecimiento; el giro temprano con buenos fundamentos también funcionó"),
+    "Consumo discrecional": dict(fam="Consumo cíclico", entry={CORR, RUPT}, mom=None, growth=False, val="full", partes=True, edge=True,
+                                 why="prioriza fundamentos y valuación: comprar barata contra su historia funcionó en este sector"),
+    "Utilities": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
+                      why="prioriza la corrección dentro de una tendencia alcista; la valuación pesa poco"),
+    "Materiales": dict(fam="Materias primas", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
+                       why="prioriza la corrección dentro de una tendencia alcista; el P/E barato no sirve (suele marcar pico de ciclo)"),
+    "Energía": dict(fam="Materias primas", entry={CORR, RUPT, "Giro temprano"}, mom=None, growth=False, val="low", partes=True, edge=True,
+                    why="sigue el ciclo: además de la corrección, valen la ruptura de máximos y el giro temprano; el P/E barato no sirve"),
+    "Salud": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
+                  why="solo la corrección dentro de una tendencia alcista mostró ventaja (chica); la valuación pesa poco"),
+    "Financiero": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
+                       why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
+    "Consumo básico": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
+                           why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
+    "Real estate": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
+                        why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
+}
+PROFILE_DEFAULT = dict(fam="General", entry=set(ENTRY_SETUPS), mom=None, growth=False, val="full", partes=True, edge=True,
+                       why="reglas generales del monitor (sector sin perfil propio)")
+
+
+def profile(r):
+    return SECTOR_PROFILE.get(getattr(r, "sector", None), PROFILE_DEFAULT)
+
+
+def profile_txt(r):
+    P = profile(r)
+    return f"{r.sector}: {P['why']}." if getattr(r, "sector", None) in SECTOR_PROFILE else ""
+
 
 def verdict(r, mkt_up=True):
     L = lights(r)
@@ -1298,30 +1346,52 @@ def verdict(r, mkt_up=True):
     vol = vol if vol is not None and pd.notna(vol) and vol > 0 else r.volat
     req_txt = f"{req*100:.0f}%" + (f" (por su volatilidad de {vol*100:.0f}% anual)" if req > UP_MIN else "")
     doubt = bool(getattr(r, "vm_doubt", False))
-    entry = (r.vm_z == "Compra") or (r.setup in ENTRY_SETUPS)
+    P = profile(r)
+    ent_lbl = " o ".join(x.lower() for x in sorted(P["entry"])) or "—"
+    entry = r.setup in P["entry"] or (r.vm_z == "Compra" and P["fam"] == "General")
+    if P["val"] == "full":
+        val_checks = [
+            (all(L[k] != 0 for k in ("cal", "val", "tec")), "ninguna luz roja en calidad, valuación o técnico"),
+            (up is not None and up >= req and not doubt,
+             "valuación confiable (hoy está marcada como dudosa)" if doubt else
+             f"recorrido a valor justo ≥ {req_txt}" + (f", tiene {up*100:+.0f}%" if up is not None else "")),
+        ]
+    else:   # valuación con peso bajo: solo que no esté por encima de su valor justo
+        val_checks = [
+            (all(L[k] != 0 for k in ("cal", "tec")), "ninguna luz roja en calidad o técnico"),
+            (up is None or up >= 0 or doubt, f"no cotizar por encima de su valor justo (tiene {up*100:+.0f}%)" if up is not None else "valor justo"),
+        ]
     checks = [
         (r.at >= V_AT, f"técnico ≥ {V_AT} (tiene {r.at:.0f})"),
         (r.af >= V_AF, f"fundamental ≥ {V_AF} (tiene {r.af:.0f})"),
-        (all(L[k] != 0 for k in ("cal", "val", "tec")), "ninguna luz roja en calidad, valuación o técnico"),
-        (up is not None and up >= req and not doubt,
-         "valuación confiable (hoy está marcada como dudosa)" if doubt else
-         f"recorrido a valor justo ≥ {req_txt}" + (f", tiene {up*100:+.0f}%" if up is not None else "")),
-        (entry, "zona Compra o señal de entrada (corrección con rebote o ruptura de máximos)"),
+        *val_checks,
+        (entry, f"señal de entrada del sector ({ent_lbl})"),
     ]
+    if P["mom"] is not None:
+        mp = getattr(r, "mom_pct", None)
+        checks.append((mp is not None and pd.notna(mp) and mp >= P["mom"],
+                       "momentum entre el 30% más fuerte del S&P 500" + (f" (está en el {(1 - mp) * 100:.0f}% superior)" if mp is not None and pd.notna(mp) else "")))
+    if P["growth"]:
+        eg, rg = getattr(r, "eps_g", None), getattr(r, "rev_g", None)
+        checks.append((eg is not None and pd.notna(eg) and eg > 0 and rg is not None and pd.notna(rg) and rg > 0,
+                       "ganancias y ventas creciendo contra el año anterior"))
     falta = [t for ok, t in checks if not ok]
     earn_soon = L["evt"] == 0
     up_txt = f"{up*100:+.0f}%".replace(".", ",") if up is not None else "—"
     # 1) Comprar
+    if not falta and not P["edge"]:
+        falta = ["sector sin señal de compra con ventaja histórica"]
     if not falta:
         if earn_soon:
             cuando = "hoy" if int(r.earn_days) == 0 else f"en {int(r.earn_days)} días"
             return "Vigilar", f"Cumple todo, pero presenta balance {cuando}: esperar el resultado antes de entrar."
-        ent = r.setup if r.setup in ENTRY_SETUPS else "zona Compra"
+        ent = r.setup if r.setup in P["entry"] else "zona Compra"
         if not mkt_up:
             # validado en el track récord: con el mercado bajista las señales fallan más (2022)
             return "Comprar en partes", (f"Cumple los 5 criterios ({ent.lower()}), pero el S&P 500 está debajo de su media de 200 días: "
                                          "mercado bajista. Entrada escalonada de a tercios, con stop.")
-        return "Comprar", f"Cumple los 5 criterios: técnico {r.at:.0f}, fundamental {r.af:.0f}, recorrido {up_txt}, {ent.lower()}."
+        return "Comprar", (f"Cumple los criterios de su sector: técnico {r.at:.0f}, fundamental {r.af:.0f}, recorrido {up_txt}, {ent.lower()}"
+                           + (", con momentum" if P["mom"] else "") + (" y ganancias creciendo" if P["growth"] else "") + ".")
     # 2) Evitar
     if r.vm_z == "Evitar" or r.cyc or (r.val_verdict == "Cara" and r.trend_n <= 0):
         why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
@@ -1336,11 +1406,17 @@ def verdict(r, mkt_up=True):
         return "Mantener", f"Cerca de su valor justo (recorrido {up_txt}): si ya se tiene, mantener; no sumar."
     # 4) Comprar en partes
     early = (getattr(r, "et_ctx", False) and r.et_n >= 4) or r.setup == "Golden Cross en formación"
+    if not P["partes"]:
+        early = False
+        entry = entry and P["edge"]
     if (r.af >= 55 and L["cal"] != 0 and L["val"] != 0 and up is not None and up >= req and not doubt
             and (early or entry) and not earn_soon):
         how = "giro temprano" if early else "señal de entrada"
         return "Comprar en partes", f"Entrada escalonada por {how}, con stop. Para compra plena falta: {', '.join(falta)}."
     # 5) Vigilar
+    if not P["edge"]:
+        return "Vigilar", (f"{r.sector}: en 10 años ninguna señal de compra le ganó a comprar cualquier día en este sector. "
+                           "El monitor no marca momento de compra; mirar calidad y valuación.")
     return "Vigilar", "Para pasar a Comprar falta: " + ", ".join(falta) + "." + (" Presenta balance en ≤7 días." if earn_soon else "")
 
 
@@ -1431,6 +1507,8 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
         d = {k: r2(getattr(r, k)) for k in keep}
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
         d["lights"] = lights(r)
+        P_ = profile(r)
+        d["perfil"] = {"fam": P_["fam"], "txt": profile_txt(r), "edge": P_["edge"]}
         d["audit"] = list(r.audit) if isinstance(r.audit, list) else []
         if getattr(r, "verdict", None):
             vp = r.verdict_prev if isinstance(r.verdict_prev, str) else None
