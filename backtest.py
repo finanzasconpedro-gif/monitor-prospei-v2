@@ -35,7 +35,7 @@ GOAL = 0.70
 # La SEC exige identificarse con nombre y un email de contacto; si no, rechaza el pedido (error 403).
 # Se carga como secreto del repositorio: Settings → Secrets and variables → Actions → SEC_UA
 SEC_UA = os.environ.get("SEC_UA") or "PROSPEI Monitor research github.com/finanzasconpedro-gif"
-BROAD_N, SEED = 100, 7        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
+BROAD_N, SEED, SEED2 = 100, 7, 11        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción clase A
 
 FALLBACK = {   # por si no está data.json: 3 de mayor capitalización por sector (aprox.)
@@ -55,8 +55,13 @@ VARIANTS = {
     "F": "C + crecimiento (ganancia y ventas de 12 meses creciendo contra el año anterior) + filtro de mercado",
     "G": "Solo corrección con señal de rebote (puntaje técnico ≥ 65, sin balance en 7 días): sin ruptura ni Golden Cross",
     "H": "G + momentum: la acción está entre el 30% del S&P 500 que más subió en 6 meses (sin contar el último mes)",
+    "J": "H + crecimiento: además, ganancia y ventas de 12 meses creciendo contra el año anterior",
+    "P": "Comprar en partes por giro temprano (parte técnica): viene cayendo y aparecen 4+ señales de giro, o Golden Cross en formación, o señal de entrada con puntaje técnico menor a 65; sin balance en 7 días",
+    "Q": "P + los fundamentos de B (ganancia positiva, ventas creciendo, P/E no más de 10% arriba de su promedio de 5 años)",
+    "R": "Comprar en partes por mercado bajista: cumple D pero el S&P 500 está debajo de su media de 200 días",
 }
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R")
+CONV_D = 63      # ventana para ver si un "Comprar en partes" pasa a señal de Comprar (3 meses)
 SPLIT = "2022-01-01"   # diseño: antes de esta fecha · validación: desde esta fecha
 MOM_MIN = 0.70
 EXIT_H = 252     # se compara cada regla de venta contra mantener 12 meses
@@ -92,7 +97,17 @@ def pick_universes():
             broad[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac))), random_state=SEED).t)
     except Exception as e:
         print("Sin muestra amplia (falta data.json):", e)
-    return {"top": top, "broad": broad}
+    # muestra de control: otras 100 acciones distintas, nunca usadas para elegir reglas
+    broad2 = {}
+    try:
+        used = tops | {t for v in broad.values() for t in v}
+        df2 = df[~df.t.isin(used)]
+        frac2 = min(1.0, BROAD_N / max(1, len(df2)))
+        for sec, g in df2.groupby("sector"):
+            broad2[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac2))), random_state=SEED2).t)
+    except Exception as e:
+        print("Sin muestra de control:", e)
+    return {"top": top, "broad": broad, "broad2": broad2}
 
 
 def pick_universe():
@@ -368,6 +383,9 @@ def run_ticker(args):
     eps = {k: [] for k in KEYS}
     base = []
     last = {}
+    sigC = np.zeros(n, dtype=bool)
+    sigD = np.zeros(n, dtype=bool)
+    pidx = {"P": [], "Q": []}
     for i, r in zip(ki, df.itertuples()):
         if i + 1 >= n:
             continue
@@ -385,9 +403,25 @@ def run_ticker(args):
             eg, rg = fd[4][i], fd[3][i]
             grow = bool(np.isfinite(eg) and eg > 0 and np.isfinite(rg) and rg > 0)
         g_ = bool(r.at >= S.V_AT and r.setup == "Corrección con señal de rebote" and not earn)
-        h_ = g_ and np.isfinite(mom[i]) and mom[i] >= MOM_MIN
+        h_ = bool(g_ and np.isfinite(mom[i]) and mom[i] >= MOM_MIN)
+        g2 = False
+        if h_ and fd is not None:
+            eg, rg = fd[4][i], fd[3][i]
+            g2 = bool(np.isfinite(eg) and eg > 0 and np.isfinite(rg) and rg > 0)
+        # "Comprar en partes" por giro temprano (camino 4 del veredicto): solo lo que se puede reconstruir
+        early = bool((r.et_ctx and r.et_n >= 4) or r.setup == "Golden Cross en formación")
+        entry_lo = r.setup in ("Corrección con señal de rebote", "Ruptura de máximos") and r.at < S.V_AT
+        p_ = bool((early or entry_lo) and not earn)
+        fb = False
+        if p_ and fd is not None:
+            e, pe, med, g = fd[0][i], fd[1][i], fd[2][i], fd[3][i]
+            fb = bool(np.isfinite(e) and e > 0 and np.isfinite(g) and g > 0 and np.isfinite(pe) and np.isfinite(med) and pe <= med * 1.10)
+        # fundamentos de B calculados aunque la técnica no dé (para saber si un Q pasa a Comprar D)
+        fbd = b
+        sigC[i] = cc_
+        sigD[i] = bool(fbd and cc_)
         sig = {"A": a, "B": b, "C": cc_, "D": b and cc_, "E": b and cc_ and up, "F": grow and up,
-               "G": g_, "H": bool(h_)}
+               "G": g_, "H": h_, "J": g2, "P": p_, "Q": p_ and fb, "R": b and cc_ and not up}
         new = {k: sig[k] and i - last.get(k, -999) > GAP for k in sig}
         if i % 5 == 0 or any(new.values()):
             p0 = c[i + 1]
@@ -411,9 +445,28 @@ def run_ticker(args):
             for k in sig:
                 if new[k]:
                     eps[k].append(dict(res, b=b, c=cc_, d=b and cc_, m=up, g=grow))
+                    if k in pidx:
+                        pidx[k].append((i, len(eps[k]) - 1))
         for k in sig:
             if sig[k]:
                 last[k] = i
+    # ---- ¿el "Comprar en partes" pasa a Comprar? (P -> técnica de Comprar C; Q -> Comprar con fundamentos D)
+    conv = {}
+    for k, target in (("P", sigC), ("Q", sigD)):
+        out_ = []
+        for i, j in pidx[k]:
+            e = eps[k][j]
+            w = target[i + 1:min(n, i + 1 + CONV_D)]
+            hit = int(np.argmax(w)) + 1 if w.any() else None
+            x = {"date": e["date"], "6m": e.get("6m"), "spy_6m": e.get("spy_6m"), "conv": hit is not None}
+            if hit is not None and i + hit + 1 < n:
+                p1 = c[i + hit + 1]
+                x["days"] = hit
+                x["wait"] = float(p1 / c[i + 1] - 1)                        # cuánto se movió mientras esperaba
+                if i + hit + 1 + 126 < n:
+                    x["c6m"] = float(c[i + hit + 1 + 126] / p1 - 1)      # 6 meses comprando recién al pasar a Comprar
+            out_.append(x)
+        conv[k] = out_
     # ---- reglas de venta: para cada compra C (técnica sin Golden Cross), qué pasa con cada regla vs mantener 12 meses
     N_ = len(c)
     arr = lambda col: np.full(N_, np.nan)
@@ -469,7 +522,7 @@ def run_ticker(args):
         for k_ in EXIT_RULES:
             out[k_] = done.get(k_, (float(hold), None))
         exits.append(out)
-    return t, {"eps": eps, "base": base, "exits": exits}
+    return t, {"eps": eps, "base": base, "exits": exits, "conv": conv}
 
 
 def split_stats(rows):
@@ -485,7 +538,8 @@ def by(rows, field):
     return {k: {"n": len(v), **{h: stats(v, h) for h in ("6m", "12m")}} for k, v in sorted(g.items())}
 
 
-UNI_LBL = {"top": "Las 3 más grandes de cada sector", "broad": f"Muestra amplia: {BROAD_N} acciones al azar del S&P 500"}
+UNI_LBL = {"top": "Las 3 más grandes de cada sector", "broad": f"Muestra amplia: {BROAD_N} acciones al azar del S&P 500",
+           "broad2": f"Muestra de control: otras {BROAD_N} acciones (nunca usadas para elegir reglas)"}
 
 
 def all_tickers():
@@ -610,8 +664,28 @@ def main():
                              "right": float((diff > 0).mean()) if fired.any() else None,
                              "saved": float(diff[diff > 0].mean()) if (diff > 0).any() else None,
                              "cost": float(diff[diff <= 0].mean()) if (diff <= 0).any() else None}
+        convs = {}
+        for k in ("P", "Q"):
+            xs = []
+            for t in member[u]:
+                r = res.get(t)
+                if r:
+                    xs += r.get("conv", {}).get(k, [])
+            if not xs:
+                continue
+            cv = [x for x in xs if x["conv"]]
+            nc = [x for x in xs if not x["conv"]]
+            m6 = lambda L, key="6m": {"n": len([x for x in L if x.get(key) is not None]),
+                                      **({} if not [x for x in L if x.get(key) is not None] else
+                                         {"win": float(np.mean([x[key] > 0 for x in L if x.get(key) is not None])),
+                                          "avg": float(np.mean([x[key] for x in L if x.get(key) is not None])),
+                                          "p10": float(np.percentile([x[key] for x in L if x.get(key) is not None], 10))})}
+            convs[k] = {"n": len(xs), "rate": len(cv) / len(xs),
+                        "days": float(np.median([x["days"] for x in cv if "days" in x])) if cv else None,
+                        "wait": float(np.mean([x["wait"] for x in cv if "wait" in x])) if cv else None,
+                        "conv6": m6(cv), "noconv6": m6(nc), "late6": m6(cv, "c6m")}
         return {
-            "label": UNI_LBL[u], "n": len(member[u]), "tickers": unis[u],
+            "label": UNI_LBL[u], "n": len(member[u]), "tickers": unis[u], "conv": convs,
             "variants": {k: {"label": VARIANTS[k], **summarize(bk[k])} for k in KEYS},
             "base": {"label": "Comprar cualquier día cualquiera de estas acciones (referencia)", **summarize(bk["base"])},
             "by_sector": {k: by(bk[k], "sector") for k in KEYS},
