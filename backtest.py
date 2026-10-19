@@ -698,7 +698,53 @@ def main():
             "exits": exits,
         }
 
+    # ---- matriz sector x estrategia: muestra amplia + control juntas, cada estrategia contra
+    # "comprar cualquier día" en ese MISMO sector (así no se confunde la señal con que el sector anduvo mal)
+    def matrix():
+        pool = (member.get("broad") or set()) | (member.get("broad2") or set())
+        if not pool:
+            return None
+        rows = {k: {} for k in KEYS + ("base",)}
+        for t in pool:
+            r = res.get(t)
+            if not r:
+                continue
+            sec = meta[t][1] or "Otro"
+            for k in KEYS:
+                rows[k].setdefault(sec, []).extend(dict(e, t=t) for e in r["eps"][k])
+            rows["base"].setdefault(sec, []).extend(r["base"])
+        def m(L):
+            x = [e for e in L if e.get("6m") is not None]
+            if not x:
+                return {"n": 0}
+            v = np.array([e["6m"] for e in x])
+            b = [e["6m"] - e["spy_6m"] for e in x if e.get("spy_6m") is not None]
+            return {"n": len(x), "win": float((v > 0).mean()), "avg": float(v.mean()),
+                    "beat": float((np.array(b) > 0).mean()) if b else None}
+        outm = {}
+        for sec, B_ in rows["base"].items():
+            bd, bv = m([e for e in B_ if e["date"] < SPLIT]), m([e for e in B_ if e["date"] >= SPLIT])
+            ent = {"base": {**m(B_), "nt": None, "d": bd, "v": bv}, "v": {}}
+            ball = ent["base"]
+            for k in KEYS:
+                L = rows[k].get(sec, [])
+                a = m(L)
+                if not a["n"]:
+                    ent["v"][k] = {"n": 0}
+                    continue
+                d, v = m([e for e in L if e["date"] < SPLIT]), m([e for e in L if e["date"] >= SPLIT])
+                nt = len({e["t"] for e in L if e.get("6m") is not None})
+                dd = d["avg"] - bd["avg"] if d["n"] and bd["n"] else None
+                dv = v["avg"] - bv["avg"] if v["n"] and bv["n"] else None
+                ok = bool(a["n"] >= 30 and nt >= 5 and dd is not None and dv is not None and d["n"] >= 10 and v["n"] >= 10
+                          and dd > 0 and dv > 0 and a["avg"] > ball["avg"])
+                ent["v"][k] = {**a, "nt": nt, "dwin": a["win"] - ball["win"], "davg": a["avg"] - ball["avg"],
+                               "d_n": d["n"], "v_n": v["n"], "d_davg": dd, "v_davg": dv, "ok": ok}
+            outm[sec] = ent
+        return {"label": "Muestra amplia + muestra de control (" + str(len(pool)) + " acciones)", "sectors": outm}
+
     out = {
+        "matrix": matrix(),
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "period": {"from": str(idx[days[0]].date()), "to": str(end.date())},
         "split_date": SPLIT, "goal": GOAL, "gap": GAP, "target": TARGET, "stop": STOP, "ts_days": TS_DAYS,
