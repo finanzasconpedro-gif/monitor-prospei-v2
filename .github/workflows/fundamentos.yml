@@ -32,7 +32,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add fund_sum.json fund
+          git add fund_sum.json fund fund_debug
           git diff --cached --quiet && echo "Sin cambios" && exit 0
           git commit -m "Actualiza historia de balances $(date -u +'%Y-%m-%d')"
           git pull --rebase
