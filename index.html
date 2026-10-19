@@ -246,7 +246,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
           <h2>Comprar hoy</h2>
-          <p class="sub">Solo las que cumplen los 5 criterios a la vez: técnico ≥ 65, fundamental ≥ 60, ninguna luz roja, recorrido a valor justo de al menos la mitad de su volatilidad anual (entre 10% y 30%: más margen en las acciones que más se mueven) y zona Compra o señal de entrada (corrección con rebote o ruptura de máximos). Sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días.</p>
+          <p class="sub">Cada sector tiene su propio perfil, según lo que funcionó en 10 años de historia: técnico ≥ 65 y fundamental ≥ 60 siempre, más la señal de entrada que sirvió en ese sector. <b>Tecnología, comunicaciones e industriales</b>: corrección con momentum (y crecimiento en tecnología e industriales), valuación con peso bajo. <b>Consumo discrecional</b>: corrección o ruptura, con recorrido a valor justo completo. <b>Utilities, salud y materiales</b>: corrección en tendencia alcista. <b>Energía</b>: corrección, ruptura o giro temprano. <b>Financiero, consumo básico y real estate</b>: ninguna señal le ganó a comprar cualquier día, así que no se marca momento de compra. Siempre sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días.</p>
         </div>
         <div id="verdict-count" style="display:flex;gap:4px;flex-wrap:wrap"></div>
       </div>
@@ -910,7 +910,7 @@ function renderBuy(){
   ];
   const buy=all.filter(o=>o.verdict==='Comprar').sort((a,b)=>b.score-a.score);
   table($('#tb-buy'),'buy',cols,buy);
-  if(!buy.length)$('#tb-buy').innerHTML='<tbody><tr><td class="note" style="padding:16px;text-align:center">Hoy ninguna acción cumple los 5 criterios a la vez. Es normal: es un filtro exigente. Mirá las de <b>Comprar en partes</b> o el top 30.</td></tr></tbody>';
+  if(!buy.length)$('#tb-buy').innerHTML='<tbody><tr><td class="note" style="padding:16px;text-align:center">Hoy ninguna acción cumple los criterios de su sector. Es normal: es un filtro exigente. Mirá las de <b>Comprar en partes</b> o el top 30.</td></tr></tbody>';
   table($('#tb-part'),'part',cols,all.filter(o=>o.verdict==='Comprar en partes').sort((a,b)=>b.score-a.score));
 }
 function renderTop(){
@@ -1383,6 +1383,7 @@ function openDetail(t){
       <div class="bigscore" style="background:${scoreCol(o.score)}"><b>${Math.round(o.score)}</b><small>Puntaje PROSPEI</small></div>
     </div>
     ${o.verdict?`<div class="verdict-box"><span class="${vdCls(o.verdict)}">${esc(o.verdict)}</span><div><div style="font-size:13.5px">${esc(o.verdict_why)}</div>${o.verdict_prev&&o.verdict_prev!==o.verdict?`<div class="note">Ayer: ${esc(o.verdict_prev)}</div>`:''}</div></div>`:''}
+    ${o.perfil&&o.perfil.txt?`<div class="note" style="margin:-2px 0 10px">🧭 Perfil del sector · <b>${esc(o.perfil.fam)}</b> — ${esc(o.perfil.txt)}${o.perfil.edge?'':' El veredicto máximo en este sector es Vigilar.'}</div>`:''}
     ${o.lights?`<div class="semaf">${['cal','val','tec','evt'].map(k=>{const v=o.lights[k];return `<div><i class="l${v==null?'null':v}"></i><span><b>${LIGHTN[k]}</b><br><span class="note">${v==null?'sin dato':lightTxt[k][v]}</span></span></div>`}).join('')}</div>`:''}
     ${alertTags(o)?`<div style="margin-bottom:6px">${alertTags(o)}</div>`:''}
     <div class="pillars">
@@ -1506,6 +1507,7 @@ async function renderFH(o){
   const M={pe:{a:pe,lbl:'P/E',name:'precio / ganancia'},pb:{a:pb,lbl:'P/VL',name:'precio / valor libros'},ps:{a:ps,lbl:'P/V',name:'precio / ventas'}}[useM]||null;
   const chips=`<div class="bar" style="margin:4px 0 8px">${[5,10,15].map(y=>`<button class="chip ${y===yrs?'on':''}" data-fhy="${y}">${y} años</button>`).join('')}</div>`;
   let h=`<h4 style="margin:0 0 2px">Historia de ganancias y valuación</h4><p class="note" style="margin:0">Balances presentados a la SEC, con la información que se conocía en cada mes. Precios ajustados por splits.</p>${chips}`;
+  if(f.approx)h+=`<div class="note" style="margin-top:6px">ℹ️ Esta empresa no informa la ganancia por acción con el formato estándar de la SEC (por ejemplo, por tener dos clases de acciones): parte de la historia se aproxima con ganancia neta / acciones de hoy.</div>`;
   const eL=fhLast(F.eps);if(o.eps>0&&eL>0&&Math.abs(eL/o.eps-1)>0.35)h+=`<div class="cedbox" style="margin-top:6px">⚠️ La ganancia por acción de los balances de la SEC (US$ ${fmt(eL,2)}) no coincide con la que informa Yahoo (US$ ${fmt(o.eps,2)}). Puede deberse a fusiones, splits o ajustes contables: tomar los gráficos de ganancias con cautela.</div>`;
   // 1) precio vs ganancias
   const medPE=M&&useM==='pe'?fhMed(pe):null;
