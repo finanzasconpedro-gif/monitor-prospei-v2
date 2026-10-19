@@ -364,6 +364,20 @@ function convHtml(B){
     <tbody>${row('P','giro temprano → técnica de Comprar')}${row('Q','giro + fundamentos → Comprar con fundamentos')}</tbody></table></div>
     <p class="note" style="margin-top:6px"><b>Movimiento mientras esperaba</b>: cuánto subió (o bajó) la acción entre la señal de "en partes" y la de Comprar. Positivo = esperar salió más caro.</p>`;
 }
+function matrixHtml(B0,VK){
+  const M=B0.matrix;if(!M||!M.sectors)return '';const S_=M.sectors;const secs=Object.keys(S_).sort();
+  const ks=VK.filter(k=>secs.some(s=>S_[s].v[k]&&S_[s].v[k].n));
+  const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
+  const cell=c=>{if(!c||!c.n)return '<td class="n note">—</td>';const few=c.n<30||c.nt<5;
+    const col=few?'note':c.davg>0.005?'up':c.davg<-0.005?'down':'';
+    return `<td class="n" style="${c.ok?'outline:2px solid #3fb950;outline-offset:-3px;border-radius:6px;':''}${few?'opacity:.55;':''}" title="${c.n} señales en ${c.nt} empresas · positivas ${P0(c.win)} · promedio ${pct(c.avg,1)} · hasta 2021 ${sg(c.d_davg)} pts (${c.d_n}) · desde 2022 ${sg(c.v_davg)} pts (${c.v_n})"><span class="${col}" style="font-weight:600">${sg(c.davg)}</span><br><span class="note" style="font-size:11px">${c.n} · ${c.nt} emp.<br>${sg(c.d_davg,0)} / ${sg(c.v_davg,0)}</span></td>`};
+  const best=s=>ks.filter(k=>S_[s].v[k]&&S_[s].v[k].ok).sort((a,b)=>S_[s].v[b].davg-S_[s].v[a].davg);
+  return `<h3 style="margin:22px 0 4px">¿Qué estrategia funciona en cada sector?</h3>
+    <p class="sub">${esc(M.label)}. Cada número es cuántos puntos de rendimiento promedio a 6 meses le saca la estrategia a <b>comprar cualquier día en ese mismo sector</b> (así no se confunde la señal con que el sector anduvo bien o mal). Abajo: señales · empresas distintas · diferencia hasta 2021 / desde 2022. <b>Recuadro verde</b> = confiable: 30+ señales, 5+ empresas y gana en los dos tramos. En gris: muy pocos datos para concluir. Pasá el mouse por una casilla para ver el detalle.</p>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Sector</th><th class="n">Cualquier día<br><span class="note">prom. 6m</span></th>${ks.map(k=>`<th class="n" title="${esc(VSHORT[k])}">${k}</th>`).join('')}<th>Confiables (mejor primero)</th></tr></thead>
+    <tbody>${secs.map(s=>{const b=S_[s].base,bb=best(s);return `<tr><td><b>${esc(s)}</b></td><td class="n">${pct(b.avg,1)}<br><span class="note" style="font-size:11px">${P0(b.win)} pos.</span></td>${ks.map(k=>cell(S_[s].v[k])).join('')}<td>${bb.length?bb.map(k=>`<b>${k}</b>`).join(' · '):'<span class="note">ninguna</span>'}</td></tr>`}).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px">Ojo: con muchas casillas, alguna va a salir bien por casualidad. Por eso solo cuentan las del recuadro verde, y conviene preferir estrategias que funcionen en varios sectores parecidos.</p>`;
+}
 function renderBT(){
   const B0=S.bt,US=B0.universes||{top:B0};if(!US[S.btu])S.btu=Object.keys(US)[0];
   const B={...B0,...US[S.btu]};S.btc=B;
@@ -390,6 +404,7 @@ function renderBT(){
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
     ${splitHtml(B,VK)}
     ${convHtml(B)}
+    ${matrixHtml(B0,VK)}
     <div class="bar" style="margin:18px 0 0;flex-wrap:wrap;gap:6px"><span class="note" style="align-self:center">Detalle de la variante:</span>${VK.filter(k=>V[k]&&V[k]['6m'].n).map(k=>`<button class="chip ${k===GK?'on':''}" data-btg="${k}">${k}</button>`).join('')}</div>
     <div class="grid2">${B.by_setup[GK]?grp(B.by_setup[GK],`Por tipo de señal (${GK})`):''}${grp(B.by_year[GK],`Por año (${GK})`)}</div>
     ${grp(B.by_sector[GK],`Por sector (${GK})`)}
