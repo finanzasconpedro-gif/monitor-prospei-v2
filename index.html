@@ -1438,9 +1438,10 @@ const fhQ=(q,v)=>{ // percentil aproximado de v dentro de los deciles q[10..90]
 function fhMult(o,f){ // múltiplo adecuado al tipo de empresa: P/E, P/VL (bancos y aseguradoras) o P/V (sin ganancias)
   if(!f)return null;const p=o.px||o.p;if(!p)return null;
   if(o.val_model==='book'&&f.bv>0&&f.sh>0&&f.pb_q)return {k:'pb',lbl:'P/VL',now:p/(f.bv/f.sh),q:f.pb_q};
-  if(f.eps>0&&f.pe_q&&o.val_model!=='sales')return {k:'pe',lbl:'P/E',now:p/f.eps,q:f.pe_q};
+  if(f.eps>0&&f.pe_q&&o.val_model!=='sales'&&!fhBad(o,f))return {k:'pe',lbl:'P/E',now:p/f.eps,q:f.pe_q};
   if(f.rev>0&&f.sh>0&&f.ps_q)return {k:'ps',lbl:'P/V',now:p*f.sh/f.rev,q:f.ps_q};
   return null}
+const fhBad=(o,f)=>o.eps>0&&f&&f.eps>0&&Math.abs(f.eps/o.eps-1)>0.35; // la ganancia de la SEC no coincide con la de Yahoo
 const fhWord=pc=>pc==null?'':pc<=0.2?'muy barata contra su historia':pc<=0.4?'barata contra su historia':pc<0.6?'en su rango normal':pc<0.8?'cara contra su historia':'muy cara contra su historia';
 const fhCol=pc=>pc==null?'var(--muted)':pc<=0.4?'var(--up)':pc>=0.6?'var(--down)':'var(--ink)';
 
@@ -1505,6 +1506,7 @@ async function renderFH(o){
   const M={pe:{a:pe,lbl:'P/E',name:'precio / ganancia'},pb:{a:pb,lbl:'P/VL',name:'precio / valor libros'},ps:{a:ps,lbl:'P/V',name:'precio / ventas'}}[useM]||null;
   const chips=`<div class="bar" style="margin:4px 0 8px">${[5,10,15].map(y=>`<button class="chip ${y===yrs?'on':''}" data-fhy="${y}">${y} años</button>`).join('')}</div>`;
   let h=`<h4 style="margin:0 0 2px">Historia de ganancias y valuación</h4><p class="note" style="margin:0">Balances presentados a la SEC, con la información que se conocía en cada mes. Precios ajustados por splits.</p>${chips}`;
+  const eL=fhLast(F.eps);if(o.eps>0&&eL>0&&Math.abs(eL/o.eps-1)>0.35)h+=`<div class="cedbox" style="margin-top:6px">⚠️ La ganancia por acción de los balances de la SEC (US$ ${fmt(eL,2)}) no coincide con la que informa Yahoo (US$ ${fmt(o.eps,2)}). Puede deberse a fusiones, splits o ajustes contables: tomar los gráficos de ganancias con cautela.</div>`;
   // 1) precio vs ganancias
   const medPE=M&&useM==='pe'?fhMed(pe):null;
   if(medPE){
@@ -1584,7 +1586,7 @@ async function renderFHTab(){
   S.scr.rows.forEach(r0=>{const f=fs.rows[r0.t];if(!f)return;const o=enrich(r0);const m=fhMult(o,f);
     const pc=m?fhQ(m.q,m.now):null;const pfm=f.pf_q?f.pf_q[4]:null;
     const r={t:o.t,name:o.name,sector:o.sector,verdict:o.verdict,verdict_why:o.verdict_why,verdict_new:o.verdict_new,mlbl:m?m.lbl:'',mnow:m?m.now:null,mmed:m?m.q[4]:null,pc,
-      fpe:o.fpe>0&&o.fpe<200?o.fpe:null,pfm,fvn:o.fpe>0&&pfm&&m&&m.k==='pe'?o.fpe/pfm-1:null,eps_c5:f.eps_c5,rev_c5:f.rev_c5,px_c5:f.px_c5,sh_5:f.sh_5,mg:f.mg,mg5:f.mg5,dmg:f.mg!=null&&f.mg5!=null?f.mg-f.mg5:null,fcf_ni:f.fcf_ni};
+      fpe:o.fpe>0&&o.fpe<200?o.fpe:null,pfm,fvn:o.fpe>0&&pfm&&m&&m.k==='pe'?o.fpe/pfm-1:null,eps_c5:f.eps_c5,rev_c5:f.rev_c5,px_c5:f.px_c5,sh_5:f.sh_5,mg:f.mg,mg5:f.mg5,dmg:f.mg!=null&&f.mg5!=null?f.mg-f.mg5:null,fcf_ni:o.val_model==='book'?null:f.fcf_ni};
     if(q&&!(r.t.includes(q)||String(r.name||'').toUpperCase().includes(q)))return;if(sec&&r.sector!==sec)return;if(!pre(r))return;rows.push(r)});
   $('#fh-n').textContent=rows.length+' empresas';
   const bar=v=>v==null?'—':`<span class="fh-pc"><i style="left:${(v*100).toFixed(0)}%;background:${fhCol(v)}"></i></span> <b style="color:${fhCol(v)}">${fmt(v*100,0)}</b>`;
