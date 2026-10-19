@@ -28,6 +28,27 @@ TIME_BUDGET = 100 * 60        # tope de minutos para bajar balances
 T0 = time.time()
 SEC_FAILS = [0]
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción de la clase A
+# diagnóstico: para estas empresas se guardan los datos crudos de la SEC (fund_debug/) para revisar diferencias
+DEBUG_T = ["MNST", "KO", "COST", "V", "HAL", "GOOGL", "XOM", "PEP", "DD", "BRK-B", "AZO", "HSY", "MLM", "VRSN", "GD", "KR"]
+DEBUG_DIR = "fund_debug"
+
+
+def debug_dump(sym, facts, err=None):
+    os.makedirs(DEBUG_DIR, exist_ok=True)
+    out = {"t": sym, "error": err, "tags": {}}
+    if facts:
+        gaap = facts.get("facts", {}).get("us-gaap", {})
+        out["n_tags"] = len(gaap)
+        for tag in EPS_T + REV_T + NI_T + SH_T:
+            node = gaap.get(tag, {}).get("units", {})
+            for unit, L in node.items():
+                out["tags"][tag + "|" + unit] = [{k: e.get(k) for k in ("start", "end", "val", "form", "filed", "fy", "fp", "frame")}
+                                                 for e in L if str(e.get("form", ""))[:4] in ("10-Q", "10-K")]
+        # otras etiquetas con "EarningsPerShare" o "Revenue" que la empresa use y no estemos leyendo
+        out["other"] = sorted(k for k in gaap if ("EarningsPerShare" in k or "Revenue" in k or k.startswith("NetIncome"))
+                              and k not in EPS_T + REV_T + NI_T)
+    with open(os.path.join(DEBUG_DIR, f"{sym}.json"), "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 
 
 # ------------------------------------------------------------------ SEC
@@ -376,7 +397,7 @@ def main():
     summ, done, miss = {}, 0, []
     # primero las que todavía no tienen historia (o la tienen más vieja): si se corta por tiempo, la próxima sigue
     age = lambda t: os.path.getmtime(os.path.join(OUT_DIR, f"{t}.json")) if os.path.exists(os.path.join(OUT_DIR, f"{t}.json")) else 0
-    tick = sorted(tick, key=age)
+    tick = sorted(tick, key=lambda t: (t not in DEBUG_T, age(t)))
     for n_t, s in enumerate(tick):
         if time.time() - T0 > TIME_BUDGET:
             print(f"Tope de tiempo en {n_t}/{len(tick)}: el resto queda con los datos de la corrida anterior")
@@ -389,10 +410,18 @@ def main():
             facts = sec_facts(cik)
         except Exception as e:
             miss.append(s)
+            print(f"  {s}: sin datos de la SEC ({e})")
+            if s in DEBUG_T:
+                debug_dump(s, None, str(e))
             if SEC_FAILS[0] >= 8:
                 print("La SEC dejó de responder:", e)
                 break
             continue
+        if s in DEBUG_T:
+            try:
+                debug_dump(s, facts)
+            except Exception as e:
+                print("  diagnóstico falló para", s, e)
         p = px[s]
         row = build(s, facts, p, splits.get(s))
         if row is None:
