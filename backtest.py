@@ -35,7 +35,7 @@ GOAL = 0.70
 # La SEC exige identificarse con nombre y un email de contacto; si no, rechaza el pedido (error 403).
 # Se carga como secreto del repositorio: Settings → Secrets and variables → Actions → SEC_UA
 SEC_UA = os.environ.get("SEC_UA") or "PROSPEI Monitor research github.com/finanzasconpedro-gif"
-BROAD_N, SEED, SEED2, SEED3 = 100, 7, 11, 23        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
+BROAD_N, SEED, SEED2, SEED3, SEED4 = 100, 7, 11, 23, 31        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción clase A
 
 FALLBACK = {   # por si no está data.json: 3 de mayor capitalización por sector (aprox.)
@@ -60,8 +60,10 @@ VARIANTS = {
     "Q": "P + los fundamentos de B (ganancia positiva, ventas creciendo, P/E no más de 10% arriba de su promedio de 5 años)",
     "R": "Comprar en partes por mercado bajista: cumple D pero el S&P 500 está debajo de su media de 200 días",
     "S": "Estrategia por sector: J en tecnología, industriales y comunicaciones · D en consumo discrecional · G en utilities, energía y materiales · sin señal en consumo básico, financiero, real estate y salud",
+    "T": "Motor por sector del monitor (perfiles de screener.py): señal de entrada, momentum, crecimiento y peso de la valuación según el sector; sin señal en los sectores sin ventaja",
 }
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S")
+VARIANTS.pop("_", None)
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T")
 S_MAP = {"Tecnología": "J", "Industrial": "J", "Comunicaciones": "J", "Consumo discrecional": "D",
          "Utilities": "G", "Servicios públicos": "G", "Energía": "G", "Materiales": "G"}
 # ---- señales de agotamiento: qué pasó en los 30, 60 y 90 días siguientes (21, 42 y 63 ruedas)
@@ -135,7 +137,15 @@ def pick_universes():
             broad3[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac3))), random_state=SEED3).t)
     except Exception as e:
         print("Sin tercera muestra:", e)
-    return {"top": top, "broad": broad, "broad2": broad2, "broad3": broad3}
+    # cuarta muestra: todas las acciones de EE.UU. que no se usaron en ninguna prueba (valida el motor por sector, T)
+    broad4 = {}
+    try:
+        used4 = used3 | {t for v in broad3.values() for t in v}
+        for sec, g in df[~df.t.isin(used4)].groupby("sector"):
+            broad4[sec] = sorted(g.t)
+    except Exception as e:
+        print("Sin cuarta muestra:", e)
+    return {"top": top, "broad": broad, "broad2": broad2, "broad3": broad3, "broad4": broad4}
 
 
 def pick_universe():
@@ -451,6 +461,23 @@ def run_ticker(args):
         sig = {"A": a, "B": b, "C": cc_, "D": b and cc_, "E": b and cc_ and up, "F": grow and up,
                "G": g_, "H": h_, "J": g2, "P": p_, "Q": p_ and fb, "R": b and cc_ and not up}
         sig["S"] = bool(sig.get(S_MAP.get(sector, "_"), False))
+        # T: el motor por sector del monitor (mismos perfiles que screener.py)
+        PF = getattr(S, "SECTOR_PROFILE", {}).get(sector)
+        t_ = False
+        if PF and PF["edge"] and r.at >= S.V_AT and r.setup in PF["entry"] and not earn:
+            t_ = True
+            if PF["mom"] is not None:
+                t_ = t_ and np.isfinite(mom[i]) and mom[i] >= PF["mom"]
+            if PF["growth"] or PF["val"] == "full":
+                if fd is None:
+                    t_ = False
+                else:
+                    e, pe, med, g, eg = fd[0][i], fd[1][i], fd[2][i], fd[3][i], fd[4][i]
+                    if PF["growth"]:
+                        t_ = t_ and bool(np.isfinite(eg) and eg > 0 and np.isfinite(g) and g > 0)
+                    if PF["val"] == "full":
+                        t_ = t_ and bool(np.isfinite(e) and e > 0 and np.isfinite(g) and g > 0 and np.isfinite(pe) and np.isfinite(med) and pe <= med * 1.10)
+        sig["T"] = bool(t_)
         new = {k: sig[k] and i - last.get(k, -999) > GAP for k in sig}
         if i % 5 == 0 or any(new.values()):
             p0 = c[i + 1]
@@ -624,7 +651,8 @@ def by(rows, field):
 
 UNI_LBL = {"top": "Las 3 más grandes de cada sector", "broad": f"Muestra amplia: {BROAD_N} acciones al azar del S&P 500",
            "broad2": f"Muestra de control: otras {BROAD_N} acciones (nunca usadas para elegir reglas)",
-           "broad3": f"Validación de la estrategia por sector: otras {BROAD_N} acciones nuevas"}
+           "broad3": f"Validación de la estrategia por sector: otras {BROAD_N} acciones nuevas",
+           "broad4": "Validación del motor por sector: todas las acciones que no se usaron en ninguna prueba"}
 
 
 def all_tickers():
