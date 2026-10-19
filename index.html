@@ -198,6 +198,12 @@ tr[data-t]{cursor:pointer}
 .kv span{color:var(--muted)}
 .chart{width:100%;height:auto;display:block;margin-top:6px}
 .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.fh{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.fh-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.fh-t{font-weight:700;font-size:13.5px}
+.fh-s{font-size:13px;margin:6px 0 0;line-height:1.45}
+.fh-pc{display:inline-block;position:relative;width:54px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--up),var(--line) 50%,var(--down));vertical-align:middle;opacity:.8}
+.fh-pc i{position:absolute;top:-3px;width:4px;height:12px;border-radius:2px;margin-left:-2px;border:1px solid var(--card)}
 .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
 .cedbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px;background:var(--bg)}
 footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;color:var(--muted);line-height:1.55}
@@ -231,6 +237,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <button class="tab" data-t="mep">Dólar MEP por bono</button>
     <button class="tab" data-t="ced">CEDEARs desarbitrados</button>
     <button class="tab" data-t="pf">Mi cartera</button>
+    <button class="tab" data-t="fh">Buscador por valuación</button>
   </nav>
 
   <!-- OPORTUNIDADES -->
@@ -422,6 +429,32 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     </div>
   </section>
 
+  <!-- BUSCADOR POR HISTORIA DE VALUACIÓN -->
+  <section id="t-fh" class="hide">
+    <div class="card">
+      <h2>Buscador por valuación e historia de ganancias</h2>
+      <p class="sub">Compara cada empresa contra <b>su propia historia</b>: si hoy cotiza cara o barata frente a lo que se pagó por ella en los últimos 10 años, cuánto crecieron sus ganancias y ventas, si recompra acciones y si sus ganancias están respaldadas por caja. Para bancos y aseguradoras se usa precio / valor libros; para empresas sin ganancias, precio / ventas. Tocá una fila para ver los gráficos.</p>
+      <div class="bar" style="flex-wrap:wrap">
+        <input type="search" id="fh-q" placeholder="Buscar ticker o nombre…">
+        <select id="fh-sec"><option value="">Todos los sectores</option></select>
+        <span class="note" id="fh-n"></span>
+      </div>
+      <div class="bar" id="fh-pre" style="flex-wrap:wrap;margin-top:6px"></div>
+      <p class="note" id="fh-meta" style="margin:6px 0"></p>
+      <div class="tw"><table id="tb-fh"></table></div>
+      <button class="chip" id="fh-more" hidden style="margin-top:8px">Ver todas</button>
+      <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Cómo leer cada columna</summary>
+        <ul class="note" style="padding-left:18px">
+          <li><b>Percentil vs. su historia</b>: de 0 a 100. 20 significa que en el 80% de los meses de los últimos 10 años estuvo más cara que hoy (verde = barata contra su propia norma; rojo = cara).</li>
+          <li><b>vs. P/E pagado por ganancia siguiente</b>: compara el P/E esperado de hoy (con la ganancia que estiman los analistas) contra lo que históricamente se pagó por la ganancia que efectivamente llegó al año siguiente.</li>
+          <li><b>Ganancia / ventas / precio 5 años</b>: crecimiento anual compuesto. Si la ganancia crece más que el precio, la acción se fue abaratando.</li>
+          <li><b>Acciones 5 años</b>: negativo = recompró acciones (bueno para el accionista); positivo = emitió (dilución).</li>
+          <li><b>Caja / ganancia</b>: flujo de caja libre sobre ganancia neta. Cerca o arriba de 1 = ganancias respaldadas por caja.</li>
+          <li>Barata contra su historia no es lo mismo que oportunidad: puede estar barata porque el negocio empeoró. Mirarlo junto con el veredicto del monitor y el crecimiento.</li>
+        </ul></details>
+    </div>
+  </section>
+
   <!-- MI CARTERA -->
   <section id="t-pf" class="hide">
     <div class="card">
@@ -496,7 +529,7 @@ function parseRatio(s){const m=String(s).match(/^\s*(\d+(?:[.,]\d+)?)\s*:\s*(\d+
 async function getJ(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(url+' → '+r.status);return r.json()}
 
 /* ---------- state ---------- */
-const S={data:{},ref:{},sort:{buy:['score',-1],part:['score',-1],acc:['vol',-1],mep:['liq',-1],ced:['desv',1],top:['rank',1],uni:['score',-1],vm:['fair_up',-1]},
+const S={data:{},ref:{},sort:{buy:['score',-1],part:['score',-1],acc:['vol',-1],mep:['liq',-1],ced:['desv',1],top:['rank',1],uni:['score',-1],vm:['fair_up',-1],fh:['pc',1]},
   fav:new Set(store('fav')||[]),ratioOv:store('ratios')||{},pa:'lider',lq:'1',cf:'all',cclsrc:'bono'};
 function saveFav(){store('fav',[...S.fav])}
 
@@ -505,7 +538,7 @@ function saveFav(){store('fav',[...S.fav])}
 $('#theme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);store('theme',n)};
 
 /* ---------- tabs & filters ---------- */
-$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf','fh'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='fh')initFHTab();if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
 function chipGroup(attr,key,fn){$$('[data-'+attr+']').forEach(b=>b.onclick=()=>{$$('[data-'+attr+']').forEach(x=>x.classList.toggle('on',x===b));S[key]=b.dataset[attr];fn()})}
 chipGroup('pa','pa',renderAcc);chipGroup('lq','lq',renderMep);chipGroup('cf','cf',renderCed);
 $('#q-acc').oninput=renderAcc;$('#q-mep').oninput=renderMep;$('#q-ced').oninput=renderCed;
@@ -520,7 +553,7 @@ function table(el,key,cols,rows,rowCls,limit){
   if(!r.length)h+=`<tr><td colspan="${cols.length}" class="note" style="text-align:center;padding:20px">Sin datos para mostrar.</td></tr>`;
   r.forEach(o=>{h+=`<tr class="${rowCls?rowCls(o):''}"${o.t?` data-t="${o.t}"`:''}>`+cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(o):(o[c.k]??'—')}</td>`).join('')+'</tr>'});
   el.innerHTML=h+'</tbody>';
-  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM})[key]()});
+  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab})[key]()});
   el.querySelectorAll('.star').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=b.dataset.s;S.fav.has(s)?S.fav.delete(s):S.fav.add(s);saveFav();renderAcc();renderCed();renderTop();renderUni()});
   el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t));
   el.querySelectorAll('.edit').forEach(b=>b.onclick=e=>{e.stopPropagation();editRatio(b.dataset.s)});
@@ -1359,6 +1392,7 @@ function openDetail(t){
     ${o.closes?chartSvg(o.closes):'<p class="note">El gráfico está disponible para los papeles del top.</p>'}
     ${earlyHtml(o)}
     ${valLensHtml(o)}
+    <div class="fh" id="fh-box" data-t="${esc(o.t)}"><p class="note">Cargando historia de ganancias y valuación…</p></div>
     ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
     <div class="lists">
       <div class="pro"><h4>Por qué aparece como oportunidad</h4><ul>${li(o.pro)}</ul></div>
@@ -1387,10 +1421,201 @@ function openDetail(t){
     ${ced}
     <p class="note" style="margin-top:12px">Puntaje calculado al cierre del ${new Date(S.scr.generated).toLocaleDateString('es-AR')} con datos de Yahoo Finance. Herramienta de screening: no es una recomendación de inversión.</p>`;
   $('#modal').classList.remove('hide');document.body.style.overflow='hidden';
+  renderFH(o).catch(e=>{const b=$('#fh-box');if(b)b.innerHTML='<p class="note">No se pudo dibujar la historia de ganancias: '+esc(e.message)+'</p>';console.error(e)});
 }
 function closeDetail(){$('#modal').classList.add('hide');document.body.style.overflow=''}
 $('#mclose').onclick=closeDetail;$('#modal').onclick=e=>{if(e.target.id==='modal')closeDetail()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});
+
+
+/* ---------- Historia de ganancias y valuación (fund/<T>.json + fund_sum.json + fwd_hist.json) ---------- */
+async function loadFsum(){if(S.fsum!==undefined)return S.fsum;try{S.fsum=await getJ('fund_sum.json?v='+Date.now())}catch(e){S.fsum=null}return S.fsum}
+async function loadFwd(){if(S.fwdh!==undefined)return S.fwdh;try{S.fwdh=await getJ('fwd_hist.json?v='+Date.now())}catch(e){S.fwdh=null}return S.fwdh}
+async function loadFund(t){S.fund=S.fund||{};if(t in S.fund)return S.fund[t];try{S.fund[t]=await getJ('fund/'+encodeURIComponent(t)+'.json?v='+Date.now())}catch(e){S.fund[t]=null}return S.fund[t]}
+const fhQ=(q,v)=>{ // percentil aproximado de v dentro de los deciles q[10..90]
+  if(!q||v==null||!isFinite(v))return null;if(v<=q[0])return Math.max(0,0.1*v/q[0]);if(v>=q[8])return Math.min(1,0.9+0.1*Math.min(1,(v-q[8])/Math.max(1e-9,q[8]-q[7])));
+  for(let i=0;i<8;i++)if(v<=q[i+1])return 0.1*(i+1)+0.1*(v-q[i])/Math.max(1e-9,q[i+1]-q[i]);return null};
+function fhMult(o,f){ // múltiplo adecuado al tipo de empresa: P/E, P/VL (bancos y aseguradoras) o P/V (sin ganancias)
+  if(!f)return null;const p=o.px||o.p;if(!p)return null;
+  if(o.val_model==='book'&&f.bv>0&&f.sh>0&&f.pb_q)return {k:'pb',lbl:'P/VL',now:p/(f.bv/f.sh),q:f.pb_q};
+  if(f.eps>0&&f.pe_q&&o.val_model!=='sales')return {k:'pe',lbl:'P/E',now:p/f.eps,q:f.pe_q};
+  if(f.rev>0&&f.sh>0&&f.ps_q)return {k:'ps',lbl:'P/V',now:p*f.sh/f.rev,q:f.ps_q};
+  return null}
+const fhWord=pc=>pc==null?'':pc<=0.2?'muy barata contra su historia':pc<=0.4?'barata contra su historia':pc<0.6?'en su rango normal':pc<0.8?'cara contra su historia':'muy cara contra su historia';
+const fhCol=pc=>pc==null?'var(--muted)':pc<=0.4?'var(--up)':pc>=0.6?'var(--down)':'var(--ink)';
+
+/* gráfico de líneas genérico (SVG) */
+function fhChart(o){
+  const W=o.W||900,sm_=W<600,H=o.h||(sm_?220:250),L=8,T=12,Bm=24,N=o.labels.length;if(N<2)return '';let R=62;
+  const vals=[];o.series.forEach(s=>{if(!s.right)s.v.forEach(v=>{if(v!=null&&isFinite(v))vals.push(v)})});
+  if(o.band){o.band.lo.forEach(v=>v!=null&&vals.push(v));o.band.hi.forEach(v=>v!=null&&vals.push(v))}
+  (o.marks||[]).forEach(m=>!m.right&&m.v!=null&&isFinite(m.v)&&vals.push(m.v));
+  (o.bars||[]).forEach(v=>v!=null&&vals.push(v));
+  if(!vals.length)return '';
+  let mn=Math.min(...vals),mx=Math.max(...vals);if(o.zero)mn=Math.min(0,mn);const pad=(mx-mn)*0.07||Math.abs(mx)*0.1||1;mn-=o.zero&&mn>=0?0:pad;mx+=pad;
+  const yfm=o.yf||(v=>fmt(v,1));R=Math.max(36,Math.max(...[0,.25,.5,.75,1].map(f=>String(yfm(mn+f*(mx-mn))).length))*6.6+12);
+  const xs=N+(o.extra||0);const x=i=>L+i*(W-L-R)/(xs-1),y=v=>T+(1-(v-mn)/(mx-mn))*(H-T-Bm);
+  let rmn,rmx,yr;const rv=[];o.series.forEach(s=>{if(s.right)s.v.forEach(v=>{if(v!=null&&isFinite(v))rv.push(v)})});
+  if(rv.length){rmn=Math.min(...rv);rmx=Math.max(...rv);const rp=(rmx-rmn)*0.1||Math.abs(rmx)*0.1||0.01;rmn-=rp;rmx+=rp;yr=v=>T+(1-(v-rmn)/(rmx-rmn))*(H-T-Bm)}
+  const path=(arr,yf)=>{let d='',pen=false;arr.forEach((v,i)=>{if(v==null||!isFinite(v)){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+' '+yf(v).toFixed(1);pen=true});return d};
+  const ticks=[0,.25,.5,.75,1].map(f=>mn+f*(mx-mn));
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||'')}">`;
+  s+=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" style="stroke:var(--line)"/><text x="${W-R+6}" y="${(y(v)+4).toFixed(1)}" font-size="11" style="fill:var(--muted)">${o.yf?o.yf(v):fmt(v,1)}</text>`).join('');
+  if(o.zero&&mn<0)s+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" style="stroke:var(--muted)" stroke-width="1"/>`;
+  if(o.band){let up='',dn='';const ok=i=>o.band.lo[i]!=null&&o.band.hi[i]!=null;const idx=o.labels.map((_,i)=>i).filter(ok);
+    if(idx.length>1){up=idx.map((i,k)=>(k?'L':'M')+x(i).toFixed(1)+' '+y(o.band.hi[i]).toFixed(1)).join('');dn=idx.slice().reverse().map(i=>'L'+x(i).toFixed(1)+' '+y(o.band.lo[i]).toFixed(1)).join('');
+      s+=`<path d="${up}${dn}Z" style="fill:var(--accent);opacity:.10"/>`}}
+  if(o.bars){const bw=Math.max(2,(W-L-R)/xs*(o.barW||2.2));o.bars.forEach((v,i)=>{if(v==null||!isFinite(v))return;const y0=y(Math.max(0,mn)),y1=y(v);s+=`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.abs(y1-y0).toFixed(1)}" style="fill:${o.barCol||'var(--accent)'};opacity:.35"/>`})}
+  if(o.fillBetween){const [a,b]=o.fillBetween;for(let i=0;i<N-1;i++){const p0=a[i],p1=a[i+1],q0=b[i],q1=b[i+1];if([p0,p1,q0,q1].some(v=>v==null||!isFinite(v)))continue;const c=(p0+p1)/2>(q0+q1)/2?'var(--down)':'var(--up)';s+=`<path d="M${x(i).toFixed(1)} ${y(p0).toFixed(1)}L${x(i+1).toFixed(1)} ${y(p1).toFixed(1)}L${x(i+1).toFixed(1)} ${y(q1).toFixed(1)}L${x(i).toFixed(1)} ${y(q0).toFixed(1)}Z" style="fill:${c};opacity:.13"/>`}}
+  (o.hl||[]).forEach(h=>{if(h.v==null||!isFinite(h.v))return;s+=`<line x1="${L}" x2="${W-R}" y1="${y(h.v).toFixed(1)}" y2="${y(h.v).toFixed(1)}" style="stroke:${h.c}" stroke-width="1.4" stroke-dasharray="${h.dash||'6 4'}"/>`});
+  o.series.forEach(sr=>{if(sr.right&&!yr)return;const d=path(sr.v,sr.right?yr:y);if(d)s+=`<path d="${d}" fill="none" style="stroke:${sr.c}" stroke-width="${sr.w||2}"${sr.dash?` stroke-dasharray="${sr.dash}"`:''}/>`});
+  if(yr){[0,.5,1].forEach(f=>{const v=rmn+f*(rmx-rmn);s+=`<text x="${L+2}" y="${(yr(v)-3).toFixed(1)}" font-size="10.5" style="fill:var(--muted)">${o.ryf?o.ryf(v):fmt(v,1)}</text>`})}
+  (o.marks||[]).forEach(m=>{if(m.v==null||!isFinite(m.v))return;const cx=x(m.i),cy=(m.right?yr:y)(m.v);
+    s+=m.shape==='d'?`<path d="M${cx} ${cy-7}L${cx+7} ${cy}L${cx} ${cy+7}L${cx-7} ${cy}Z" style="fill:${m.c};stroke:var(--card)" stroke-width="1.5"/>`:`<circle cx="${cx}" cy="${cy}" r="5.5" style="fill:${m.c};stroke:var(--card)" stroke-width="1.5"/>`;
+    if(m.lbl)s+=`<text x="${cx-9}" y="${cy-9}" font-size="11.5" font-weight="600" text-anchor="end" style="fill:${m.c}">${esc(m.lbl)}</text>`});
+  const step=Math.max(1,Math.round(N/Math.max(3,Math.floor(W/150))));o.labels.forEach((l,i)=>{if(i%step===0&&i<N-step/2)s+=`<text x="${x(i).toFixed(1)}" y="${H-6}" font-size="11" text-anchor="${i===0?'start':'middle'}" style="fill:var(--muted)">${esc(l)}</text>`});
+  s+=`<text x="${x(N-1).toFixed(1)}" y="${H-6}" font-size="11" text-anchor="end" style="fill:var(--muted)">hoy</text></svg>`;
+  if(o.legend)s+=`<div class="legend">${o.legend.map(l=>`<span><i style="background:${l.c}${l.dash?';opacity:.7':''}"></i>${l.t}</span>`).join('')}</div>`;
+  return s}
+
+function fhSlice(f,yrs){const n=f.d.length,k=Math.max(0,n-12*yrs);const cut=a=>a?a.slice(k):[];
+  const o={};['d','p','eps','fe','rev','ni','fcf','sh','bv'].forEach(c=>o[c]=cut(f[c]));o.lab=o.d.map(d=>d.slice(0,4));return o}
+const fhMed=a=>{const v=a.filter(x=>x!=null&&isFinite(x)).sort((x,y)=>x-y);if(!v.length)return null;const m=v.length>>1;return v.length%2?v[m]:(v[m-1]+v[m])/2};
+const fhPct=(a,p)=>{const v=a.filter(x=>x!=null&&isFinite(x)).sort((x,y)=>x-y);if(v.length<6)return null;const k=(v.length-1)*p,i=Math.floor(k);return v[i]+(v[Math.min(i+1,v.length-1)]-v[i])*(k-i)};
+const fhRoll=(a,w,p)=>a.map((_,i)=>i<w-1?null:fhPct(a.slice(i-w+1,i+1),p));
+const fhCagr=(a,b,y)=>a>0&&b>0&&y>0?Math.pow(b/a,1/y)-1:null;
+const fhLast=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]!=null&&isFinite(a[i]))return a[i];return null};
+const fhFirst=a=>{for(let i=0;i<a.length;i++)if(a[i]!=null&&isFinite(a[i])&&a[i]>0)return [i,a[i]];return [null,null]};
+const mill=v=>v==null||!isFinite(v)?'—':Math.abs(v)>=1000?'US$ '+fmt(v/1000,Math.abs(v)>=100000?0:1)+' mil M':'US$ '+fmt(v,0)+' M';
+
+async function renderFH(o){
+  const box=$('#fh-box');if(!box)return;
+  const [f,fs,fw]=await Promise.all([loadFund(o.t),loadFsum(),loadFwd()]);
+  if(!$('#fh-box')||$('#fh-box').dataset.t!==o.t)return;
+  if(!f||!f.d||!f.d.length){box.innerHTML=`<h4 style="margin:0 0 4px">Historia de ganancias y valuación</h4><p class="note">Sin historia de balances de la SEC para ${esc(o.t)}${o.region!=='EE.UU.'?' (empresa extranjera: presenta sus balances con otro formato)':''}.</p>`;return}
+  const CW=Math.max(330,Math.min(900,(box.clientWidth||900)-26));
+  const yrs=S.fhy||store('fhy')||10,F=fhSlice(f,yrs),N=F.d.length,sm=(fs&&fs.rows&&fs.rows[o.t])||{};
+  const p=F.p.slice();p[N-1]=o.px||p[N-1];          // el último punto con el precio de hoy
+  const book=o.val_model==='book';
+  const pe=F.eps.map((e,i)=>e>0&&p[i]>0&&p[i]/e<200?p[i]/e:null);
+  const pf=F.fe.map((e,i)=>e>0&&p[i]>0&&p[i]/e<200?p[i]/e:null);
+  const pb=F.bv.map((b,i)=>b>0&&F.sh[i]>0&&p[i]>0?p[i]/(b/F.sh[i]):null).map(v=>v!=null&&v<60?v:null);
+  const ps=F.rev.map((r,i)=>r>0&&F.sh[i]>0&&p[i]>0?p[i]*F.sh[i]/r:null);
+  const useM=book&&pb.filter(v=>v!=null).length>12?'pb':pe.filter(v=>v!=null).length>=Math.min(24,N*0.5)?'pe':ps.filter(v=>v!=null).length>12?'ps':null;
+  const M={pe:{a:pe,lbl:'P/E',name:'precio / ganancia'},pb:{a:pb,lbl:'P/VL',name:'precio / valor libros'},ps:{a:ps,lbl:'P/V',name:'precio / ventas'}}[useM]||null;
+  const chips=`<div class="bar" style="margin:4px 0 8px">${[5,10,15].map(y=>`<button class="chip ${y===yrs?'on':''}" data-fhy="${y}">${y} años</button>`).join('')}</div>`;
+  let h=`<h4 style="margin:0 0 2px">Historia de ganancias y valuación</h4><p class="note" style="margin:0">Balances presentados a la SEC, con la información que se conocía en cada mes. Precios ajustados por splits.</p>${chips}`;
+  // 1) precio vs ganancias
+  const medPE=M&&useM==='pe'?fhMed(pe):null;
+  if(medPE){
+    const fair=F.eps.map(e=>e!=null&&isFinite(e)?Math.max(0,e*medPE):null);
+    const [i0,e0]=fhFirst(F.eps),eN=fhLast(F.eps),yy=i0==null?null:(N-1-i0)/12;
+    const cp=fhCagr(p[i0],p[N-1],yy),ce=fhCagr(e0,eN,yy);
+    const fwdFair=o.fwd_eps>0?o.fwd_eps*medPE:null;
+    const lab=F.lab.concat(['+12m']);
+    const gap=fair[N-1]>0?p[N-1]/fair[N-1]-1:null;
+    h+=`<div class="fh-card"><div class="fh-t">Precio vs. ganancias</div>
+      <p class="note" style="margin:2px 0 4px">La línea naranja es el precio que "corresponde" a la ganancia de cada momento si la acción cotizara a su P/E normal (mediana de ${yrs} años: <b>${fmt(medPE,1)}x</b>). Precio arriba de la naranja = más cara que lo habitual (rojo); abajo = más barata (verde).</p>
+      ${fhChart({W:CW,title:'Precio vs ganancias',labels:lab.slice(0,N),extra:fwdFair?12:0,series:[{v:fair,c:'#e8890c',w:2.2},{v:p,c:'var(--accent)',w:2.2}],fillBetween:[p,fair],marks:fwdFair?[{i:N-1+12,v:fwdFair,c:'#e8890c',shape:'d',lbl:'esperada'}]:[],zero:true,yf:v=>fmt(v,0),
+        legend:[{t:'Precio',c:'var(--accent)'},{t:'Ganancia × P/E normal',c:'#e8890c'},...(fwdFair?[{t:'◆ con la ganancia esperada a 12 meses',c:'#e8890c'}]:[])]})}
+      <p class="fh-s">${cp!=null&&ce!=null?`En ${fmt(yy,0)} años el precio ${cp>=0?'subió':'bajó'} <b>${pct(cp,1)} anual</b> y la ganancia por acción <b>${pct(ce,1)} anual</b>: ${cp-ce>0.02?'el precio corrió más rápido que las ganancias (se encareció).':ce-cp>0.02?'las ganancias crecieron más que el precio (se abarató).':'precio y ganancias avanzaron parejo.'}`:'Ganancias negativas en parte del período: el crecimiento anual no es comparable.'}${gap!=null?` Hoy cotiza <b class="${gap>0?'down':'up'}">${pct(gap,0)}</b> contra el precio que corresponde a su ganancia actual con su P/E normal.`:''}</p></div>`;
+  }
+  // 2) múltiplo vs su historia (+ forward)
+  if(M){
+    const a=M.a,med=fhMed(a),lo=fhPct(a,0.25),hi=fhPct(a,0.75);
+    const now=a[N-1];const all=a.filter(v=>v!=null);const pc=now!=null&&all.length?all.filter(v=>v<now).length/all.length:null;
+    const isPE=useM==='pe';const pfm=isPE?fhMed(pf):null;
+    const marks=[{i:N-1,v:now,c:fhCol(pc),lbl:'hoy '+fmt(now,1)+'x'}];
+    if(isPE&&o.fpe>0&&o.fpe<200)marks.push({i:N-1,v:o.fpe,c:'#8e5bd6',shape:'d',lbl:'esperado '+fmt(o.fpe,1)+'x'});
+    // P/E esperado guardado semana a semana desde que se empezó a registrar
+    let fwdLine=null;if(isPE&&fw&&fw.f&&fw.f[o.t]&&fw.dates){const m={};fw.dates.forEach((d,i)=>{const v=fw.f[o.t][i];if(v!=null)m[d.slice(0,7)]=v});fwdLine=F.d.map(d=>m[d]??null);if(fwdLine.filter(v=>v!=null).length<2)fwdLine=null}
+    const ser=[{v:a,c:'var(--accent)',w:2.2}];if(isPE&&pf.some(v=>v!=null))ser.push({v:pf,c:'#8e5bd6',w:1.6,dash:'5 4'});if(fwdLine)ser.push({v:fwdLine,c:'#8e5bd6',w:2.4});
+    h+=`<div class="fh-card"><div class="fh-t">${M.lbl} hoy contra su propia historia</div>
+      ${fhChart({W:CW,title:M.lbl+' histórico',labels:F.lab,series:ser,hl:[{v:med,c:'var(--muted)'}],band:{lo:a.map(()=>lo),hi:a.map(()=>hi)},marks,yf:v=>fmt(v,0)+'x',
+        legend:[{t:M.lbl+' ('+M.name+')',c:'var(--accent)'},{t:'Rango normal (mitad central)',c:'color-mix(in srgb,var(--accent) 25%,transparent)'},{t:'Mediana '+fmt(med,1)+'x',c:'var(--muted)'},...(isPE&&pf.some(v=>v!=null)?[{t:'P/E pagado sobre la ganancia que llegó 12 meses después',c:'#8e5bd6',dash:1}]:[]),...(isPE&&o.fpe>0?[{t:'◆ P/E esperado hoy (analistas)',c:'#8e5bd6'}]:[])]})}
+      <p class="fh-s">${now!=null?`${M.lbl} de hoy <b>${fmt(now,1)}x</b> contra una mediana de <b>${fmt(med,1)}x</b> en ${yrs} años (rango normal ${fmt(lo,1)}x a ${fmt(hi,1)}x): <b style="color:${fhCol(pc)}">${fhWord(pc)}</b>, más cara que el ${fmt(pc*100,0)}% de los meses.`:'Hoy el múltiplo no es calculable (ganancia negativa).'}
+      ${isPE&&o.fpe>0&&pfm?` P/E esperado <b>${fmt(o.fpe,1)}x</b> contra <b>${fmt(pfm,1)}x</b> que el mercado pagó en promedio por la ganancia del año siguiente (${o.fpe<pfm*0.9?'<span class="up">más barato que su norma</span>':o.fpe>pfm*1.1?'<span class="down">más caro que su norma</span>':'en línea con su norma'}). Ojo: la ganancia esperada es una estimación de los analistas, que suelen ser optimistas.`:''}
+      ${useM==='pb'?' Para bancos y aseguradoras se usa precio / valor libros, que es como los valúa el mercado.':useM==='ps'?' Como la ganancia fue negativa o irregular, se usa precio / ventas.':''}${o.val_model==='reit'?' En los REITs la ganancia contable subestima el flujo (por las amortizaciones): el P/E sirve solo para comparar contra su propia historia.':''}</p></div>`;
+  }
+  // 3) ventas y margen
+  const qi=F.d.map((d,i)=>i).filter(i=>i%3===(N-1)%3);
+  if(F.rev.some(v=>v>0)){
+    const bars=F.rev.map((v,i)=>qi.includes(i)?v:null),mg=F.rev.map((r,i)=>r>0&&F.ni[i]!=null?F.ni[i]/r:null);
+    const [r0i,r0]=fhFirst(F.rev),rN=fhLast(F.rev),cr=fhCagr(r0,rN,r0i==null?0:(N-1-r0i)/12);
+    const m0=mg.find(v=>v!=null),mN=fhLast(mg);
+    h+=`<div class="fh-card"><div class="fh-t">Ventas y margen neto</div>
+      ${fhChart({W:CW,title:'Ventas y margen',labels:F.lab,bars,barW:2.6,zero:true,series:[{v:mg,c:'#e8890c',w:2,right:true}],yf:v=>mill(v).replace('US$ ',''),ryf:v=>fmt(v*100,1)+'%',
+        legend:[{t:'Ventas de 12 meses (barras, eje derecho)',c:'color-mix(in srgb,var(--accent) 45%,transparent)'},{t:'Margen neto (eje izquierdo)',c:'#e8890c'}]})}
+      <p class="fh-s">Ventas de 12 meses: <b>${mill(rN)}</b>${cr!=null?`, crecieron <b>${pct(cr,1)} anual</b>`:''}. Margen neto ${m0!=null&&mN!=null?`de <b>${fmt(m0*100,1)}%</b> a <b>${fmt(mN*100,1)}%</b> (${mN-m0>0.02?'<span class="up">mejoró</span>':m0-mN>0.02?'<span class="down">empeoró</span>':'estable'})`:'—'}.</p></div>`;
+  }
+  // 4) calidad de ganancias: flujo de caja libre vs ganancia neta
+  if(F.fcf.some(v=>v!=null)&&F.ni.some(v=>v!=null)&&!book){
+    const sF=F.fcf.filter(v=>v!=null).slice(-36),sN=F.ni.filter(v=>v!=null).slice(-36);
+    const ratio=sN.reduce((a,b)=>a+b,0)>0?sF.reduce((a,b)=>a+b,0)/sN.reduce((a,b)=>a+b,0):null;
+    h+=`<div class="fh-card"><div class="fh-t">Calidad de las ganancias: caja vs. ganancia contable</div>
+      ${fhChart({W:CW,title:'Flujo de caja libre vs ganancia neta',labels:F.lab,zero:true,series:[{v:F.ni,c:'var(--accent)',w:2},{v:F.fcf,c:'var(--up)',w:2}],yf:v=>mill(v).replace('US$ ',''),
+        legend:[{t:'Ganancia neta de 12 meses',c:'var(--accent)'},{t:'Flujo de caja libre de 12 meses',c:'var(--up)'}]})}
+      <p class="fh-s">${ratio!=null?`En los últimos 3 años, por cada dólar de ganancia generó <b>US$ ${fmt(ratio,2)}</b> de caja libre: ${ratio>=0.9?'<span class="up">ganancias respaldadas por caja</span>.':ratio>=0.6?'respaldo parcial (invierte buena parte de lo que gana).':'<span class="down">la caja queda bastante por debajo de la ganancia</span>: mirar inversiones, capital de trabajo o ajustes contables.'}`:'Sin datos suficientes.'}</p></div>`;
+  }
+  // 5) acciones en circulación
+  if(F.sh.filter(v=>v>0).length>12){
+    const [s0i,s0]=fhFirst(F.sh),sN=fhLast(F.sh),ch=s0&&sN?sN/s0-1:null;
+    h+=`<div class="fh-card"><div class="fh-t">Acciones en circulación (recompras o emisión)</div>
+      ${fhChart({W:CW,title:'Acciones en circulación',labels:F.lab,h:190,series:[{v:F.sh,c:'var(--accent)',w:2.2}],yf:v=>v>=1000?fmt(v/1000,v>=100000?0:2)+' mil M':fmt(v,0)+' M',legend:[{t:'Acciones (millones, diluidas)',c:'var(--accent)'}]})}
+      <p class="fh-s">${ch!=null?`En el período, la cantidad de acciones ${ch<-0.02?`<b class="up">bajó ${fmt(-ch*100,1)}%</b>: recompra acciones, cada acción es dueña de una parte mayor de la empresa.`:ch>0.02?`<b class="down">subió ${fmt(ch*100,1)}%</b>: emitió acciones (dilución), cada acción vale una parte menor.`:'se mantuvo estable.'}`:''}</p></div>`;
+  }
+  box.innerHTML=h;
+  box.querySelectorAll('[data-fhy]').forEach(b=>b.onclick=()=>{S.fhy=+b.dataset.fhy;store('fhy',S.fhy);renderFH(o)});
+}
+
+/* ---------- Buscador por historia de valuación ---------- */
+const FH_PRE={all:['Todas',()=>true],cheap:['Barata vs. su historia',r=>r.pc!=null&&r.pc<=0.3],dear:['Cara vs. su historia',r=>r.pc!=null&&r.pc>=0.7],
+  grow:['Ganancias crecen más que el precio',r=>r.eps_c5!=null&&r.px_c5!=null&&r.eps_c5>0&&r.eps_c5-r.px_c5>0.03],
+  fast:['Ganancias +15% anual',r=>r.eps_c5!=null&&r.eps_c5>=0.15],buy:['Recompra acciones',r=>r.sh_5!=null&&r.sh_5<=-0.05],
+  mg:['Margen en suba',r=>r.mg!=null&&r.mg5!=null&&r.mg-r.mg5>0.02],cash:['Ganancias con respaldo de caja',r=>r.fcf_ni!=null&&r.fcf_ni>=0.9],
+  fwd:['P/E esperado bajo su norma',r=>r.fvn!=null&&r.fvn<=-0.1]};
+async function renderFHTab(){
+  const fs=await loadFsum();const el=$('#tb-fh');
+  if(!fs||!fs.rows){$('#fh-meta').textContent='Todavía no se generó la historia de balances (falta correr "Historia de balances PROSPEI" en GitHub Actions).';el.innerHTML='';return}
+  if(!S.scr)return;
+  $('#fh-meta').textContent=`Historia de balances actualizada ${fs.generated} · ${Object.keys(fs.rows).length} empresas · múltiplos con el precio de hoy.`;
+  const q=($('#fh-q').value||'').trim().toUpperCase(),sec=$('#fh-sec').value,pre=FH_PRE[S.fhp||'all'][1];
+  const rows=[];
+  S.scr.rows.forEach(r0=>{const f=fs.rows[r0.t];if(!f)return;const o=enrich(r0);const m=fhMult(o,f);
+    const pc=m?fhQ(m.q,m.now):null;const pfm=f.pf_q?f.pf_q[4]:null;
+    const r={t:o.t,name:o.name,sector:o.sector,verdict:o.verdict,verdict_why:o.verdict_why,verdict_new:o.verdict_new,mlbl:m?m.lbl:'',mnow:m?m.now:null,mmed:m?m.q[4]:null,pc,
+      fpe:o.fpe>0&&o.fpe<200?o.fpe:null,pfm,fvn:o.fpe>0&&pfm&&m&&m.k==='pe'?o.fpe/pfm-1:null,eps_c5:f.eps_c5,rev_c5:f.rev_c5,px_c5:f.px_c5,sh_5:f.sh_5,mg:f.mg,mg5:f.mg5,dmg:f.mg!=null&&f.mg5!=null?f.mg-f.mg5:null,fcf_ni:f.fcf_ni};
+    if(q&&!(r.t.includes(q)||String(r.name||'').toUpperCase().includes(q)))return;if(sec&&r.sector!==sec)return;if(!pre(r))return;rows.push(r)});
+  $('#fh-n').textContent=rows.length+' empresas';
+  const bar=v=>v==null?'—':`<span class="fh-pc"><i style="left:${(v*100).toFixed(0)}%;background:${fhCol(v)}"></i></span> <b style="color:${fhCol(v)}">${fmt(v*100,0)}</b>`;
+  table(el,'fh',[
+    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b> <span class="note">${esc(o.name||'')}</span>`},
+    {k:'sector',h:'Sector',f:o=>`<span class="note">${esc(o.sector||'')}</span>`},
+    {k:'verdict',h:'Monitor',f:vdChip},
+    {k:'mnow',h:'Múltiplo hoy',n:1,f:o=>o.mnow==null?'—':`${fmt(o.mnow,1)}x <span class="note">${o.mlbl}</span>`},
+    {k:'mmed',h:'Mediana 10 años',n:1,f:o=>o.mmed==null?'—':fmt(o.mmed,1)+'x'},
+    {k:'pc',h:'Percentil vs. su historia',n:1,f:o=>bar(o.pc)},
+    {k:'fpe',h:'P/E esperado',n:1,f:o=>o.fpe==null?'—':fmt(o.fpe,1)+'x'},
+    {k:'fvn',h:'vs. P/E pagado por ganancia siguiente',n:1,f:o=>o.fvn==null?'—':`<span class="${o.fvn<-0.1?'up':o.fvn>0.1?'down':''}">${pct(o.fvn,0)}</span>`},
+    {k:'eps_c5',h:'Ganancia 5 años (anual)',n:1,f:o=>`<span class="${cls(o.eps_c5)}">${pct(o.eps_c5,1)}</span>`},
+    {k:'rev_c5',h:'Ventas 5 años (anual)',n:1,f:o=>`<span class="${cls(o.rev_c5)}">${pct(o.rev_c5,1)}</span>`},
+    {k:'px_c5',h:'Precio 5 años (anual)',n:1,f:o=>`<span class="${cls(o.px_c5)}">${pct(o.px_c5,1)}</span>`},
+    {k:'sh_5',h:'Acciones 5 años',n:1,f:o=>o.sh_5==null?'—':`<span class="${o.sh_5<-0.02?'up':o.sh_5>0.02?'down':''}">${pct(o.sh_5,1)}</span>`},
+    {k:'mg',h:'Margen neto (5 años antes)',n:1,f:o=>o.mg==null?'—':`${fmt(o.mg*100,1)}% <span class="note">(${o.mg5==null?'—':fmt(o.mg5*100,1)+'%'})</span>`},
+    {k:'fcf_ni',h:'Caja / ganancia',n:1,f:o=>o.fcf_ni==null?'—':`<span class="${o.fcf_ni>=0.9?'up':o.fcf_ni<0.6?'down':''}">${fmt(o.fcf_ni,2)}</span>`},
+  ],rows,null,S.fhAll?Infinity:150);
+  $('#fh-more').hidden=rows.length<=150||S.fhAll;
+}
+
+function initFHTab(){
+  if(!S.fhInit){S.fhInit=true;S.fhp='all';
+    $('#fh-pre').innerHTML=Object.entries(FH_PRE).map(([k,v])=>`<button class="chip ${k==='all'?'on':''}" data-fhp="${k}">${v[0]}</button>`).join('');
+    $$('[data-fhp]').forEach(b=>b.onclick=()=>{$$('[data-fhp]').forEach(x=>x.classList.toggle('on',x===b));S.fhp=b.dataset.fhp;renderFHTab()});
+    $('#fh-q').oninput=renderFHTab;$('#fh-sec').onchange=renderFHTab;$('#fh-more').onclick=()=>{S.fhAll=true;renderFHTab()};
+  }
+  if(S.scr){const cur=$('#fh-sec').value;const secs=[...new Set(S.scr.rows.map(r=>r.sector).filter(Boolean))].sort();$('#fh-sec').innerHTML='<option value="">Todos los sectores</option>'+secs.map(x=>`<option${x===cur?' selected':''}>${esc(x)}</option>`).join('')}
+  renderFHTab();
+}
 
 /* ---------- KPIs ---------- */
 const SETUPC={'Giro temprano':'info','Golden Cross':'up','Golden Cross en formación':'info','Corrección con señal de rebote':'up','Ruptura de máximos':'up','Corrección en curso':'warn','Recuperación':'info'};
