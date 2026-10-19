@@ -61,7 +61,7 @@ def sec_ciks():
 
 
 def sec_facts(cik):
-    r = sec_get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json")
+    r = sec_get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json", 90)
     time.sleep(0.15)          # la SEC pide no más de 10 consultas por segundo
     return r.json()
 
@@ -70,11 +70,31 @@ def _node(facts, tag, unit):
     return facts.get("facts", {}).get("us-gaap", {}).get(tag, {}).get("units", {}).get(unit)
 
 
+def _derive(ent):
+    """De los datos (inicio, fin) -> (valor, presentado) arma los trimestres: el informado, la diferencia entre
+    acumulados del año (6 meses - 3, 9 - 6, anual - 9) o el anual menos los otros tres trimestres."""
+    q = {en: (v, f) for (s, en), (v, f) in ent.items() if 80 <= (en - s).days <= 100}
+    by_start = {}
+    for (s, en), (v, f) in ent.items():
+        by_start.setdefault(s, []).append((en, v, f))
+    for s, L in by_start.items():
+        L.sort()
+        for (e1, v1, f1), (e2, v2, f2) in zip(L, L[1:]):
+            if 80 <= (e2 - e1).days <= 100 and e2 not in q:
+                q[e2] = (v2 - v1, max(f1, f2))
+    for (s, en), (v, f) in ent.items():
+        if 350 <= (en - s).days <= 380 and en not in q:
+            ins = [q[k][0] for k in q if s - pd.Timedelta(days=7) <= k - pd.Timedelta(days=91) and k <= en - pd.Timedelta(days=60)]
+            if len(ins) == 3:
+                q[en] = (v - sum(ins), f)
+    return q
+
+
 def qseries(facts, tags, unit, adj=None):
-    """Serie trimestral [(fin, presentado, valor)]. Usa el trimestre informado; si no está, lo deriva de los
-    acumulados del año (6 meses - 3 meses, 9 - 6, anual - 9) o del anual menos los otros tres trimestres.
-    Toma siempre la primera vez que se publicó cada dato (sin revisiones posteriores)."""
-    best = {}
+    """Serie trimestral [(fin, presentado, valor)]. Toma siempre la primera vez que se publicó cada dato.
+    Primero arma cada etiqueta por separado; los trimestres que falten (porque la empresa cambió de etiqueta
+    entre los trimestres y el anual, algo muy común) se completan combinando todas las etiquetas."""
+    best, merged = {}, {}
     for pri, tag in enumerate(tags):
         node = _node(facts, tag, unit)
         if not node:
@@ -87,25 +107,45 @@ def qseries(facts, tags, unit, adj=None):
             if (s, en) not in ent or f < ent[(s, en)][1]:
                 v_ = float(e["val"])
                 ent[(s, en)] = (adj(v_, f) if adj else v_, f)
-        q = {en: (v, f) for (s, en), (v, f) in ent.items() if 80 <= (en - s).days <= 100}
-        # acumulados del año: misma fecha de inicio, se resta el acumulado anterior
-        by_start = {}
-        for (s, en), (v, f) in ent.items():
-            by_start.setdefault(s, []).append((en, v, f))
-        for s, L in by_start.items():
-            L.sort()
-            for (e1, v1, f1), (e2, v2, f2) in zip(L, L[1:]):
-                if 80 <= (e2 - e1).days <= 100 and e2 not in q:
-                    q[e2] = (v2 - v1, max(f1, f2))
-        # anual menos los otros tres trimestres
-        for (s, en), (v, f) in ent.items():
-            if 350 <= (en - s).days <= 380 and en not in q:
-                ins = [q[k][0] for k in q if s - pd.Timedelta(days=7) <= k - pd.Timedelta(days=91) and k <= en - pd.Timedelta(days=60)]
-                if len(ins) == 3:
-                    q[en] = (v - sum(ins), f)
-        for en, (v, f) in q.items():
+        for k, v in ent.items():
+            if k not in merged or merged[k][2] > pri:
+                merged[k] = (v[0], v[1], pri)
+        for en, (v, f) in _derive(ent).items():
             if en not in best or best[en][2] > pri:
                 best[en] = (v, f, pri)
+    if merged:
+        for en, (v, f) in _derive({k: (v, f) for k, (v, f, _) in merged.items()}).items():
+            if en not in best:
+                best[en] = (v, f, 99)
+    return sorted((en, f, v) for en, (v, f, _) in best.items())
+
+
+def avg_series(facts, tags, unit, adj=None):
+    """Promedios del período (acciones en circulación): no se pueden restar como las ventas. Se usa el trimestre
+    informado y, para el 4º trimestre, el promedio anual."""
+    best = {}
+    for pri, tag in enumerate(tags):
+        node = _node(facts, tag, unit)
+        if not node:
+            continue
+        ent = {}
+        for e in node:
+            if "start" not in e or e.get("form", "")[:4] not in ("10-Q", "10-K"):
+                continue
+            s_, en, f = pd.Timestamp(e["start"]), pd.Timestamp(e["end"]), pd.Timestamp(e["filed"])
+            d_ = (en - s_).days
+            if not (80 <= d_ <= 100 or 350 <= d_ <= 380):
+                continue
+            k = (en, d_ < 200)
+            if k not in ent or f < ent[k][1]:
+                v_ = float(e["val"])
+                ent[k] = (adj(v_, f) if adj else v_, f)
+        for (en, isq), (v, f) in ent.items():
+            if v <= 0:
+                continue
+            rank = (pri, 0 if isq else 1)
+            if en not in best or best[en][2] > rank:
+                best[en] = (v, f, rank)
     return sorted((en, f, v) for en, (v, f, _) in best.items())
 
 
@@ -198,7 +238,7 @@ def build(sym, facts, px, splits):
     ni_q = qseries(facts, NI_T, "USD")
     ocf_q = qseries(facts, OCF_T, "USD")
     cap_q = qseries(facts, CAPEX_T, "USD")
-    sh_q = [(en, f, v) for en, f, v in qseries(facts, SH_T, "shares", sh_adj) if v > 0]
+    sh_q = avg_series(facts, SH_T, "shares", sh_adj)
     eq_i = iseries(facts, EQ_T, "USD")
     if len(eps_q) < 4 and len(rev_q) < 4:
         return None
@@ -207,6 +247,24 @@ def build(sym, facts, px, splits):
     fcf_qs = [(en, f, v - cap_by.get(en, 0.0)) for en, f, v in ocf_q]
     fcf_t = ttm(fcf_qs)
     M = 1e6
+    if len(sh_q) < 4 and ni_q and eps_q:      # sin acciones informadas: ganancia neta / ganancia por acción
+        eq_ = {en: v for en, f, v in eps_q if v}
+        sh_q = [(en, f, abs(v / eq_[en])) for en, f, v in ni_q if en in eq_ and abs(eq_[en]) > 1e-6 and v * eq_[en] > 0]
+    # control cruzado: la ganancia por acción informada tiene que coincidir con ganancia neta / acciones.
+    # Si no coincide (datos mal etiquetados, splits o acciones en otra unidad), se usa ganancia neta / acciones.
+    if ni_q and len(sh_q) >= 4:
+        shd = {en: v for en, f, v in sh_q}
+        epd = {en: (f, v) for en, f, v in eps_q}
+        fixed = 0
+        for en, f, v in ni_q:
+            if en in shd and shd[en] > 0:
+                alt = v / shd[en]
+                cur = epd.get(en)
+                if cur is None or (abs(alt) > 1e-3 and abs(cur[1] / alt - 1) > 0.4):
+                    epd[en] = (cur[0] if cur else f, alt)
+                    fixed += 1
+        if fixed:
+            eps_q = sorted((en, f, v) for en, (f, v) in epd.items())
     row = {
         "eps": known_at(eps_t, dates),
         "fe": forward_real(eps_t, dates),
@@ -316,6 +374,9 @@ def main():
         return
     os.makedirs(OUT_DIR, exist_ok=True)
     summ, done, miss = {}, 0, []
+    # primero las que todavía no tienen historia (o la tienen más vieja): si se corta por tiempo, la próxima sigue
+    age = lambda t: os.path.getmtime(os.path.join(OUT_DIR, f"{t}.json")) if os.path.exists(os.path.join(OUT_DIR, f"{t}.json")) else 0
+    tick = sorted(tick, key=age)
     for n_t, s in enumerate(tick):
         if time.time() - T0 > TIME_BUDGET:
             print(f"Tope de tiempo en {n_t}/{len(tick)}: el resto queda con los datos de la corrida anterior")
