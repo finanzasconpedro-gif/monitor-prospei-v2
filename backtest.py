@@ -35,7 +35,7 @@ GOAL = 0.70
 # La SEC exige identificarse con nombre y un email de contacto; si no, rechaza el pedido (error 403).
 # Se carga como secreto del repositorio: Settings → Secrets and variables → Actions → SEC_UA
 SEC_UA = os.environ.get("SEC_UA") or "PROSPEI Monitor research github.com/finanzasconpedro-gif"
-BROAD_N, SEED, SEED2 = 100, 7, 11        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
+BROAD_N, SEED, SEED2, SEED3 = 100, 7, 11, 23        # muestra amplia: 100 acciones al azar del S&P 500 (incluye las que anduvieron mal)
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción clase A
 
 FALLBACK = {   # por si no está data.json: 3 de mayor capitalización por sector (aprox.)
@@ -59,8 +59,26 @@ VARIANTS = {
     "P": "Comprar en partes por giro temprano (parte técnica): viene cayendo y aparecen 4+ señales de giro, o Golden Cross en formación, o señal de entrada con puntaje técnico menor a 65; sin balance en 7 días",
     "Q": "P + los fundamentos de B (ganancia positiva, ventas creciendo, P/E no más de 10% arriba de su promedio de 5 años)",
     "R": "Comprar en partes por mercado bajista: cumple D pero el S&P 500 está debajo de su media de 200 días",
+    "S": "Estrategia por sector: J en tecnología, industriales y comunicaciones · D en consumo discrecional · G en utilities, energía y materiales · sin señal en consumo básico, financiero, real estate y salud",
 }
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S")
+S_MAP = {"Tecnología": "J", "Industrial": "J", "Comunicaciones": "J", "Consumo discrecional": "D",
+         "Utilities": "G", "Servicios públicos": "G", "Energía": "G", "Materiales": "G"}
+# ---- señales de agotamiento: qué pasó en los 30, 60 y 90 días siguientes (21, 42 y 63 ruedas)
+XH = {"30d": 21, "60d": 42, "90d": 63}
+ALERTS = {
+    "rsi75": "Sobrecompra: RSI de 14 días en 75 o más",
+    "rsi80": "Sobrecompra extrema: RSI en 80 o más",
+    "ext30": "Precio estirado: 30% o más arriba de su media de 200 días",
+    "ext50": "Precio muy estirado: 50% o más arriba de su media de 200 días",
+    "pe90": "P/E caro contra su historia: en el 10% más alto de sus últimos 5 años",
+    "run": "El precio corrió más que las ganancias: subió 40% o más en 12 meses y la ganancia creció menos de 10%",
+    "div": "Divergencia bajista: precio en máximos de 52 semanas pero el RSI no acompaña (venía de 72+ y hoy está debajo de 65)",
+    "epsdn": "Ganancias en baja con el precio en máximos (a menos de 3% del máximo de 52 semanas)",
+    "pe90_rsi": "Combinada: P/E caro contra su historia + RSI en 70 o más",
+    "ext30_rsi": "Combinada: precio estirado 30%+ sobre la media de 200 + RSI en 70 o más",
+    "two": "Dos o más señales de agotamiento al mismo tiempo",
+}
 CONV_D = 63      # ventana para ver si un "Comprar en partes" pasa a señal de Comprar (3 meses)
 SPLIT = "2022-01-01"   # diseño: antes de esta fecha · validación: desde esta fecha
 MOM_MIN = 0.70
@@ -107,7 +125,17 @@ def pick_universes():
             broad2[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac2))), random_state=SEED2).t)
     except Exception as e:
         print("Sin muestra de control:", e)
-    return {"top": top, "broad": broad, "broad2": broad2}
+    # tercera muestra: para validar la estrategia por sector (S), que se eligió mirando las dos anteriores
+    broad3 = {}
+    try:
+        used3 = used | {t for v in broad2.values() for t in v}
+        df3 = df[~df.t.isin(used3)]
+        frac3 = min(1.0, BROAD_N / max(1, len(df3)))
+        for sec, g in df3.groupby("sector"):
+            broad3[sec] = sorted(g.sample(min(len(g), max(1, round(len(g) * frac3))), random_state=SEED3).t)
+    except Exception as e:
+        print("Sin tercera muestra:", e)
+    return {"top": top, "broad": broad, "broad2": broad2, "broad3": broad3}
 
 
 def pick_universe():
@@ -348,7 +376,7 @@ CROSS = [None, "Golden Cross reciente", "Golden Cross en formación", "Death Cro
 def run_ticker(args):
     """Corre la prueba completa para una acción (en un proceso aparte). Devuelve episodios por variante,
     muestra de "cualquier día" y los datos para el gráfico."""
-    t, c, v, spy, mom, days, dates, ed, fd, mkt = args
+    t, c, v, spy, mom, days, dates, ed, fd, mkt, sector = args
     rows, keep = [], []
     for i in days:
         lo = max(0, i - 1100)
@@ -422,6 +450,7 @@ def run_ticker(args):
         sigD[i] = bool(fbd and cc_)
         sig = {"A": a, "B": b, "C": cc_, "D": b and cc_, "E": b and cc_ and up, "F": grow and up,
                "G": g_, "H": h_, "J": g2, "P": p_, "Q": p_ and fb, "R": b and cc_ and not up}
+        sig["S"] = bool(sig.get(S_MAP.get(sector, "_"), False))
         new = {k: sig[k] and i - last.get(k, -999) > GAP for k in sig}
         if i % 5 == 0 or any(new.values()):
             p0 = c[i + 1]
@@ -450,6 +479,61 @@ def run_ticker(args):
         for k in sig:
             if sig[k]:
                 last[k] = i
+    # ---- señales de agotamiento: qué pasó a 30, 60 y 90 días
+    alerts, xbase = {k: [] for k in ALERTS}, []
+    try:
+        rsi = df.rsi.values.astype(float)
+        ext = (df.p / df.sma200 - 1).values.astype(float)
+        ddv = df.dd.values.astype(float)
+        rmax = pd.Series(rsi).rolling(60, min_periods=20).max().shift(1).values
+        r12 = np.array([c[i] / c[i - 252] - 1 if i >= 252 and np.isfinite(c[i - 252]) and c[i - 252] > 0 else np.nan for i in ki])
+        if fd is not None:
+            pe_all = pd.Series(np.where(fd[1] > 0, fd[1], np.nan))
+            perank = pe_all.rolling(1260, min_periods=500).rank(pct=True).values[ki]
+            epsg = fd[4][ki]
+        else:
+            perank = np.full(len(ki), np.nan)
+            epsg = np.full(len(ki), np.nan)
+        ge = lambda a, x: np.isfinite(a) & (a >= x)
+        f_ = {
+            "rsi75": ge(rsi, 75), "rsi80": ge(rsi, 80), "ext30": ge(ext, 0.30), "ext50": ge(ext, 0.50),
+            "pe90": ge(perank, 0.90),
+            "run": ge(r12, 0.40) & np.isfinite(epsg) & (epsg < 0.10),
+            "div": (ddv > -0.02) & np.isfinite(rmax) & (rmax >= 72) & np.isfinite(rsi) & (rsi < 65),
+            "epsdn": np.isfinite(epsg) & (epsg < 0) & (ddv > -0.03),
+        }
+        f_["pe90_rsi"] = f_["pe90"] & ge(rsi, 70)
+        f_["ext30_rsi"] = f_["ext30"] & ge(rsi, 70)
+        f_["two"] = (f_["rsi75"].astype(int) + f_["ext30"] + f_["pe90"] + f_["run"] + f_["div"] + f_["epsdn"]) >= 2
+        lastx = {}
+        for j, i in enumerate(ki):
+            if i + 1 + 63 >= n or not np.isfinite(c[i + 1]):
+                continue
+            hit = [k for k in ALERTS if f_[k][j] and i - lastx.get(k, -999) > GAP]
+            for k in ALERTS:
+                if f_[k][j]:
+                    lastx[k] = i
+            if not hit and i % 5:
+                continue
+            p0 = c[i + 1]
+            ev = {"date": str(dates[i])[:10]}
+            for hk, hn in XH.items():
+                seg = c[i + 2:i + 2 + hn]
+                seg = seg[np.isfinite(seg)]
+                if not np.isfinite(c[i + 1 + hn]) or not len(seg):
+                    ev = None
+                    break
+                ev["r" + hk] = float(c[i + 1 + hn] / p0 - 1)
+                ev["m" + hk] = float(seg.min() / p0 - 1)
+                ev["s" + hk] = float(spy[i + 1 + hn] / spy[i + 1] - 1)
+            if ev is None:
+                continue
+            if i % 5 == 0:
+                xbase.append(ev)
+            for k in hit:
+                alerts[k].append(ev)
+    except Exception as e:
+        print("  agotamiento sin calcular para", t, e)
     # ---- ¿el "Comprar en partes" pasa a Comprar? (P -> técnica de Comprar C; Q -> Comprar con fundamentos D)
     conv = {}
     for k, target in (("P", sigC), ("Q", sigD)):
@@ -522,7 +606,7 @@ def run_ticker(args):
         for k_ in EXIT_RULES:
             out[k_] = done.get(k_, (float(hold), None))
         exits.append(out)
-    return t, {"eps": eps, "base": base, "exits": exits, "conv": conv}
+    return t, {"eps": eps, "base": base, "exits": exits, "conv": conv, "alerts": alerts, "xbase": xbase}
 
 
 def split_stats(rows):
@@ -539,7 +623,8 @@ def by(rows, field):
 
 
 UNI_LBL = {"top": "Las 3 más grandes de cada sector", "broad": f"Muestra amplia: {BROAD_N} acciones al azar del S&P 500",
-           "broad2": f"Muestra de control: otras {BROAD_N} acciones (nunca usadas para elegir reglas)"}
+           "broad2": f"Muestra de control: otras {BROAD_N} acciones (nunca usadas para elegir reglas)",
+           "broad3": f"Validación de la estrategia por sector: otras {BROAD_N} acciones nuevas"}
 
 
 def all_tickers():
@@ -625,7 +710,7 @@ def main():
     jobs = []
     for t in tick:
         mom = mom_pct_all[t].values if t in mom_pct_all.columns else np.full(len(idx), np.nan)
-        jobs.append((t, close[t].values, vol[t].values, spy, mom, days, dates, edates[t], fund[t], mkt))
+        jobs.append((t, close[t].values, vol[t].values, spy, mom, days, dates, edates[t], fund[t], mkt, meta[t][1]))
     res = {}
     with ProcessPoolExecutor() as ex:
         for k, (t, r) in enumerate(ex.map(run_ticker, jobs, chunksize=4)):
@@ -743,7 +828,41 @@ def main():
             outm[sec] = ent
         return {"label": "Muestra amplia + muestra de control (" + str(len(pool)) + " acciones)", "sectors": outm}
 
+    # ---- señales de agotamiento sobre todas las acciones de EE.UU. del monitor
+    def xstats(L):
+        o_ = {"n": len(L)}
+        if not L:
+            return o_
+        for hk in XH:
+            r = np.array([e["r" + hk] for e in L]); m = np.array([e["m" + hk] for e in L]); sp_ = np.array([e["s" + hk] for e in L])
+            o_[hk] = {"fell": float((r < 0).mean()), "fell5": float((r <= -0.05).mean()), "fell10": float((r <= -0.10).mean()),
+                      "avg": float(r.mean()), "med": float(np.median(r)), "avg_fall": float(r[r < 0].mean()) if (r < 0).any() else None,
+                      "touch5": float((m <= -0.05).mean()), "touch10": float((m <= -0.10).mean()), "mdd": float(np.median(m)),
+                      "under": float((r < sp_).mean())}
+        return o_
+
+    def alerts_out():
+        us = [t for t in tick if (meta[t][2] or "EE.UU.") == "EE.UU." and res.get(t)]
+        xb = [e for t in us for e in res[t].get("xbase", [])]
+        sig_ = {}
+        for k, lbl in ALERTS.items():
+            L, nt = [], set()
+            for t in us:
+                ev = res[t].get("alerts", {}).get(k, [])
+                L += ev
+                if ev:
+                    nt.add(t)
+            st = xstats(L)
+            st["nt"] = len(nt)
+            st["d"] = xstats([e for e in L if e["date"] < SPLIT]).get("90d")
+            st["v"] = xstats([e for e in L if e["date"] >= SPLIT]).get("90d")
+            sig_[k] = {"label": lbl, **st}
+        return {"label": f"Todas las acciones de EE.UU. del monitor ({len(us)})", "base": xstats(xb),
+                "base_d": xstats([e for e in xb if e["date"] < SPLIT]).get("90d"),
+                "base_v": xstats([e for e in xb if e["date"] >= SPLIT]).get("90d"), "signals": sig_}
+
     out = {
+        "alerts": alerts_out(),
         "matrix": matrix(),
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "period": {"from": str(idx[days[0]].date()), "to": str(end.date())},
