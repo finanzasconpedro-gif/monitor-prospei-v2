@@ -31,6 +31,8 @@ BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción de la cla
 # diagnóstico: para estas empresas se guardan los datos crudos de la SEC (fund_debug/) para revisar diferencias
 DEBUG_T = ["MNST", "KO", "COST", "V", "HAL", "GOOGL", "XOM", "PEP", "DD", "BRK-B", "AZO", "HSY", "MLM", "VRSN", "GD", "KR"]
 DEBUG_DIR = "fund_debug"
+# empresas que cambiaron de número de registro en la SEC: se suma la historia del registro anterior
+FORMER_CIK = {"XOM": [34088]}
 
 
 def debug_dump(sym, facts, err=None):
@@ -91,17 +93,21 @@ def _node(facts, tag, unit):
     return facts.get("facts", {}).get("us-gaap", {}).get(tag, {}).get("units", {}).get(unit)
 
 
+# trimestres de 12 a 16 semanas (Costco, Pepsi, Kroger y otras cierran trimestres de 12 y uno de 16 semanas)
+QMIN, QMAX = 80, 120
+
+
 def _derive(ent):
     """De los datos (inicio, fin) -> (valor, presentado) arma los trimestres: el informado, la diferencia entre
     acumulados del año (6 meses - 3, 9 - 6, anual - 9) o el anual menos los otros tres trimestres."""
-    q = {en: (v, f) for (s, en), (v, f) in ent.items() if 80 <= (en - s).days <= 100}
+    q = {en: (v, f) for (s, en), (v, f) in ent.items() if QMIN <= (en - s).days <= QMAX}
     by_start = {}
     for (s, en), (v, f) in ent.items():
         by_start.setdefault(s, []).append((en, v, f))
     for s, L in by_start.items():
         L.sort()
         for (e1, v1, f1), (e2, v2, f2) in zip(L, L[1:]):
-            if 80 <= (e2 - e1).days <= 100 and e2 not in q:
+            if QMIN <= (e2 - e1).days <= QMAX and e2 not in q:
                 q[e2] = (v2 - v1, max(f1, f2))
     for (s, en), (v, f) in ent.items():
         if 350 <= (en - s).days <= 380 and en not in q:
@@ -132,7 +138,8 @@ def qseries(facts, tags, unit, adj=None):
             if k not in merged or merged[k][2] > pri:
                 merged[k] = (v[0], v[1], pri)
         for en, (v, f) in _derive(ent).items():
-            if en not in best or best[en][2] > pri:
+            # entre etiquetas, gana el dato que se conoció primero (lo que se sabía en ese momento)
+            if en not in best or (f, pri) < (best[en][1], best[en][2]):
                 best[en] = (v, f, pri)
     if merged:
         for en, (v, f) in _derive({k: (v, f) for k, (v, f, _) in merged.items()}).items():
@@ -155,7 +162,7 @@ def avg_series(facts, tags, unit, adj=None):
                 continue
             s_, en, f = pd.Timestamp(e["start"]), pd.Timestamp(e["end"]), pd.Timestamp(e["filed"])
             d_ = (en - s_).days
-            if not (80 <= d_ <= 100 or 350 <= d_ <= 380):
+            if not (QMIN <= d_ <= QMAX or 350 <= d_ <= 380):
                 continue
             k = (en, d_ < 200)
             if k not in ent or f < ent[k][1]:
@@ -210,7 +217,7 @@ def known_at(series, dates):
             if best_end is None or s[j][0] >= best_end:
                 best_end, cur = s[j][0], s[j][2]
             j += 1
-        out.append(cur if best_end is not None and (d - best_end).days <= 200 else np.nan)
+        out.append(cur if best_end is not None and (d - best_end).days <= 230 else np.nan)
     return np.array(out, dtype=float)
 
 
@@ -241,7 +248,7 @@ def split_factor(splits, filed, after=True):
 # ------------------------------------------------------------------ armado por acción
 EPS_T = ["EarningsPerShareDiluted", "EarningsPerShareBasicAndDiluted", "EarningsPerShareBasic"]
 REV_T = ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet", "RevenuesNetOfInterestExpense",
-         "RevenueFromContractWithCustomerIncludingAssessedTax", "InterestAndDividendIncomeOperating"]
+         "RevenueFromContractWithCustomerIncludingAssessedTax", "InterestAndDividendIncomeOperating", "SalesRevenueGoodsNet"]
 NI_T = ["NetIncomeLoss", "NetIncomeLossAvailableToCommonStockholdersBasic", "ProfitLoss"]
 SH_T = ["WeightedAverageNumberOfDilutedSharesOutstanding", "WeightedAverageNumberOfSharesOutstandingBasic"]
 OCF_T = ["NetCashProvidedByUsedInOperatingActivities", "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"]
@@ -249,7 +256,7 @@ CAPEX_T = ["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProdu
 EQ_T = ["StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"]
 
 
-def build(sym, facts, px, splits):
+def build(sym, facts, px, splits, sh_now=None):
     """px: serie mensual de cierres ajustados por splits (no por dividendos)."""
     dates = list(px.index)
     eps_adj = lambda v, f: v / split_factor(splits, f) / BRK_RATIO.get(sym, 1)
@@ -261,9 +268,9 @@ def build(sym, facts, px, splits):
     cap_q = qseries(facts, CAPEX_T, "USD")
     sh_q = avg_series(facts, SH_T, "shares", sh_adj)
     eq_i = iseries(facts, EQ_T, "USD")
-    if len(eps_q) < 4 and len(rev_q) < 4:
+    if len(eps_q) < 4 and len(rev_q) < 4 and len(ni_q) < 4:
         return None
-    eps_t, rev_t, ni_t = ttm(eps_q), ttm(rev_q), ttm(ni_q)
+    rev_t, ni_t = ttm(rev_q), ttm(ni_q)
     cap_by = {en: v for en, f, v in cap_q}
     fcf_qs = [(en, f, v - cap_by.get(en, 0.0)) for en, f, v in ocf_q]
     fcf_t = ttm(fcf_qs)
@@ -286,6 +293,17 @@ def build(sym, facts, px, splits):
                     fixed += 1
         if fixed:
             eps_q = sorted((en, f, v) for en, (f, v) in epd.items())
+    approx = False
+    last_e = max((en for en, f, v in eps_q), default=None)
+    if sh_now and ni_q and (last_e is None or (ni_q[-1][0] - last_e).days > 200):
+        # la empresa dejó de informar ganancia por acción con etiquetas estándar (p. ej. dos clases de acciones):
+        # desde ahí se aproxima con la ganancia neta y la cantidad de acciones de hoy
+        last_s = max((en for en, f, v in sh_q), default=None)
+        eps_q = eps_q + [(en, f, v / sh_now) for en, f, v in ni_q if last_e is None or en > last_e]
+        if last_s is None or (ni_q[-1][0] - last_s).days > 200:
+            sh_q = sh_q + [(en, f, sh_now) for en, f, v in ni_q if last_s is None or en > last_s]
+        approx = True
+    eps_t = ttm(eps_q)
     row = {
         "eps": known_at(eps_t, dates),
         "fe": forward_real(eps_t, dates),
@@ -294,6 +312,7 @@ def build(sym, facts, px, splits):
         "fcf": known_at(fcf_t, dates) / M,
         "sh": known_at(sh_q, dates) / M,
         "bv": known_at(eq_i, dates) / M,
+        "approx": approx,
     }
     return row
 
@@ -362,6 +381,7 @@ def summarize(p, row, dates):
 def main():
     import yfinance as yf
     rows = json.load(open("data.json", encoding="utf-8"))["rows"]
+    sh_now = {r["t"]: r["mcap"] / r["p"] for r in rows if r.get("mcap") and r.get("p")}
     tick = sorted({r["t"] for r in rows})
     print("Acciones:", len(tick))
     frames = []
@@ -408,6 +428,16 @@ def main():
             continue
         try:
             facts = sec_facts(cik)
+            for old in FORMER_CIK.get(s, []):     # suma la historia del registro anterior
+                try:
+                    of = sec_facts(old)
+                    g, og = facts.setdefault("facts", {}).setdefault("us-gaap", {}), of.get("facts", {}).get("us-gaap", {})
+                    for tag, node in og.items():
+                        for unit, L in node.get("units", {}).items():
+                            g.setdefault(tag, {"units": {}})["units"].setdefault(unit, [])
+                            g[tag]["units"][unit] = L + g[tag]["units"][unit]
+                except Exception as e:
+                    print(f"  {s}: no pude sumar el registro anterior {old} ({e})")
         except Exception as e:
             miss.append(s)
             print(f"  {s}: sin datos de la SEC ({e})")
@@ -423,16 +453,18 @@ def main():
             except Exception as e:
                 print("  diagnóstico falló para", s, e)
         p = px[s]
-        row = build(s, facts, p, splits.get(s))
+        row = build(s, facts, p, splits.get(s), sh_now.get(s))
         if row is None:
             miss.append(s)
             continue
         dates = list(p.index)
         pa = p.values.astype(float)
         summ[s] = summarize(pa, row, dates)
+        if row.get("approx"):
+            summ[s]["approx"] = True
         out = {"t": s, "d": [d.strftime("%Y-%m") for d in dates], "p": rnd(pa, 2),
                "eps": rnd(row["eps"], 3), "fe": rnd(row["fe"], 3), "rev": rnd(row["rev"], 1), "ni": rnd(row["ni"], 1),
-               "fcf": rnd(row["fcf"], 1), "sh": rnd(row["sh"], 2), "bv": rnd(row["bv"], 1)}
+               "fcf": rnd(row["fcf"], 1), "sh": rnd(row["sh"], 2), "bv": rnd(row["bv"], 1), "approx": bool(row.get("approx"))}
         with open(os.path.join(OUT_DIR, f"{s}.json"), "w", encoding="utf-8") as f:
             json.dump(out, f, separators=(",", ":"))
         done += 1
