@@ -1,0 +1,39 @@
+name: Historia de balances PROSPEI
+
+on:
+  schedule:
+    - cron: "0 13 * * 6"      # sábados 10:00 hora Argentina
+  workflow_dispatch:           # boton "Run workflow" para correrlo a mano
+
+permissions:
+  contents: write
+
+jobs:
+  fundamentos:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      SEC_UA: ${{ secrets.SEC_UA }}
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar librerias
+        run: pip install yfinance pandas numpy requests lxml
+
+      - name: Bajar balances de la SEC
+        run: python fundamentos.py
+
+      - name: Guardar resultados
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add fund_sum.json fund
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza historia de balances $(date -u +'%Y-%m-%d')"
+          git pull --rebase
+          git push
