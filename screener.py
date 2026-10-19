@@ -1547,6 +1547,38 @@ def main():
     print("OK data.json:", len(df), "papeles. Top:", list(df[df["rank"].notna()].t))
     save_signals(df, spy)
     save_hist(series, list(df.t), hilo)
+    save_fwd(df)
+
+
+def save_fwd(df, path="fwd_hist.json"):
+    """Guarda una vez por semana el P/E esperado (forward) y la ganancia esperada de cada papel: no hay historia
+    gratuita de estos datos, así que se va armando desde ahora para compararlos contra su propio pasado."""
+    try:
+        old = json.load(open(path, encoding="utf-8"))
+    except Exception:
+        old = {"dates": [], "f": {}, "e": {}}
+    today = dt.date.today()
+    tag = today.strftime("%Y-%m-%d")
+    dates = old.get("dates", [])
+    same_week = bool(dates) and dt.date.fromisoformat(dates[-1]).isocalendar()[:2] == today.isocalendar()[:2]
+    if not same_week:
+        dates.append(tag)
+    else:
+        dates[-1] = tag
+    n = len(dates)
+    F, E = old.get("f", {}), old.get("e", {})
+    for r in df.itertuples():
+        f_ = round(float(r.fpe), 2) if pd.notna(r.fpe) and r.fpe > 0 else None
+        e_ = round(float(r.fwd_eps), 3) if pd.notna(r.fwd_eps) else None
+        for D, v in ((F, f_), (E, e_)):
+            a_ = (D.get(r.t, []) + [None] * n)[:n - 1]      # semanas anteriores (rellena si el papel es nuevo)
+            D[r.t] = a_ + [v]
+    for D in (F, E):
+        for k in D:
+            D[k] = (D[k] + [None] * n)[:n]
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump({"dates": dates, "f": F, "e": E}, f, separators=(",", ":"))
+    print("P/E esperado guardado:", tag, "·", len(dates), "semanas")
 
 
 if __name__ == "__main__":
