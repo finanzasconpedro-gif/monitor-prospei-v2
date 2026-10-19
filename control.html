@@ -329,7 +329,7 @@ async function showOne(t){
     <p class="note" style="margin-top:8px">La regla actual del monitor además exige valor justo y analistas, que no tienen historia: lo verde es lo más parecido que se puede reconstruir.</p>`;
 }
 S.btu='broad';
-const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado',G:'solo corrección con rebote',H:'corrección + momentum',J:'H + crecimiento',P:'en partes: giro temprano',Q:'en partes: giro + fundamentos',R:'en partes: mercado bajista'};
+const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado',G:'solo corrección con rebote',H:'corrección + momentum',J:'H + crecimiento',P:'en partes: giro temprano',Q:'en partes: giro + fundamentos',R:'en partes: mercado bajista',S:'estrategia por sector'};
 S.btg='A';
 function exitsHtml(B){
   const X=B.exits;if(!X||!X.hold)return '';const h=X.hold;
@@ -378,6 +378,26 @@ function matrixHtml(B0,VK){
     <tbody>${secs.map(s=>{const b=S_[s].base,bb=best(s);return `<tr><td><b>${esc(s)}</b></td><td class="n">${pct(b.avg,1)}<br><span class="note" style="font-size:11px">${P0(b.win)} pos.</span></td>${ks.map(k=>cell(S_[s].v[k])).join('')}<td>${bb.length?bb.map(k=>`<b>${k}</b>`).join(' · '):'<span class="note">ninguna</span>'}</td></tr>`}).join('')}</tbody></table></div>
     <p class="note" style="margin-top:6px">Ojo: con muchas casillas, alguna va a salir bien por casualidad. Por eso solo cuentan las del recuadro verde, y conviene preferir estrategias que funcionen en varios sectores parecidos.</p>`;
 }
+function alertsHtml(B0){
+  const A=B0.alerts;if(!A||!A.signals||!A.base||!A.base.n)return '';
+  const H=S.xh||'60d',b=A.base[H];
+  const d=(v,bv,dd=0,inv)=>{if(v==null)return '—';const x=v-bv;const c=Math.abs(x)<0.005?'':(inv?x<0:x>0)?'up':'down';return `${P0(v)} <span class="${c}" style="font-size:11px">(${x>=0?'+':''}${fmt(x*100,dd)})</span>`};
+  const row=(k,o,base)=>{const h=o[H];if(!h)return '';const strong=!base&&h.fell-b.fell>=0.05&&o.n>=100;
+    const dv=o.d&&A.base_d&&o.d.fell!=null?o.d.fell-A.base_d.fell:null,vv=o.v&&A.base_v&&o.v.fell!=null?o.v.fell-A.base_v.fell:null;
+    return `<tr${base?' style="font-weight:600"':''}${strong?' style="background:color-mix(in srgb,var(--down) 8%,transparent)"':''}><td style="min-width:250px">${esc(o.label||'Referencia: cualquier día, cualquier acción')}</td><td class="n">${o.n}${o.nt?` <span class="note">(${o.nt} emp.)</span>`:''}</td>
+      <td class="n">${base?P0(h.fell):d(h.fell,b.fell)}</td><td class="n">${base?P0(h.fell5):d(h.fell5,b.fell5)}</td><td class="n">${base?P0(h.fell10):d(h.fell10,b.fell10)}</td>
+      <td class="n ${cls(h.avg)}">${pct(h.avg,1)}</td><td class="n ${cls(h.med)}">${pct(h.med,1)}</td><td class="n down">${h.avg_fall==null?'—':pct(h.avg_fall,1)}</td>
+      <td class="n">${base?P0(h.touch10):d(h.touch10,b.touch10)}</td><td class="n">${base?P0(h.under):d(h.under,b.under)}</td>
+      <td class="n">${base?'—':`<span class="${dv>0.02?'up':''}">${dv==null?'—':(dv>=0?'+':'')+fmt(dv*100,0)}</span> / <span class="${vv>0.02?'up':''}">${vv==null?'—':(vv>=0?'+':'')+fmt(vv*100,0)}</span>`}</td></tr>`};
+  const ks=Object.keys(A.signals).filter(k=>A.signals[k].n);
+  return `<h3 style="margin:22px 0 4px">Señales de agotamiento: ¿qué pasó a 30, 60 y 90 días?</h3>
+    <p class="sub">${esc(A.label)}, últimos 10 años. Para cada señal (contada una vez cada 20 ruedas por acción), qué porcentaje terminó <b>cayendo</b> en los días siguientes y cuánto. Se mide desde el cierre del día siguiente a la señal. Entre paréntesis: diferencia contra cualquier día en cualquier acción (en verde = cae más seguido que lo normal: la señal sirve como alerta). En rojo claro: señales con al menos 5 puntos más de caídas que lo normal y 100+ casos.</p>
+    <div class="bar" style="margin:6px 0">${Object.keys(XHL).map(k=>`<button class="chip ${k===H?'on':''}" data-xh="${k}">${XHL[k]}</button>`).join('')}</div>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Señal</th><th class="n">Casos</th><th class="n">Terminó cayendo</th><th class="n">Cayó 5%+</th><th class="n">Cayó 10%+</th><th class="n">Resultado promedio</th><th class="n">Mediana</th><th class="n">Caída promedio (de las que cayeron)</th><th class="n">Tocó −10% en algún momento</th><th class="n">Peor que el S&amp;P</th><th class="n">Cae más que lo normal a 90 días: hasta 2021 / desde 2022</th></tr></thead>
+    <tbody>${row('base',A.base,true)}${ks.map(k=>row(k,A.signals[k],false)).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px"><b>Tocó −10%</b>: en algún momento dentro del plazo estuvo 10% o más abajo, aunque después se haya recuperado. Una buena señal de agotamiento cae más seguido que lo normal <b>en los dos tramos</b> (última columna). Que una acción "caiga" a 30 días es común: la referencia muestra cuán común.</p>`;
+}
+const XHL={'30d':'30 días','60d':'60 días','90d':'90 días'};
 function renderBT(){
   const B0=S.bt,US=B0.universes||{top:B0};if(!US[S.btu])S.btu=Object.keys(US)[0];
   const B={...B0,...US[S.btu]};S.btc=B;
@@ -386,7 +406,7 @@ function renderBT(){
   const secWarn=B0.sec&&B0.sec.ok<B0.sec.total*0.8?`<div class="cedbox" style="margin-bottom:10px">⚠️ Solo se pudieron bajar los balances de ${B0.sec.ok} de ${B0.sec.total} empresas de la SEC${B0.sec.error?': '+esc(B0.sec.error):''}. La variante B queda incompleta.</div>`:'';
   const A=B.variants.A,Bv=B.variants.B,base=B.base,g=B.goal;
   const tile=(lbl,v,meta,good)=>`<div class="kpi"><div class="l">${lbl}</div><div class="v ${good==null?'':good?'up':'down'}">${v}</div><div class="s">${meta}</div></div>`;
-  const V=B.variants,VK=['A','B','C','D','E','F','G','H','J','P','Q','R'];if(!V[S.btg])S.btg='A';const GK=S.btg;
+  const V=B.variants,VK=['A','B','C','D','E','F','G','H','J','P','Q','R','S'];if(!V[S.btg])S.btg='A';const GK=S.btg;
   const row=(name,v)=>`<tr><td><b>${name}</b></td><td class="n">${v['6m'].n||0}</td>${['3m','6m','12m'].map(h=>`<td class="n ${v[h].n?(v[h].win>=g?'up':''):''}">${P0(v[h].win)}</td>`).join('')}<td class="n">${P0(v['6m'].beat)}</td><td class="n ${cls(v['6m'].avg)}">${pct(v['6m'].avg,1)}</td><td class="n ${cls(v['6m'].med)}">${pct(v['6m'].med,1)}</td><td class="n down">${pct(v['6m'].p10,1)}</td><td class="n">${P0(v.ts.target)}</td></tr>`;
   const grp=(obj,title)=>`<div style="min-width:0"><h4 style="margin:16px 0 6px">${title}</h4><div class="tw"><table><thead><tr><th></th><th class="n">Señales</th><th class="n">Positivas 6m</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Promedio 6m</th><th class="n">Positivas 12m</th></tr></thead><tbody>${Object.entries(obj).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.n}</td><td class="n ${v['6m'].n&&v['6m'].win>=g?'up':''}">${P0(v['6m'].win)}${v['6m'].n?` <span class="note">(${v['6m'].n})</span>`:''}</td><td class="n">${P0(v['6m'].beat)}</td><td class="n ${cls(v['6m'].avg)}">${pct(v['6m'].avg,1)}</td><td class="n">${P0(v['12m'].win)}</td></tr>`).join('')}</tbody></table></div></div>`;
   $('#bt-body').innerHTML=secWarn+`
@@ -398,18 +418,20 @@ function renderBT(){
     <div class="tw"><table><thead><tr><th></th><th class="n">Señales</th><th class="n">Positivas 3m</th><th class="n">Positivas 6m</th><th class="n">Positivas 12m</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Promedio 6m</th><th class="n">Mediana 6m</th><th class="n">Peor 10% 6m</th><th class="n">+${P0(B.target)} antes que ${P0(B.stop)}</th></tr></thead>
       <tbody>${VK.filter(k=>V[k]).map(k=>row(k+' · '+VSHORT[k],V[k])).join('')}${row('Referencia: cualquier día',base)}</tbody></table></div>
     <details style="margin-top:10px"><summary class="note" style="cursor:pointer">Qué es cada variante y qué no se pudo reconstruir</summary>
-      <ul class="note" style="padding-left:18px"><li><b>A:</b> ${esc(A.label)}.</li><li><b>B:</b> ${esc(Bv.label)}.${['C','D','E','F','G','H','J','P','Q','R'].filter(k=>V[k]).map(k=>`<li><b>${k}:</b> ${esc(V[k].label)}.</li>`).join('')} Fundamentos de los balances presentados a la SEC hasta ese día.</li>
+      <ul class="note" style="padding-left:18px"><li><b>A:</b> ${esc(A.label)}.</li><li><b>B:</b> ${esc(Bv.label)}.${['C','D','E','F','G','H','J','P','Q','R','S'].filter(k=>V[k]).map(k=>`<li><b>${k}:</b> ${esc(V[k].label)}.</li>`).join('')} Fundamentos de los balances presentados a la SEC hasta ese día.</li>
       <li>El precio objetivo de los analistas, la ganancia esperada y el valor justo <b>no tienen historia gratuita</b>: por eso el veredicto completo (con recorrido a valor justo ≥ 10%) no se puede reproducir hacia atrás. Para medirlo exacto, el monitor guarda desde ahora las señales de cada día.</li>
       <li>Se eligieron las empresas más grandes de <b>hoy</b>: son las que mejor les fue, lo que favorece los resultados (sesgo de supervivencia). Comparar contra la referencia corrige buena parte de ese sesgo.</li>
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
     ${splitHtml(B,VK)}
     ${convHtml(B)}
     ${matrixHtml(B0,VK)}
+    ${alertsHtml(B0)}
     <div class="bar" style="margin:18px 0 0;flex-wrap:wrap;gap:6px"><span class="note" style="align-self:center">Detalle de la variante:</span>${VK.filter(k=>V[k]&&V[k]['6m'].n).map(k=>`<button class="chip ${k===GK?'on':''}" data-btg="${k}">${k}</button>`).join('')}</div>
     <div class="grid2">${B.by_setup[GK]?grp(B.by_setup[GK],`Por tipo de señal (${GK})`):''}${grp(B.by_year[GK],`Por año (${GK})`)}</div>
     ${grp(B.by_sector[GK],`Por sector (${GK})`)}
     ${exitsHtml(B)}`;
   $$('[data-btg]').forEach(b=>b.onclick=()=>{S.btg=b.dataset.btg;renderBT()});
+  $$('[data-xh]').forEach(b=>b.onclick=()=>{S.xh=b.dataset.xh;renderBT()});
   const sel=$('#bt-sec');sel.innerHTML='<option value="">Todos los sectores</option>'+Object.keys(B.by_sector.A).map(k=>`<option>${esc(k)}</option>`).join('');
   sel.onchange=renderBTEp;
   $$('[data-btf]').forEach(b=>b.onclick=()=>{S.btf=b.dataset.btf;$$('[data-btf]').forEach(x=>x.classList.toggle('on',x===b));renderBTEp()});
