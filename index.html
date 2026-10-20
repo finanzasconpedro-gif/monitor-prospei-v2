@@ -1424,6 +1424,7 @@ function openDetail(t){
       <div class="gro"><h4>Perspectiva de crecimiento</h4><ul>${li(o.grow)}</ul></div>
       <div class="con"><h4>A vigilar</h4><ul>${li(o.con)}</ul></div>
     </div>
+    ${riskBox(o)}
     <div class="grid2">
       <div><h4 style="margin:0 0 6px">Análisis técnico</h4><div class="kv">
         ${trendKv(o,kv)}${kv('RSI (14)',fmt(o.rsi,0))}${kv('vs media 50',pct(o.p/o.sma50-1,1))}${kv('vs media 200',pct(o.p/o.sma200-1,1))}
@@ -1765,6 +1766,18 @@ function renderKpisUS(){
   el.innerHTML=k.map(x=>`<div class="kpi us" title="Dato al cierre del ${d.toLocaleDateString('es-AR')}"><div class="l">${x[0]}</div><div class="v num ${x[3]||''}" style="text-align:left">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
 }
 const TRC={2:'up',1:'up',0:'',[-1]:'down',[-2]:'down'};
+function riskBox(o){
+  if(!o.risk&&o.beta==null)return '';
+  const RC={Bajo:'#3fb950',Medio:'#d29922',Alto:'#f85149'};
+  const b=o.beta;let bt='';
+  if(b!=null&&isFinite(b)){const d=Math.round(Math.abs(b-1)*100);
+    bt=b<0.15?'casi no sigue al S&P 500':d<10?'se mueve parecido al S&P 500':b>1?`se mueve ${d}% más que el S&P 500`:`se mueve ${d}% menos que el S&P 500`;}
+  const v=o.volat_y||o.volat;
+  const exm=b!=null&&isFinite(b)?` Si el S&P 500 cae 10%, históricamente esta acción tiende a caer ${fmt(Math.max(0,b)*10,0)}%.`:'';
+  return `<div class="cedbox" style="margin:10px 0">${o.risk?`<span class="fase" style="background:${RC[o.risk]}22;color:${RC[o.risk]};font-weight:600">Riesgo ${esc(o.risk.toLowerCase())}</span> `:''}
+    ${b!=null&&isFinite(b)?`Beta <b>${fmt(b,2)}</b> (${bt})`:''}${v?` · volatilidad <b>${fmt(v*100,0)}%</b> anual`:''}${o.mdd3!=null?` · peor caída en 3 años <b class="down">${pct(o.mdd3,0)}</b>`:''}
+    <div class="note" style="margin-top:4px">La beta mide cuánto acompaña los movimientos del mercado (1 = igual que el S&amp;P 500).${exm} Riesgo bajo: beta menor a 0,8 y volatilidad menor a 25%; alto: beta mayor a 1,3 o volatilidad mayor a 45%.</div></div>`;
+}
 function trendKv(o,kv){if(!o.trend)return '';
   return kv('Tendencia (media 200)',`<span class="${TRC[o.trend_n]||''}">${esc(o.trend)}</span>`)+kv('Ruedas del mismo lado',o.run200==null?'—':Math.abs(o.run200)+(Math.abs(o.run200)>=60?'+':'')+(o.run200>=0?' arriba':' debajo'))
    +kv('Pendiente media 200 (20 r.)',o.slope200?`<span class="${o.slope200==='Subiendo'?'up':o.slope200==='Bajando'?'down':''}">${o.slope200} ${pct(o.slope200_pct,1)}</span>`:'—')
