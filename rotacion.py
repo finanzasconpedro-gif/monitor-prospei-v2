@@ -83,6 +83,40 @@ def strat_heading(X, Y):
     return W
 
 
+def strat_turn(X, Y, entry_q, exit_on="y", protect=False):
+    """Compra cuando el punto está SUBIENDO (el impulso Y mayor que hace 3 semanas) dentro de los cuadrantes de
+    entrada (Rezagado y/o Perdiendo impulso) y vende cuando llega a la mitad de la zona de arriba: impulso (Y) o
+    fuerza (X) en la mediana histórica de Mejorando/Liderando (calculada solo con datos hasta ese día).
+    protect=True: también vende si antes de llegar el impulso vuelve a caer dos semanas seguidas."""
+    W = pd.DataFrame(0.0, index=X.index, columns=X.columns)
+    dy = Y - Y.shift(3)
+    # nivel "medio" de la zona alta, con la historia disponible hasta cada semana (sin mirar el futuro)
+    upY = Y.where(Y >= 100).stack()
+    upX = X.where((X >= 100) & (Y >= 100)).stack()
+    midY = upY.groupby(level=0).median().expanding().median().reindex(X.index).ffill()
+    midX = upX.groupby(level=0).median().expanding().median().reindex(X.index).ffill()
+    for c in X.columns:
+        on, down, out = False, 0, []
+        for t, a, b, d_ in zip(X.index, X[c].values, Y[c].values, dy[c].values):
+            q = quadrant(a, b)
+            if q is None:
+                out.append(0.0)
+                continue
+            if not on and q in entry_q and np.isfinite(d_) and d_ > 0:
+                on, down = True, 0
+            elif on:
+                if exit_on == "y":
+                    hit = q in ("M", "L") and np.isfinite(midY.get(t, np.nan)) and b >= midY[t]
+                else:
+                    hit = q == "L" and np.isfinite(midX.get(t, np.nan)) and a >= midX[t]
+                down = down + 1 if (np.isfinite(d_) and d_ < 0) else 0
+                if hit or (protect and down >= 2 and q in entry_q):
+                    on = False
+            out.append(1.0 if on else 0.0)
+        W[c] = out
+    return W
+
+
 def strat_top(score, n, monthly=True):
     """Los n sectores con mayor puntaje; se rearma una vez por mes (o cada semana)."""
     W = pd.DataFrame(0.0, index=score.index, columns=score.columns)
@@ -116,6 +150,34 @@ def simulate(W, R, spy_r, mkt=None):
     turn = full.diff().abs().sum(axis=1).fillna(full.abs().sum(axis=1))
     ret = ret - turn.shift(1).fillna(0) * COST
     return ret.fillna(0.0), turn
+
+
+def trades(W, px, spy, idx):
+    """Cada compra y venta de la estrategia: semanas en cartera y resultado contra el S&P en ese lapso."""
+    out = []
+    for c in W.columns:
+        w = W[c].reindex(idx).fillna(0).values
+        i = 0
+        while i < len(w):
+            if w[i] > 0:
+                j = i
+                while j + 1 < len(w) and w[j + 1] > 0:
+                    j += 1
+                a, b = idx[i], idx[min(j + 1, len(idx) - 1)]
+                if np.isfinite(px.at[a, c]) and np.isfinite(px.at[b, c]):
+                    r = px.at[b, c] / px.at[a, c] - 1
+                    rs = spy[b] / spy[a] - 1
+                    out.append({"etf": c, "in": a.strftime("%Y-%m-%d"), "out": b.strftime("%Y-%m-%d") if j + 1 < len(w) else None,
+                                "weeks": int(j - i + 1), "r": float(r), "rel": float(r - rs)})
+                i = j + 1
+            else:
+                i += 1
+    if not out:
+        return None
+    rel = np.array([t["rel"] for t in out])
+    return {"n": len(out), "weeks": float(np.mean([t["weeks"] for t in out])), "win": float((rel > 0).mean()),
+            "rel": float(rel.mean()), "rel_med": float(np.median(rel)),
+            "last": sorted(out, key=lambda t: t["in"], reverse=True)[:12]}
 
 
 def metrics(r, turn=None):
@@ -176,6 +238,11 @@ def main():
         "top3xy": ("Los 3 con mejor combinación de fuerza e impulso (X + Y), rearmado mensual", strat_top(X + Y, 3)),
         "top3m3": ("Los 3 que más le ganaron al S&P en 3 meses, rearmado mensual", strat_top(rs13, 3)),
         "top3m6": ("Los 3 que más le ganaron al S&P en 6 meses, rearmado mensual", strat_top(rs26, 3)),
+        "giro": ("Comprar cuando sube dentro de Rezagado o Perdiendo impulso; vender al llegar al impulso medio de Mejorando/Liderando", strat_turn(X, Y, {"R", "P"})),
+        "giro_x": ("Comprar cuando sube dentro de Rezagado o Perdiendo impulso; vender al llegar a la fuerza media de Liderando", strat_turn(X, Y, {"R", "P"}, "x")),
+        "giro_p": ("Igual que 'giro', pero también vende si el impulso vuelve a caer 2 semanas antes de llegar", strat_turn(X, Y, {"R", "P"}, "y", True)),
+        "giro_r": ("Solo desde Rezagado: comprar cuando sube; vender al impulso medio de Mejorando/Liderando", strat_turn(X, Y, {"R"})),
+        "giro_pi": ("Solo desde Perdiendo impulso: comprar cuando retoma; vender al impulso medio de Mejorando/Liderando", strat_turn(X, Y, {"P"})),
     }
     out_s, curves = {}, {}
     for k, (lbl, W) in S.items():
@@ -194,6 +261,8 @@ def main():
                  "years": yearly(r_)}
             if W is not None:
                 o["avg_n"] = float(W.reindex(idx).sum(axis=1).mean())
+                if not filt and k not in ("eq",):
+                    o["trades"] = trades(W, wk, spy, idx)
             out_s[key] = o
             curves[key] = [round(float(v), 4) for v in (1 + r_).cumprod().values]
     # diagnóstico: qué pasó después según el cuadrante y la dirección (rendimiento contra SPY)
