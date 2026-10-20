@@ -689,6 +689,249 @@ UNI_LBL = {"top": "Las 3 más grandes de cada sector", "broad": f"Muestra amplia
            "broad4": "Validación del motor por sector: todas las acciones que no se usaron en ninguna prueba"}
 
 
+# ======================================================================== modelo de probabilidad
+# En vez de filtros de "sí o no", estima la probabilidad de que comprar hoy dé ganancia a 12 meses, combinando
+# variables de la acción y del mercado. Se valida AÑO POR AÑO (para predecir un año solo se usa lo que ya se
+# sabía antes) y con acciones que nunca se usaron para elegir reglas.
+PM_H = 252            # horizonte: 12 meses
+PM_STEP = 5           # una observación cada 5 ruedas por acción
+PM_LAM = 10.0         # regularización (evita que el modelo exagere con una variable)
+PM_THR = (0.85, 0.80, 0.75, 0.70, 0.65)
+PM_BINS = (0, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 1.01)
+PM_FEAT_LBL = {
+    "mom": "Momentum 6 meses sin el último (puesto en el mercado)", "r1m": "Rendimiento del último mes",
+    "dist200": "Distancia a su media de 200 días", "dist200_2": "Distancia a la media de 200 (al cuadrado)",
+    "above200": "Arriba de su media de 200", "gc": "Media de 50 arriba de la de 200", "slope200": "Pendiente de la media de 200",
+    "rsi": "RSI 14 días", "rsi_2": "RSI (al cuadrado)", "dd52": "Caída desde el máximo de 52 semanas",
+    "dd3": "Caída desde el máximo de 3 meses", "rebound": "Corrección de 5-20% con rebote (sobre la media de 20)",
+    "vol": "Volatilidad de 3 meses", "pe_r": "P/E contra su mediana de 5 años", "pe_cheap": "P/E 30%+ debajo de su historia",
+    "eps_pos": "Ganancia positiva", "rev_g": "Crecimiento de ventas", "eps_g": "Crecimiento de ganancias", "no_fund": "Sin datos de balances",
+    "spy_dist200": "S&P 500: distancia a su media de 200", "spy_r6m": "S&P 500: rendimiento 6 meses", "spy_dd52": "S&P 500: caída desde su máximo",
+    "br200": "Amplitud: % de acciones sobre su media de 200", "br50": "Amplitud: % de acciones sobre su media de 50",
+    "vix": "VIX", "vix_rel": "VIX contra su mediana de 1 año", "tnx": "Tasa a 10 años", "tnx_ch": "Cambio de la tasa a 10 años en 6 meses",
+}
+
+
+def logit_fit(X, y, lam=PM_LAM, it=30):
+    n, k = X.shape
+    Xb = np.hstack([np.ones((n, 1)), X])
+    w = np.zeros(k + 1)
+    R = lam * np.eye(k + 1)
+    R[0, 0] = 0
+    for _ in range(it):
+        p = 1 / (1 + np.exp(-np.clip(Xb @ w, -30, 30)))
+        W = p * (1 - p)
+        H = Xb.T @ (Xb * W[:, None]) + R
+        g = Xb.T @ (p - y) + R @ w
+        st = np.linalg.solve(H, g)
+        w -= st
+        if np.abs(st).max() < 1e-7:
+            break
+    return w
+
+
+def logit_pred(X, w):
+    return 1 / (1 + np.exp(-np.clip(w[0] + X @ w[1:], -30, 30)))
+
+
+def prob_model(close, fund, meta, us_t, design, valid, grp, mkx):
+    """Arma la tabla (fecha x acción) de variables, entrena año por año y evalúa sobre las acciones de validación."""
+    idx = close.index
+    C = close[us_t]
+    n = len(idx)
+    spy = close["SPY"]
+    # ---- variables de cada acción (vectorizadas)
+    s20, s50, s200 = C.rolling(20).mean(), C.rolling(50).mean(), C.rolling(200).mean()
+    mom_raw = (C / C.shift(126)) / (C / C.shift(21)) - 1
+    F = {
+        "mom": mom_raw.rank(axis=1, pct=True),
+        "r1m": (C / C.shift(21) - 1).clip(-0.5, 0.5),
+        "dist200": (C / s200 - 1).clip(-0.6, 1.0),
+        "above200": (C > s200).astype(float).where(s200.notna()),
+        "gc": (s50 > s200).astype(float).where(s200.notna()),
+        "slope200": (s200 / s200.shift(21) - 1).clip(-0.2, 0.2),
+    }
+    d = C.diff()
+    up = d.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+    dn = (-d.clip(upper=0)).ewm(alpha=1 / 14, adjust=False).mean()
+    F["rsi"] = (100 - 100 / (1 + up / dn.replace(0, np.nan))) / 100
+    F["dd52"] = (C / C.rolling(252, min_periods=120).max() - 1).clip(-0.9, 0)
+    dd3 = C / C.rolling(63, min_periods=40).max() - 1
+    F["dd3"] = dd3.clip(-0.6, 0)
+    F["rebound"] = ((dd3 <= -0.05) & (dd3 >= -0.20) & (C > s20)).astype(float)
+    F["vol"] = (np.log(C).diff().rolling(63).std() * np.sqrt(252)).clip(0, 1.5)
+    F["dist200_2"] = F["dist200"] ** 2
+    F["rsi_2"] = (F["rsi"] - 0.5) ** 2
+    # fundamentos de la SEC (tal como se conocían ese día)
+    pe_r = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    eps_pos = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    rev_g = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    eps_g = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    for t in us_t:
+        fd = fund.get(t)
+        if fd is None:
+            continue
+        e, pe, med, rg, eg = fd
+        with np.errstate(divide="ignore", invalid="ignore"):
+            pe_r[t] = np.where((pe > 0) & (med > 0), pe / med, np.nan)
+        eps_pos[t] = np.where(np.isfinite(e), (e > 0).astype(float), np.nan)
+        rev_g[t] = rg
+        eps_g[t] = eg
+    F["pe_r"] = pe_r.clip(0.2, 3)
+    F["pe_cheap"] = (pe_r <= 0.70).astype(float)
+    F["eps_pos"] = eps_pos
+    F["rev_g"] = rev_g.clip(-0.5, 1)
+    F["eps_g"] = eps_g.clip(-1, 2)
+    F["no_fund"] = eps_pos.isna().astype(float)
+    # ---- variables del mercado (iguales para todas las acciones ese día)
+    M = pd.DataFrame(index=idx)
+    M["spy_dist200"] = (spy / spy.rolling(200).mean() - 1)
+    M["spy_r6m"] = spy / spy.shift(126) - 1
+    M["spy_dd52"] = spy / spy.rolling(252, min_periods=120).max() - 1
+    M["br200"] = (C > s200).sum(axis=1) / s200.notna().sum(axis=1).replace(0, np.nan)
+    M["br50"] = (C > s50).sum(axis=1) / s50.notna().sum(axis=1).replace(0, np.nan)
+    if "^VIX" in mkx:
+        v = mkx["^VIX"]
+        M["vix"] = v
+        M["vix_rel"] = v / v.rolling(252, min_periods=100).median()
+    if "^TNX" in mkx:
+        r_ = mkx["^TNX"]
+        M["tnx"] = r_
+        M["tnx_ch"] = r_ - r_.shift(126)
+    secs = sorted({meta[t][1] or "Otro" for t in us_t})
+    # ---- filas: cada 5 ruedas, con al menos 260 ruedas de historia
+    rows_i = np.arange(260, n, PM_STEP)
+    fwd = (C.shift(-PM_H) / C - 1).values
+    spy_f = (spy.shift(-PM_H) / spy - 1).values
+    # rendimiento de su industria (las demás empresas, igual peso) para comparar
+    gcols = {}
+    for j, t in enumerate(us_t):
+        gcols.setdefault(grp.get(t, "?"), []).append(j)
+    ind_f = np.full(fwd.shape, np.nan)
+    for g, js in gcols.items():
+        sub = fwd[:, js]
+        sm, nn = np.nansum(sub, axis=1), np.isfinite(sub).sum(axis=1)
+        for k_, j in enumerate(js):
+            own = sub[:, k_]
+            cnt = nn - np.isfinite(own)
+            ind_f[:, j] = np.where(cnt >= 2, (sm - np.nan_to_num(own)) / np.maximum(cnt, 1), np.nan)
+    fnames = list(F) + list(M.columns) + ["sec_" + x for x in secs[1:]]
+    Fv = {k: v.values for k, v in F.items()}
+    Mv = M.values
+    blocks, meta_rows = [], []
+    for j, t in enumerate(us_t):
+        px = C[t].values
+        ok = np.isfinite(px[rows_i]) & (np.arange(n)[rows_i] >= 0)
+        ii = rows_i[ok]
+        if not len(ii):
+            continue
+        cols = [Fv[k][ii, j] for k in F] + [Mv[ii, m] for m in range(Mv.shape[1])]
+        sec = meta[t][1] or "Otro"
+        cols += [np.full(len(ii), 1.0 if sec == x else 0.0) for x in secs[1:]]
+        blocks.append(np.column_stack(cols).astype(np.float32))
+        meta_rows.append(np.column_stack([np.full(len(ii), j), ii]))
+    X = np.vstack(blocks)
+    R_ = np.vstack(meta_rows).astype(int)
+    tj, ti = R_[:, 0], R_[:, 1]
+    y_ret = fwd[ti, tj]
+    sp_ret = spy_f[ti]
+    in_ret = ind_f[ti, tj]
+    years = idx.year.values[ti]
+    dates = idx.values[ti]
+    is_d = np.array([us_t[j] in design for j in tj])
+    is_v = np.array([us_t[j] in valid for j in tj])
+    has_y = np.isfinite(y_ret)
+    print(f"Modelo de probabilidad: {len(X)} observaciones, {X.shape[1]} variables")
+
+    def prep(Xtr):
+        mu = np.nanmean(Xtr, axis=0)
+        sd = np.nanstd(Xtr, axis=0)
+        sd[~np.isfinite(sd) | (sd < 1e-9)] = 1
+        mu[~np.isfinite(mu)] = 0
+        return mu, sd
+
+    def z(Xa, mu, sd):
+        Z = (Xa - mu) / sd
+        Z[~np.isfinite(Z)] = 0
+        return Z
+
+    # ---- validación año por año: para el año Y se entrena con lo que tenía resultado conocido antes del 1/1/Y
+    pred = np.full(len(X), np.nan)
+    test_years = []
+    yr_min = int(years.min()) + 3
+    yr_max = int(years[has_y].max())
+    for Y in range(yr_min, yr_max + 1):
+        cut = np.datetime64(f"{Y - 1}-01-01")       # fecha de compra + 12 meses < 1/1/Y
+        tr = is_d & has_y & (dates < cut)
+        te = is_v & (years == Y)
+        if tr.sum() < 5000 or not te.any():
+            continue
+        mu, sd = prep(X[tr])
+        w = logit_fit(z(X[tr], mu, sd), (y_ret[tr] > 0).astype(float))
+        pred[te] = logit_pred(z(X[te], mu, sd), w)
+        test_years.append(Y)
+    ev = is_v & has_y & np.isfinite(pred)
+
+    def grp_stats(m):
+        if not m.any():
+            return {"n": 0}
+        r, s_, i_ = y_ret[m], sp_ret[m], in_ret[m]
+        oi = np.isfinite(i_)
+        return {"n": int(m.sum()), "p": float(np.mean(pred[m])), "win": float((r > 0).mean()), "avg": float(r.mean()),
+                "med": float(np.median(r)), "beat": float((r > s_).mean()), "alpha": float((r - s_).mean()),
+                "beat_ind": float((r[oi] > i_[oi]).mean()) if oi.any() else None,
+                "alpha_ind": float((r[oi] - i_[oi]).mean()) if oi.any() else None,
+                "l20": float((r <= -0.20).mean())}
+
+    calib = []
+    for a, b in zip(PM_BINS[:-1], PM_BINS[1:]):
+        st = grp_stats(ev & (pred >= a) & (pred < b))
+        st.update(lo=a, hi=min(b, 1))
+        calib.append(st)
+    n_months = max(1, len({str(x)[:7] for x in dates[ev]}))
+    n_val = len(valid)
+    thr = []
+    for th in PM_THR:
+        m = ev & (pred >= th)
+        st = grp_stats(m)
+        # señales nuevas por mes: acción que cruza el umbral (no estaba arriba en la observación anterior)
+        prev = np.zeros(len(X), dtype=bool)
+        order = np.lexsort((ti, tj))
+        mm = (pred >= th)[order]
+        same = np.r_[False, tj[order][1:] == tj[order][:-1]]
+        new_ = mm & ~(np.r_[False, mm[:-1]] & same)
+        prev[order] = new_
+        st.update(thr=th, share=float(m.sum() / max(ev.sum(), 1)),
+                  new_pm=float((prev & ev).sum() / n_months), stocks=n_val)
+        thr.append(st)
+    by_year = []
+    for Y in test_years:
+        m = ev & (years == Y)
+        if not m.any():
+            continue
+        o_ = {"y": str(Y), "all": grp_stats(m)}
+        for th in (0.80, 0.75, 0.70):
+            mt = m & (pred >= th)
+            o_[f"t{int(th * 100)}"] = {**grp_stats(mt), "share": float(mt.sum() / m.sum())}
+        by_year.append(o_)
+    # ---- modelo final con todo lo que tiene resultado (para usar en el screener)
+    tr = has_y
+    mu, sd = prep(X[tr])
+    w = logit_fit(z(X[tr], mu, sd), (y_ret[tr] > 0).astype(float))
+    coefs = sorted([{"f": f, "lbl": PM_FEAT_LBL.get(f, f.replace("sec_", "Sector: ")), "w": float(c)} for f, c in zip(fnames, w[1:])],
+                   key=lambda x: -abs(x["w"]))
+    # probabilidad de hoy en las acciones de validación (lo que diría el modelo ahora)
+    last_i = int(ti.max())
+    now_m = ti == last_i
+    p_now = logit_pred(z(X[now_m], mu, sd), w)
+    now = sorted([{"t": us_t[j], "p": float(pv)} for j, pv in zip(tj[now_m], p_now)], key=lambda x: -x["p"])
+    return {"label": "Probabilidad de ganar plata a 12 meses", "h": "12m", "test_years": [str(y) for y in test_years],
+            "n_obs": int(ev.sum()), "stocks": n_val, "base": grp_stats(ev), "calib": calib, "thr": thr, "years": by_year,
+            "coefs": coefs[:25], "now": now[:40], "now_date": str(idx[last_i].date()),
+            "model": {"features": fnames, "mean": [float(x) for x in mu], "std": [float(x) for x in sd], "w": [float(x) for x in w],
+                      "secs": secs, "horizon": PM_H}}
+
+
 def industries():
     try:
         rows = json.load(open("data.json", encoding="utf-8"))["rows"]
@@ -773,6 +1016,12 @@ def main():
     sec_ok = sum(1 for t in tick if fund[t] is not None and np.isfinite(fund[t][1]).any())
     print(f"Balances de la SEC: {sec_ok} de {len(tick)} empresas" + (f" · {sec_msg}" if sec_msg else ""))
 
+    try:
+        mkx = yf.download(["^VIX", "^TNX"], period="20y", interval="1d", auto_adjust=True, progress=False)["Close"]
+        mkx = mkx.reindex(close.index).ffill()
+    except Exception as e:
+        print("Sin VIX / tasa:", e)
+        mkx = pd.DataFrame(index=close.index)
     spy = close["SPY"].values
     mkt = (close["SPY"] > close["SPY"].rolling(200).mean()).values      # filtro de mercado
     print(f"Días con el S&P arriba de su media de 200: {mkt[days].mean()*100:.0f}% del período")
@@ -1059,9 +1308,20 @@ def main():
                 "base_d": xstats([e for e in xb if e["date"] < SPLIT]).get("90d"),
                 "base_v": xstats([e for e in xb if e["date"] >= SPLIT]).get("90d"), "signals": sig_}
 
+    def prob_safe():
+        try:
+            design = (member.get("broad") or set()) | (member.get("broad2") or set()) | (member.get("top") or set())
+            valid = (member.get("broad3") or set()) | (member.get("broad4") or set())
+            return prob_model(close, fund, meta, us_t, design - valid, valid, grp, mkx)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return {"error": str(e)}
+
     out = {
         "alerts": alerts_out(),
         "portfolio": pf_out(),
+        "prob": prob_safe(),
         "matrix": matrix(),
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "period": {"from": str(idx[days[0]].date()), "to": str(end.date())},
