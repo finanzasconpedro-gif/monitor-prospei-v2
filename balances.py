@@ -14,13 +14,50 @@ import json
 import math
 import time
 
+import os
+
 import numpy as np
 import pandas as pd
+import requests
 
 OUT = "balances.json"
 UPCOMING_DAYS = 7
 RECENT_DAYS = 30
 FETCH_DAYS = 10          # se vuelven a bajar los números durante 10 días (Yahoo tarda en cargar el trimestre)
+
+
+HOUR = {"bmo": "antes de la apertura", "amc": "después del cierre", "dmh": "durante la rueda"}
+
+
+def finnhub_calendar(today):
+    """Calendario de balances de Finnhub (gratis con clave): fecha, horario y ganancia por acción y ventas
+    esperadas y reales, minutos después del anuncio. Sin clave (secreto FINNHUB_KEY) devuelve vacío."""
+    key = os.environ.get("FINNHUB_KEY")
+    if not key:
+        return {}
+    out = {}
+    try:
+        r = requests.get("https://finnhub.io/api/v1/calendar/earnings",
+                         params={"from": (today - dt.timedelta(days=FETCH_DAYS)).isoformat(),
+                                 "to": (today + dt.timedelta(days=UPCOMING_DAYS)).isoformat(), "token": key}, timeout=30)
+        r.raise_for_status()
+        for x in r.json().get("earningsCalendar", []) or []:
+            sym = str(x.get("symbol", "")).upper().replace(".", "-")
+            out.setdefault(sym, []).append(x)
+        print("Finnhub:", sum(len(v) for v in out.values()), "balances en el calendario")
+    except Exception as e:
+        print("Finnhub no disponible:", e)
+    return out
+
+
+def fh_near(fh, t, d, days=3):
+    L = fh.get(t) or []
+    try:
+        d0 = dt.date.fromisoformat(d)
+        L = [x for x in L if x.get("date") and abs((dt.date.fromisoformat(x["date"]) - d0).days) <= days]
+    except Exception:
+        return None
+    return sorted(L, key=lambda x: x["date"])[-1] if L else None
 
 
 def today_ar():
@@ -277,17 +314,44 @@ def main():
                     cal[t + "|prev"] = max(past).isoformat()
             except Exception:
                 pass
+    # 1c) Finnhub: fechas exactas, horario y resultados apenas se anuncian
+    fh = finnhub_calendar(today)
+    fdate = {}
+    for t, L in fh.items():
+        if t not in rows:
+            continue
+        for x in L:
+            d = x.get("date")
+            if not d:
+                continue
+            if d <= today.isoformat():
+                if (x.get("epsActual") is not None or x.get("revenueActual") is not None) or d == today.isoformat():
+                    cal[t + "|prev"] = max(d, cal.get(t + "|prev", ""))
+            else:
+                fdate[t] = min(d, fdate.get(t, "9999"))
+            if d == today.isoformat():
+                fdate.setdefault(t, d)
     # 2) próximos 7 días
     upcoming = []
     for t, r in rows.items():
         ed = r.get("earn_days")
+        if t in fdate:
+            ed = (dt.date.fromisoformat(fdate[t]) - today).days
         if ed is None or not (0 <= ed <= UPCOMING_DAYS):
             continue
         e = {"t": t, "name": r.get("name"), "sector": r.get("sector"), "region": r.get("region"),
              "date": (today + dt.timedelta(days=int(ed))).isoformat(), "days": int(ed), "mcap": r.get("mcap"),
              "verdict": r.get("verdict"), "pe": r.get("pe"), "fpe": r.get("fpe")}
+        fe = fh_near(fh, t, e["date"], 1)
+        if fe:
+            e["hour"] = HOUR.get(fe.get("hour"))
         try:
             e.update(estimates(yf.Ticker(t)))
+            if fe:
+                if e.get("eps_est") is None and fe.get("epsEstimate") is not None:
+                    e["eps_est"] = r4(fe["epsEstimate"])
+                if e.get("rev_est") is None and fe.get("revenueEstimate"):
+                    e["rev_est"] = num(fe["revenueEstimate"])
             if e.get("eps_est") is not None or e.get("rev_est") is not None:
                 est[t + "|" + e["date"]] = {k: e.get(k) for k in ("eps_est", "rev_est", "eps_n", "eps_ya", "rev_ya")}
             time.sleep(0.2)
@@ -334,20 +398,48 @@ def main():
             ex = near[-1] if near else {}
         e["eps_exp"] = ex.get("eps_est")
         e["rev_exp"] = ex.get("rev_est")
+        fe = fh_near(fh, t, d)
+        if fe:
+            e["hour"] = HOUR.get(fe.get("hour"))
+            if e["eps_exp"] is None and fe.get("epsEstimate") is not None:
+                e["eps_exp"] = r4(fe["epsEstimate"])
+            if e["rev_exp"] is None and fe.get("revenueEstimate"):
+                e["rev_exp"] = num(fe["revenueEstimate"])
+            if fe.get("epsActual") is not None:
+                e["eps_rep"] = r4(fe["epsActual"])
+            if fe.get("revenueActual"):
+                e["rev_real"] = num(fe["revenueActual"])
         if x:
-            e.update(x)
-            if e.get("eps_est") is not None:          # estimado que informa Yahoo junto con el resultado
-                e["eps_exp"] = e["eps_est"]
-            e["rev_surp"] = r4(e["rev"] / e["rev_exp"] - 1) if e.get("rev") and e.get("rev_exp") else None
+            e.update({k: v for k, v in x.items() if v is not None or k not in e})
+            if x.get("eps_est") is not None:          # estimado que informa Yahoo junto con el resultado
+                e["eps_exp"] = x["eps_est"]
             e["react"], e["react_rel"] = reaction(tk, spy, d)
             e["complete"] = e.get("react") is not None and (today - dt.date.fromisoformat(d)).days >= 2
-            e["pos"], e["neg"] = notes(e)
             n_new += 1
-        elif old:
+        elif old and old.get("rev") is not None:
             q_old = old.get("q_end")
             if not q_old or (dt.date.fromisoformat(d) - dt.date.fromisoformat(q_old)).days <= 80:
-                continue          # se conserva lo que ya había (o sigue pendiente)
-            # lo guardado era el trimestre anterior (versión vieja del panel): queda pendiente
+                continue          # se conserva lo que ya había
+        elif fe and (e.get("eps_rep") is not None or e.get("rev_real")):
+            try:
+                e["react"], e["react_rel"] = reaction(yf.Ticker(t), spy, d)
+            except Exception:
+                pass
+        elif old:
+            continue
+        # real y esperado de la misma fuente, para que la comparación sea pareja
+        if fe and fe.get("epsActual") is not None and fe.get("epsEstimate") is not None and not (x and x.get("eps_rep") is not None and x.get("eps_est") is not None):
+            e["eps_rep"], e["eps_exp"], e["surprise"] = r4(fe["epsActual"]), r4(fe["epsEstimate"]), None
+        if fe and fe.get("revenueActual") and fe.get("revenueEstimate"):
+            e["rev_real"], e["rev_exp"] = num(fe["revenueActual"]), num(fe["revenueEstimate"])
+            rr = e["rev_real"]
+        else:
+            rr = e.get("rev") if e.get("rev") is not None else e.get("rev_real")
+        e["rev_real"] = rr
+        e["rev_surp"] = r4(rr / e["rev_exp"] - 1) if rr and e.get("rev_exp") else None
+        if e.get("surprise") is None and e.get("eps_rep") is not None and e.get("eps_exp"):
+            e["surprise"] = r4((e["eps_rep"] - e["eps_exp"]) / abs(e["eps_exp"]))
+        e["pos"], e["neg"] = notes(e)
         done[key] = e
     lim = (today - dt.timedelta(days=RECENT_DAYS)).isoformat()
     recent = sorted([e for e in done.values() if e["date"] >= lim], key=lambda e: (e["date"], e.get("mcap") or 0), reverse=True)
