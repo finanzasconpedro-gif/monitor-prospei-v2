@@ -1878,7 +1878,13 @@ function renderKpis(){
   if(of&&mep)k.push(['Brecha MEP',pct(mep.v/of.venta-1,1),'vs oficial']);
   if(bl)k.push(['Blue (venta)',`$ ${fmt(bl.venta)}`,'informal']);
   if(mep&&ccl)k.push(['Canje CCL/MEP',pct(ccl.v/mep.v-1,2),'']);
-  if(d.rp)k.push(['Riesgo país',fmt(d.rp.valor,0)+' pb',d.rp.fecha?new Date(d.rp.fecha).toLocaleDateString('es-AR'):'']);
+  if(d.rp){const f=d.rp.fecha&&/^\d{4}-\d{2}-\d{2}/.test(d.rp.fecha)?d.rp.fecha.slice(0,10):null;
+    let sub='',old=false;
+    if(f){const [y,mo,da]=f.split('-');sub=`${da}/${mo}/${y}`;
+      // último día hábil cerrado: el EMBI de hoy se conoce después del cierre; se tolera hasta el hábil anterior
+      const t=new Date();t.setHours(12,0,0,0);const prev=new Date(t);do{prev.setDate(prev.getDate()-1)}while(prev.getDay()===0||prev.getDay()===6);
+      const fd=new Date(+y,+mo-1,+da,12);old=fd<prev;}
+    k.push(['Riesgo país',fmt(d.rp.valor,0)+' pb',(sub||'')+(d.rp.fuente?' · '+esc(d.rp.fuente):'')+(old?' <span class="pill warn" style="font-size:10.5px;padding:1px 6px">desactualizado</span>':'')]);}
   $('#kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v num" style="text-align:left">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
 }
 
@@ -1887,8 +1893,8 @@ let loading=false;
 async function load(){
   if(loading)return;loading=true;$('#dot').className='dot load';
   const P=[getJ(API+'arg_bonds'),getJ(API+'arg_stocks'),getJ(API+'arg_cedears'),getJ(API+'usa_stocks'),getJ(API+'usa_adrs'),getJ(API+'ccl'),
-    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo')];
-  const [bo,st,ce,us,ad,cc,dl,rp]=await Promise.allSettled(P);
+    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo'),getJ('riesgo.json?v='+Date.now())];
+  const [bo,st,ce,us,ad,cc,dl,rp,rj]=await Promise.allSettled(P);
   const errs=[];
   if(bo.status==='fulfilled'&&Array.isArray(bo.value)){S.data.bonds=buildBonds(bo.value)}else errs.push('bonos');
   if(st.status==='fulfilled'&&Array.isArray(st.value))S.data.stocks=st.value;else errs.push('acciones');
@@ -1899,7 +1905,10 @@ async function load(){
   S.data.us=usm;
   if(cc.status==='fulfilled'&&Array.isArray(cc.value)){const m={};cc.value.forEach(r=>{const v=ok(r.CCL_mark)?r.CCL_mark:(ok(r.CCL_close)?r.CCL_close:null);if(r.ticker_ar&&v)m[r.ticker_ar]=v});S.data.adrCcl=m}
   if(dl.status==='fulfilled'&&Array.isArray(dl.value))S.data.dolares=dl.value;
-  if(rp.status==='fulfilled'&&rp.value&&rp.value.valor)S.data.rp=rp.value;
+  {// riesgo país: el dato más reciente entre la consulta en vivo y el que guarda la tarea de GitHub (riesgo.json)
+    const c=[];if(rp.status==='fulfilled'&&rp.value&&rp.value.valor)c.push({valor:rp.value.valor,fecha:String(rp.value.fecha).slice(0,10),fuente:'ArgentinaDatos'});
+    if(rj.status==='fulfilled'&&rj.value&&rj.value.valor)c.push({valor:rj.value.valor,fecha:String(rj.value.fecha).slice(0,10),fuente:rj.value.fuente||''});
+    if(c.length){c.sort((a,b)=>a.fecha<b.fecha?1:a.fecha>b.fecha?-1:0);S.data.rp=c[0]}}
   if(S.data.bonds){const R=S.data.bonds.rows;S.ref.mep=pickRef(R,'ult',['AL30','GD30']);S.ref.ccl=pickRef(R,'ccl',['AL30','GD30'])}
   buildCed();
   renderKpis();renderAcc();renderMep();renderCed();renderTop();renderHeat();renderSecPerf();renderUni();
