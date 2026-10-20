@@ -1041,6 +1041,7 @@ def build_etfs(prices, series=None):
                  closes=[round(float(x), 2) for x in r.closes])
         out.append(d)
     spy_out = {k: r2(spy.get(k)) for k in ["p", "r1d", "r1w", "r1m", "r3m", "r6m", "r12m", "rsi", "sma50", "sma200", "dd"]}
+    spy_out["asof"] = ASOF
     spy_out["above200"] = bool(spy["p"] > spy["sma200"])
     return spy_out, sorted(out, key=lambda e: -(e["at"] or 0))
 
@@ -1495,6 +1496,9 @@ def audit_summary(df):
     return {k: sorted(set(v)) for k, v in out.items()}
 
 
+ASOF = None     # fecha de la última rueda con precios (se muestra en la página)
+
+
 def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
     out_rows = []
     keep = ["t", "name", "sector", "region", "p", "mcap", "r1d", "r1m", "r3m", "r6m", "r12m", "rsi", "sma20", "sma50",
@@ -1571,6 +1575,46 @@ def main():
             except Exception:
                 pass
         time.sleep(1)
+    # Yahoo a veces entrega la serie de 5 años sin la rueda de hoy (la carga más tarde que la de corto plazo):
+    # se completa con una descarga de 1 mes, que sí la trae, para que "Día" refleje la última rueda.
+    added = 0
+    for i in range(0, len(dl), 100):
+        chunk = [x for x in dl[i:i + 100] if x in series]
+        if not chunk:
+            continue
+        try:
+            rec = yf.download(chunk, period="1mo", interval="1d", auto_adjust=True, group_by="ticker",
+                              threads=True, progress=False)
+        except Exception as e:
+            print("  sin descarga de corto plazo:", e)
+            continue
+        for x in chunk:
+            try:
+                sub = rec[x] if len(chunk) > 1 else rec
+                cl = sub["Close"].dropna()
+                old = series[x]
+                new_idx = cl.index[cl.index > old.index[-1]]
+                if not len(new_idx):
+                    continue
+                series[x] = pd.concat([old, cl.loc[new_idx]])
+                c, v = prices[x]
+                prices[x] = (np.concatenate([c, cl.loc[new_idx].values.astype(float)]),
+                             np.concatenate([v, sub["Volume"].reindex(new_idx).fillna(0).values.astype(float)]))
+                if x in hilo:
+                    h_, l_ = hilo[x]
+                    hilo[x] = (pd.concat([h_, sub["High"].reindex(new_idx)]), pd.concat([l_, sub["Low"].reindex(new_idx)]))
+                added += 1
+            except Exception:
+                pass
+        time.sleep(1)
+    if added:
+        print(f"Rueda más reciente agregada en {added} papeles")
+    global ASOF
+    try:
+        ASOF = pd.Timestamp(series[BENCH].index[-1]).strftime("%Y-%m-%d")
+        print("Última rueda:", ASOF)
+    except Exception:
+        pass
     print("Con precios:", len(prices))
     if len(prices) < 100:
         raise SystemExit("Yahoo Finance devolvió muy pocos precios; no se actualiza data.json. Reintentá más tarde.")
