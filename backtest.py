@@ -61,9 +61,14 @@ VARIANTS = {
     "R": "Comprar en partes por mercado bajista: cumple D pero el S&P 500 está debajo de su media de 200 días",
     "S": "Estrategia por sector: J en tecnología, industriales y comunicaciones · D en consumo discrecional · G en utilities, energía y materiales · sin señal en consumo básico, financiero, real estate y salud",
     "T": "Motor por sector del monitor (perfiles de screener.py): señal de entrada, momentum, crecimiento y peso de la valuación según el sector; sin señal en los sectores sin ventaja",
+    "U": "P/E bajo contra su historia: P/E 30% o más por debajo de su mediana de 5 años (ganancia positiva), sin señal técnica; sin balance en 7 días",
+    "V": "P/E muy bajo contra su historia: P/E 50% o más por debajo de su mediana de 5 años (ganancia positiva), sin señal técnica; sin balance en 7 días",
+    "W": "U + crecimiento: P/E 30%+ debajo de su historia con ganancia y ventas de 12 meses creciendo contra el año anterior",
+    "X": "U + rebote: P/E 30%+ debajo de su historia y además corrección con señal de rebote (puntaje técnico ≥ 65)",
 }
 VARIANTS.pop("_", None)
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X")
+PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
 S_MAP = {"Tecnología": "J", "Industrial": "J", "Comunicaciones": "J", "Consumo discrecional": "D",
          "Utilities": "G", "Servicios públicos": "G", "Energía": "G", "Materiales": "G"}
 # ---- señales de agotamiento: qué pasó en los 30, 60 y 90 días siguientes (21, 42 y 63 ruedas)
@@ -358,7 +363,7 @@ def stats(rows, key):
         return {"n": 0}
     x = np.array([r[key] for r in v])
     out = {"n": len(v), "win": float((x > 0).mean()), "avg": float(x.mean()), "med": float(np.median(x)),
-           "p10": float(np.percentile(x, 10))}
+           "p10": float(np.percentile(x, 10)), "l20": float((x <= -0.20).mean())}
     b = [r[key] - r["spy_" + key] for r in v if r.get("spy_" + key) is not None]
     if b:
         out["beat"] = float((np.array(b) > 0).mean())
@@ -478,6 +483,21 @@ def run_ticker(args):
                     if PF["val"] == "full":
                         t_ = t_ and bool(np.isfinite(e) and e > 0 and np.isfinite(g) and g > 0 and np.isfinite(pe) and np.isfinite(med) and pe <= med * 1.10)
         sig["T"] = bool(t_)
+        # U-X: P/E bajo contra su propia historia (la tesis "está barata contra su historia")
+        pe_r = np.nan
+        if fd is not None:
+            e, pe, med = fd[0][i], fd[1][i], fd[2][i]
+            if np.isfinite(e) and e > 0 and np.isfinite(pe) and pe > 0 and np.isfinite(med) and med > 0:
+                pe_r = pe / med
+        u_ = bool(np.isfinite(pe_r) and pe_r <= PE_CHEAP and not earn)
+        sig["U"] = u_
+        sig["V"] = bool(u_ and pe_r <= PE_DEEP)
+        w_ = False
+        if u_:
+            eg, rg = fd[4][i], fd[3][i]
+            w_ = bool(np.isfinite(eg) and eg > 0 and np.isfinite(rg) and rg > 0)
+        sig["W"] = w_
+        sig["X"] = bool(u_ and g_)
         new = {k: sig[k] and i - last.get(k, -999) > GAP for k in sig}
         if i % 5 == 0 or any(new.values()):
             p0 = c[i + 1]
