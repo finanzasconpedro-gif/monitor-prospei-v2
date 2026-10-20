@@ -1,0 +1,45 @@
+name: Balances PROSPEI
+
+on:
+  schedule:
+    - cron: "45 12 * * 1-5"   # 9:45 hora Argentina: los que presentan antes de la apertura
+    - cron: "50 16 * * 1-5"   # 13:50 hora Argentina
+    - cron: "40 23 * * 1-5"   # 20:40 hora Argentina: los que presentan después del cierre
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: balances
+  cancel-in-progress: false
+
+jobs:
+  balances:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar librerias
+        run: pip install yfinance pandas numpy requests lxml
+
+      - name: Actualizar balances
+        run: python balances.py
+
+      - name: Guardar balances.json
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add balances.json
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza balances $(date -u +'%Y-%m-%d %H:%M')"
+          git pull --rebase
+          git push
