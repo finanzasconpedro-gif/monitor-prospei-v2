@@ -65,10 +65,13 @@ VARIANTS = {
     "V": "P/E muy bajo contra su historia: P/E 50% o más por debajo de su mediana de 5 años (ganancia positiva), sin señal técnica; sin balance en 7 días",
     "W": "U + crecimiento: P/E 30%+ debajo de su historia con ganancia y ventas de 12 meses creciendo contra el año anterior",
     "X": "U + rebote: P/E 30%+ debajo de su historia y además corrección con señal de rebote (puntaje técnico ≥ 65)",
+    "Y": "Vía 'barata contra su historia' solo en consumo discrecional, industrial y salud: U en esos tres sectores (propuesta de Comprar en partes)",
+    "Z": "Motor por sector + vía barata: T, o Y en consumo discrecional, industrial y salud (propuesta de motor completo)",
 }
 VARIANTS.pop("_", None)
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
+PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}   # sectores donde la vía barata se sostuvo (Y, Z)
 S_MAP = {"Tecnología": "J", "Industrial": "J", "Comunicaciones": "J", "Consumo discrecional": "D",
          "Utilities": "G", "Servicios públicos": "G", "Energía": "G", "Materiales": "G"}
 # ---- señales de agotamiento: qué pasó en los 30, 60 y 90 días siguientes (21, 42 y 63 ruedas)
@@ -498,6 +501,8 @@ def run_ticker(args):
             w_ = bool(np.isfinite(eg) and eg > 0 and np.isfinite(rg) and rg > 0)
         sig["W"] = w_
         sig["X"] = bool(u_ and g_)
+        sig["Y"] = bool(u_ and sector in PE_SECT)
+        sig["Z"] = bool(sig["T"] or sig["Y"])
         new = {k: sig[k] and i - last.get(k, -999) > GAP for k in sig}
         if i % 5 == 0 or any(new.values()):
             p0 = c[i + 1]
