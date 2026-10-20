@@ -4,7 +4,7 @@ Universo: S&P 500 + ADRs argentinos + ADRs brasilenos.
 Genera data.json, que lee la pestana "Oportunidades" del monitor.
 Lo corre GitHub Actions todos los dias habiles despues del cierre de EE.UU.
 """
-import json, math, time, datetime as dt
+import json, math, os, time, datetime as dt
 from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
 
@@ -895,6 +895,7 @@ def build(universe, prices, infos, hist=None):
     df["val_verdict"] = np.select([df.cyc, df.val_cheap >= 2, df.val_dear >= 2],
                                   ["Pico de ciclo", "Barata", "Cara"], "Neutral")
     df["mom_pct"] = pct_rank((1 + df.r6m) / (1 + df.r1m) - 1).fillna(0)
+    df = pe5_hist(df)
     df["setup"] = [setup(r) for r in df.itertuples()]
     # Elegibles como oportunidad: tendencia sana, o sobreventa con buenos fundamentos
     elig = (df.trend_n >= 1) | ((df.rsi < 35) & (df.af >= 60))
@@ -1307,9 +1308,9 @@ SECTOR_PROFILE = {
                        why="prioriza corrección con momentum y crecimiento de ganancias; el P/E contra su historia pesa poco"),
     "Comunicaciones": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=False, val="low", partes=False, edge=True,
                            why="prioriza corrección con momentum; el P/E contra su historia pesa poco"),
-    "Industrial": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=True, edge=True,
-                       why="prioriza corrección con momentum y crecimiento; el giro temprano con buenos fundamentos también funcionó"),
-    "Consumo discrecional": dict(fam="Consumo cíclico", entry={CORR, RUPT}, mom=None, growth=False, val="full", partes=True, edge=True,
+    "Industrial": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=True, edge=True, cheap=True,
+                       why="prioriza corrección con momentum y crecimiento; el giro temprano y comprar barata contra su propia historia también funcionaron"),
+    "Consumo discrecional": dict(fam="Consumo cíclico", entry={CORR, RUPT}, mom=None, growth=False, val="full", partes=True, edge=True, cheap=True,
                                  why="prioriza fundamentos y valuación: comprar barata contra su historia funcionó en este sector"),
     "Utilities": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
                       why="prioriza la corrección dentro de una tendencia alcista; la valuación pesa poco"),
@@ -1317,8 +1318,8 @@ SECTOR_PROFILE = {
                        why="prioriza la corrección dentro de una tendencia alcista; el P/E barato no sirve (suele marcar pico de ciclo)"),
     "Energía": dict(fam="Materias primas", entry={CORR, RUPT, "Giro temprano"}, mom=None, growth=False, val="low", partes=True, edge=True,
                     why="sigue el ciclo: además de la corrección, valen la ruptura de máximos y el giro temprano; el P/E barato no sirve"),
-    "Salud": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
-                  why="solo la corrección dentro de una tendencia alcista mostró ventaja (chica); la valuación pesa poco"),
+    "Salud": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True, cheap=True,
+                  why="la corrección dentro de una tendencia alcista mostró una ventaja chica; comprar barata contra su propia historia funcionó mejor"),
     "Financiero": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
                        why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
     "Consumo básico": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
@@ -1328,6 +1329,40 @@ SECTOR_PROFILE = {
 }
 PROFILE_DEFAULT = dict(fam="General", entry=set(ENTRY_SETUPS), mom=None, growth=False, val="full", partes=True, edge=True,
                        why="reglas generales del monitor (sector sin perfil propio)")
+
+
+# Vía "barata contra su historia" (variante Y del backtest): P/E de 12 meses 30%+ debajo de su mediana de 5 años.
+# Se calcula con la historia de la SEC que guarda fundamentos.py (fund/<T>.json), la misma fuente que usa el backtest.
+PE5_CHEAP = 0.70
+
+
+def pe5_hist(df, folder="fund"):
+    """P/E actual contra la mediana de los 60 meses anteriores (P/E solo con ganancia positiva)."""
+    med, ratio = [], []
+    for r in df.itertuples():
+        m = q = np.nan
+        try:
+            with open(os.path.join(folder, f"{r.t}.json"), encoding="utf-8") as f:
+                h = json.load(f)
+            p = np.array([x if x is not None else np.nan for x in h.get("p", [])], dtype=float)
+            e = np.array([x if x is not None else np.nan for x in h.get("eps", [])], dtype=float)
+            if len(p) >= 40 and len(p) == len(e):
+                pe = np.where(e > 0, p / e, np.nan)
+                pe = np.where((pe >= 2) & (pe <= 500), pe, np.nan)     # descarta meses con datos rotos de la SEC
+                win = pe[-61:-1]
+                e_now = e[-1]
+                # la ganancia de la SEC tiene que coincidir con la de Yahoo (si no, el dato de la SEC está roto)
+                ok_now = (np.isfinite(e_now) and e_now > 0 and pd.notna(r.eps) and r.eps > 0 and 0.5 <= e_now / r.eps <= 2)
+                if np.isfinite(win).sum() >= 30 and ok_now:
+                    m = float(np.nanmedian(win))
+                    pe_now = r.p / e_now
+                    if 2 <= pe_now <= 500:
+                        q = pe_now / m
+        except (OSError, ValueError, TypeError):
+            pass
+        med.append(m); ratio.append(q)
+    df["pe5_med"], df["pe5_r"] = med, ratio
+    return df
 
 
 def profile(r):
@@ -1397,6 +1432,12 @@ def verdict(r, mkt_up=True):
     if r.vm_z == "Evitar" or r.cyc or (r.val_verdict == "Cara" and r.trend_n <= 0):
         why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
         return "Evitar", f"Evitar por ahora: {why}."
+    # 2b) Barata contra su propia historia (solo en los sectores donde funcionó: variante Y del backtest)
+    q5 = getattr(r, "pe5_r", None)
+    if P.get("cheap") and q5 is not None and pd.notna(q5) and q5 <= PE5_CHEAP and not earn_soon:
+        return "Comprar en partes", (f"Barata contra su propia historia: P/E {fx(q5 * r.pe5_med, 1)}x contra su mediana de 5 años de "
+                                     f"{fx(r.pe5_med, 1)}x ({fx((1 - q5) * 100, 0)}% abajo). En {r.sector}, comprar así rindió más que "
+                                     "cualquier día en 10 años. No espera señal técnica: entrada escalonada y paciencia (paga más a 12 meses que a 6).")
     # 3) Mantener
     if r.vm_z == "Mantener" or (up is not None and up < req and r.trend_n >= 1):
         if up is not None and up < 0:
@@ -1506,7 +1547,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
             "setup", "elig", "rank", "val_model", "eps_gap", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
-            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y"]
+            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
