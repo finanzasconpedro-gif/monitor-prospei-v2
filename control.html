@@ -216,6 +216,14 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     </div>
   </section>
 
+  <section id="t-rot">
+    <div class="card">
+      <h2>Rotación de sectores: ¿se le gana al S&amp;P comprando y vendiendo ETFs según el gráfico de rotación?</h2>
+      <p class="sub">10 años con los 11 ETF sectoriales (XLK, XLV, XLF…) y el mismo gráfico de rotación de la pestaña Rotación del monitor. Cada estrategia decide con el cierre de cada viernes y mantiene hasta el viernes siguiente; se descuenta 0,10% por cada compra o venta. Si una estrategia no elige ningún sector, queda en el S&amp;P 500. Rendimientos con dividendos.</p>
+      <div id="rot-body"><p class="note">Cargando…</p></div>
+    </div>
+  </section>
+
   <section id="t-bt">
     <div class="card">
       <h2>Track récord de "Comprar hoy"</h2>
@@ -457,7 +465,54 @@ function renderBTEp(){
   $('#bt-more').textContent=rows.length>300?`Se muestran 300 de ${rows.length} señales.`:`${rows.length} señales.`;
 }
 
-loadBT();loadLive();initOne();
+
+/* ---------- rotación de sectores ---------- */
+async function loadRot(){try{const r=await fetch('rotacion.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;S.rot=await r.json()}catch(e){$('#rot-body').innerHTML='<p class="note">Todavía no se corrió la prueba de rotación (Actions → "Rotación de sectores PROSPEI").</p>';return}
+  S.rotF=false;S.rotSel=null;renderRot()}
+function rotChart(R,keys){
+  const W=900,H=280,L=8,Rm=58,T=10,B=24,N=R.dates.length;const cols=['var(--muted)','#1d7af3','#e8890c','#0f9d58','#8e5bd6','#d93025'];
+  const ser=keys.map(k=>R.curves[k]).filter(Boolean);if(!ser.length)return '';
+  const all=ser.flat().filter(v=>v>0);const mn=Math.log(Math.min(...all)),mx=Math.log(Math.max(...all));
+  const x=i=>L+i*(W-L-Rm)/(N-1),y=v=>T+(1-(Math.log(v)-mn)/(mx-mn||1))*(H-T-B);
+  const path=a=>a.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join('');
+  const ticks=[0,.25,.5,.75,1].map(f=>Math.exp(mn+f*(mx-mn)));
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+  s+=ticks.map(v=>`<line x1="${L}" x2="${W-Rm}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--line)"/><text x="${W-Rm+6}" y="${y(v)+4}" font-size="11" style="fill:var(--muted)">${pct(v-1,0)}</text>`).join('');
+  keys.forEach((k,i)=>{const a=R.curves[k];if(a)s+=`<path d="${path(a)}" fill="none" style="stroke:${cols[i%cols.length]}" stroke-width="${k==='spy'?2.6:1.9}"${k==='spy'?' stroke-dasharray="6 4"':''}/>`});
+  const yr=[];R.dates.forEach((d,i)=>{if(i===0||d.slice(0,4)!==R.dates[i-1].slice(0,4))yr.push(i)});
+  yr.filter((_,j)=>j%2===0).forEach(i=>s+=`<text x="${x(i)}" y="${H-6}" font-size="11" style="fill:var(--muted)">${R.dates[i].slice(0,4)}</text>`);
+  s+='</svg><div class="note" style="display:flex;gap:14px;flex-wrap:wrap">'+keys.map((k,i)=>`<span><i style="display:inline-block;width:14px;height:3px;background:${cols[i%cols.length]};vertical-align:middle;margin-right:5px"></i>${esc(k==='spy'?'S&P 500':k)}</span>`).join('')+'</div>';
+  return s}
+function renderRot(){
+  const R=S.rot;if(!R)return;const st=R.strategies,spy=st.spy.all;
+  const ks=Object.keys(st).filter(k=>k!=='spy'&&k!=='spy_f'&&(S.rotF?k.endsWith('_f'):!k.endsWith('_f'))).sort((a,b)=>(st[b].all.cagr||-9)-(st[a].all.cagr||-9));
+  const rows=['spy',...(S.rotF?['spy_f']:[]),...ks];
+  if(!S.rotSel)S.rotSel=ks.slice(0,3);
+  const yrsBeat=k=>{const y=st[k].years,b=st.spy.years;const ys=Object.keys(y).filter(z=>b[z]!=null);return [ys.filter(z=>y[z]>b[z]).length,ys.length]};
+  const c=(v,ref,d=1)=>v==null?'—':`<span class="${ref==null?'':v-ref>0.002?'up':v-ref<-0.002?'down':''}">${pct(v,d)}</span>`;
+  const tr=k=>{const o=st[k],a=o.all,[wb,wn]=yrsBeat(k),isS=k.startsWith('spy');
+    return `<tr${isS?' style="font-weight:600"':''}><td style="min-width:260px">${k!=='spy'&&k!=='spy_f'?`<input type="checkbox" data-rs="${k}" ${S.rotSel.includes(k)?'checked':''}> `:''}<b>${esc(k)}</b> · ${esc(o.label)}</td>
+      <td class="n">${c(a.cagr,isS?null:spy.cagr)}</td><td class="n">${pct(a.total,0)}</td><td class="n ${a.mdd<spy.mdd-0.01?'down':a.mdd>spy.mdd+0.01?'up':''}">${pct(a.mdd,0)}</td><td class="n">${pct(a.vol,0).replace('+','')}</td>
+      <td class="n">${a.sharpe==null?'—':fmt(a.sharpe,2)}</td><td class="n">${a.trades_y==null?'—':fmt(a.trades_y,0)}</td>
+      <td class="n">${c(o.d.cagr,isS?null:st.spy.d.cagr)}</td><td class="n">${c(o.v.cagr,isS?null:st.spy.v.cagr)}</td><td class="n">${isS?'—':wb+' de '+wn}</td></tr>`};
+  const D=R.diag,qs=['Liderando','Perdiendo impulso','Rezagado','Mejorando'];
+  const dk=Object.keys(D).sort((a,b)=>{const qa=qs.indexOf(a.split(' · ')[0]),qb=qs.indexOf(b.split(' · ')[0]);return qa-qb||a.length-b.length||a.localeCompare(b)});
+  const dc=h=>h?`<td class="n ${cls(h.avg)}">${pct(h.avg,1)}</td><td class="n">${P0(h.beat)}</td>`:'<td></td><td></td>';
+  $('#rot-body').innerHTML=`<p class="note">Período ${esc(R.period.from)} a ${esc(R.period.to)} · actualizado ${esc(R.generated)}. En verde: mejor que el S&amp;P 500 en ese mismo tramo.</p>
+    <div class="bar"><button class="chip ${S.rotF?'':'on'}" data-rf="0">Siempre invertido</button><button class="chip ${S.rotF?'on':''}" data-rf="1">Con filtro de mercado (efectivo si el S&amp;P está debajo de su media de 40 semanas)</button></div>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Estrategia (marcá hasta 4 para el gráfico)</th><th class="n">Rendimiento anual</th><th class="n">Total 10 años</th><th class="n">Peor caída</th><th class="n">Volatilidad</th><th class="n">Rinde / riesgo</th><th class="n">Operaciones por año</th><th class="n">Anual hasta 2021</th><th class="n">Anual desde 2022</th><th class="n">Años que le ganó al S&amp;P</th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table></div>
+    <h3 style="margin:18px 0 4px">Cómo creció US$ 1 (escala logarítmica)</h3>${rotChart(R,['spy',...S.rotSel])}
+    <h3 style="margin:22px 0 4px">¿Qué pasó después según dónde estaba el sector en el gráfico?</h3>
+    <p class="sub">Rendimiento del sector <b>contra el S&amp;P 500</b> en las 4, 13 y 26 semanas siguientes, según su cuadrante y hacia dónde iba. "Le ganó" = porcentaje de las veces que rindió más que el S&amp;P. Si la rotación anticipa algo, Liderando o "Rumbo a Liderando" deberían ganarle más seguido que Rezagado.</p>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Posición en el gráfico</th><th class="n">Casos</th><th class="n">4 semanas</th><th class="n">Le ganó</th><th class="n">13 semanas</th><th class="n">Le ganó</th><th class="n">26 semanas</th><th class="n">Le ganó</th></tr></thead>
+    <tbody>${dk.map(k=>`<tr${k.includes(' · ')?'':' style="font-weight:600;background:var(--bg)"'}><td>${k.includes(' · ')?'&nbsp;&nbsp;↳ '+esc(k.split(' · ')[1]):esc(k)}</td><td class="n">${D[k]['13s']?.n||'—'}</td>${dc(D[k]['4s'])}${dc(D[k]['13s'])}${dc(D[k]['26s'])}</tr>`).join('')}</tbody></table></div>
+    <h3 style="margin:22px 0 4px">Dónde está cada sector hoy</h3>
+    <div class="tw"><table style="font-size:13px;min-width:0"><thead><tr><th>Sector</th><th>Cuadrante</th><th class="n">Fuerza (X)</th><th class="n">Impulso (Y)</th><th>Entre los 3 que más le ganaron al S&amp;P en 6 meses</th></tr></thead><tbody>${(R.now||[]).map(n=>`<tr><td><b>${esc(n.etf)}</b> ${esc(n.sector)}</td><td>${esc(n.q||'—')}</td><td class="n">${fmt(n.x,1)}</td><td class="n">${fmt(n.y,1)}</td><td>${n.top3m6?'✔':''}</td></tr>`).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:8px">Con muchas estrategias probadas, alguna va a salir bien por casualidad: lo importante es que le gane al S&amp;P en los dos tramos (hasta 2021 y desde 2022) y en la mayoría de los años, no solo en el total.</p>`;
+  $$('[data-rf]').forEach(b=>b.onclick=()=>{S.rotF=b.dataset.rf==='1';S.rotSel=null;renderRot()});
+  $$('[data-rs]').forEach(b=>b.onchange=()=>{const k=b.dataset.rs;if(b.checked){S.rotSel.push(k);if(S.rotSel.length>4)S.rotSel.shift()}else S.rotSel=S.rotSel.filter(x=>x!==k);renderRot()});
+}
+loadBT();loadLive();initOne();loadRot();
 </script>
 </body>
 </html>
