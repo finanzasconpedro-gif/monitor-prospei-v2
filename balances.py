@@ -87,7 +87,9 @@ def results(tk, rdate):
     inc = inc[sorted(inc.columns, reverse=True)]
     q0 = pd.Timestamp(inc.columns[0]).tz_localize(None) if pd.Timestamp(inc.columns[0]).tzinfo else pd.Timestamp(inc.columns[0])
     # el trimestre tiene que haber cerrado en los ~4 meses previos a la presentación
-    if not (0 <= (pd.Timestamp(rdate) - q0).days <= 125):
+    # las empresas presentan entre 2 y 10 semanas después del cierre: si el último trimestre cargado es más viejo,
+    # Yahoo todavía no cargó el que se acaba de presentar
+    if not (0 <= (pd.Timestamp(rdate) - q0).days <= 80):
         return None
     rev = row_of(inc, "Total Revenue", "Operating Revenue")
     gp = row_of(inc, "Gross Profit")
@@ -190,6 +192,14 @@ def notes(x):
     ry, rq = x.get("rev_yoy"), x.get("rev_qoq")
     if ry is not None:
         (pos if ry >= 0.10 else neg if ry < 0 else pos).append(f"Ventas {fmtp(ry)} contra el mismo trimestre del año pasado" + (f" ({fmtp(rq)} contra el trimestre anterior)" if rq is not None else "") + ".")
+    rs_ = x.get("rev_surp")
+    if rs_ is not None:
+        if rs_ >= 0.01:
+            pos.append(f"Ventas {fmtp(rs_, 1)} arriba de lo que esperaban los analistas.")
+        elif rs_ <= -0.01:
+            neg.append(f"Ventas {fmtp(rs_, 1)} debajo de lo que esperaban los analistas.")
+        else:
+            pos.append("Ventas en línea con lo esperado.")
     s = x.get("surprise")
     if s is not None:
         if s >= 0.02:
@@ -240,6 +250,7 @@ def main():
     except Exception:
         st = {}
     cal, done = st.get("cal", {}), {e["t"] + "|" + e["date"]: e for e in st.get("recent", [])}
+    est = st.get("est", {})       # lo que esperaban los analistas antes de cada balance (ticker|fecha)
     today = today_ar()
     # 1) calendario: próxima fecha de cada empresa según Yahoo
     for t, r in rows.items():
@@ -277,6 +288,8 @@ def main():
              "verdict": r.get("verdict"), "pe": r.get("pe"), "fpe": r.get("fpe")}
         try:
             e.update(estimates(yf.Ticker(t)))
+            if e.get("eps_est") is not None or e.get("rev_est") is not None:
+                est[t + "|" + e["date"]] = {k: e.get(k) for k in ("eps_est", "rev_est", "eps_n", "eps_ya", "rev_ya")}
             time.sleep(0.2)
         except Exception:
             pass
@@ -314,18 +327,32 @@ def main():
             x = None
         e = {"t": t, "name": r.get("name"), "sector": r.get("sector"), "region": r.get("region"), "date": d,
              "mcap": r.get("mcap"), "verdict": r.get("verdict"), "complete": False}
+        ex = est.get(key)
+        if not ex:      # la fecha estimada pudo moverse uno o dos días
+            dd0 = dt.date.fromisoformat(d)
+            near = [v for k, v in est.items() if k.split("|")[0] == t and abs((dt.date.fromisoformat(k.split("|")[1]) - dd0).days) <= 4]
+            ex = near[-1] if near else {}
+        e["eps_exp"] = ex.get("eps_est")
+        e["rev_exp"] = ex.get("rev_est")
         if x:
             e.update(x)
+            if e.get("eps_est") is not None:          # estimado que informa Yahoo junto con el resultado
+                e["eps_exp"] = e["eps_est"]
+            e["rev_surp"] = r4(e["rev"] / e["rev_exp"] - 1) if e.get("rev") and e.get("rev_exp") else None
             e["react"], e["react_rel"] = reaction(tk, spy, d)
             e["complete"] = e.get("react") is not None and (today - dt.date.fromisoformat(d)).days >= 2
             e["pos"], e["neg"] = notes(e)
             n_new += 1
         elif old:
-            continue
+            q_old = old.get("q_end")
+            if not q_old or (dt.date.fromisoformat(d) - dt.date.fromisoformat(q_old)).days <= 80:
+                continue          # se conserva lo que ya había (o sigue pendiente)
+            # lo guardado era el trimestre anterior (versión vieja del panel): queda pendiente
         done[key] = e
     lim = (today - dt.timedelta(days=RECENT_DAYS)).isoformat()
     recent = sorted([e for e in done.values() if e["date"] >= lim], key=lambda e: (e["date"], e.get("mcap") or 0), reverse=True)
     cal = {k: v for k, v in cal.items() if not k.endswith("|prev") or v >= lim}
+    est = {k: v for k, v in est.items() if k.split("|")[1] >= lim}
 
     def clean(o):
         if isinstance(o, dict):
@@ -340,7 +367,7 @@ def main():
 
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(clean({"generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "today": today.isoformat(),
-                         "upcoming": upcoming, "recent": recent, "cal": cal}), f, ensure_ascii=False, separators=(",", ":"))
+                         "upcoming": upcoming, "recent": recent, "cal": cal, "est": est}), f, ensure_ascii=False, separators=(",", ":"))
     print(f"Balances: {len(upcoming)} presentan en 7 días · {len(recent)} presentaron en {RECENT_DAYS} días ({n_new} actualizados hoy)")
 
 
