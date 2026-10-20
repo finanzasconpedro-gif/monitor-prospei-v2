@@ -203,6 +203,17 @@ tr[data-t]{cursor:pointer}
 .fh-t{font-weight:700;font-size:13.5px}
 .fh-s{font-size:13px;margin:6px 0 0;line-height:1.45}
 .fh-pc{display:inline-block;position:relative;width:54px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--up),var(--line) 50%,var(--down));vertical-align:middle;opacity:.8}
+.bal-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px}
+.bal-card a{color:var(--accent)}
+.bal-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bal-h h4{margin:0;font-size:15px}
+.bal-m{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
+.bal-m div{background:var(--bg);border-radius:8px;padding:6px 8px}
+.bal-m .l{font-size:11px;color:var(--muted)}
+.bal-m b{font-size:14px}
+.bal-l{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bal-l ul{margin:4px 0 0;padding-left:18px;font-size:13px}
+@media(max-width:640px){.bal-l{grid-template-columns:1fr}}
 .fh-pc i{position:absolute;top:-3px;width:4px;height:12px;border-radius:2px;margin-left:-2px;border:1px solid var(--card)}
 .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
 .cedbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px;background:var(--bg)}
@@ -238,6 +249,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <button class="tab" data-t="ced">CEDEARs desarbitrados</button>
     <button class="tab" data-t="pf">Mi cartera</button>
     <button class="tab" data-t="fh">Buscador por valuación</button>
+    <button class="tab" data-t="bal">Balances</button>
   </nav>
 
   <!-- OPORTUNIDADES -->
@@ -429,6 +441,18 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     </div>
   </section>
 
+  <!-- BALANCES -->
+  <section id="t-bal" class="hide">
+    <div class="card">
+      <h2>Balances: quién presenta y cómo le fue</h2>
+      <p class="sub">Empresas del monitor que presentan resultados hoy y en los próximos 7 días, con lo que esperan los analistas, y el resumen de las que ya presentaron: ventas, márgenes, ganancia contra lo esperado, caja y reacción del precio. Se actualiza todos los días al cierre. <span class="note" id="bal-meta"></span></p>
+      <div class="bar" style="flex-wrap:wrap"><input type="search" id="bal-q" placeholder="Buscar ticker o nombre…"><button class="chip on" data-balf="all">Todas</button><button class="chip" data-balf="pf">Solo mi cartera</button><button class="chip" data-balf="big">Las más grandes (más de US$ 100.000 M)</button></div>
+    </div>
+    <div class="card"><h3 style="margin:0 0 6px">Presentan hoy y en los próximos 7 días</h3><div id="bal-up"></div></div>
+    <div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">Ya presentaron</h3><div class="bar" style="margin:0"><button class="chip on" data-bald="7">Últimos 7 días</button><button class="chip" data-bald="30">Últimos 30 días</button></div></div><div id="bal-rec"></div>
+      <p class="note" style="margin-top:10px">Números de Yahoo Finance, que suele cargar el trimestre entre unas horas y un par de días después del anuncio. Lo que la empresa espera para el próximo trimestre (la "guía") no viene en estos datos: está en el comunicado, en el enlace a la SEC de cada empresa. El resumen es automático y no es una recomendación.</p></div>
+  </section>
+
   <!-- BUSCADOR POR HISTORIA DE VALUACIÓN -->
   <section id="t-fh" class="hide">
     <div class="card">
@@ -538,7 +562,7 @@ function saveFav(){store('fav',[...S.fav])}
 $('#theme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);store('theme',n)};
 
 /* ---------- tabs & filters ---------- */
-$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf','fh'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='fh')initFHTab();if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf','fh','bal'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='fh')initFHTab();if(b.dataset.t==='bal')initBal();if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
 function chipGroup(attr,key,fn){$$('[data-'+attr+']').forEach(b=>b.onclick=()=>{$$('[data-'+attr+']').forEach(x=>x.classList.toggle('on',x===b));S[key]=b.dataset[attr];fn()})}
 chipGroup('pa','pa',renderAcc);chipGroup('lq','lq',renderMep);chipGroup('cf','cf',renderCed);
 $('#q-acc').oninput=renderAcc;$('#q-mep').oninput=renderMep;$('#q-ced').oninput=renderCed;
@@ -1619,6 +1643,52 @@ function initFHTab(){
   }
   if(S.scr){const cur=$('#fh-sec').value;const secs=[...new Set(S.scr.rows.map(r=>r.sector).filter(Boolean))].sort();$('#fh-sec').innerHTML='<option value="">Todos los sectores</option>'+secs.map(x=>`<option${x===cur?' selected':''}>${esc(x)}</option>`).join('')}
   renderFHTab();
+}
+
+
+/* ---------- Balances ---------- */
+async function loadBal(){if(S.bal!==undefined)return S.bal;try{S.bal=await getJ('balances.json?v='+Date.now())}catch(e){S.bal=null}return S.bal}
+function initBal(){
+  if(!S.balInit){S.balInit=true;S.balf='all';S.bald=7;
+    $$('[data-balf]').forEach(b=>b.onclick=()=>{$$('[data-balf]').forEach(x=>x.classList.toggle('on',x===b));S.balf=b.dataset.balf;renderBal()});
+    $$('[data-bald]').forEach(b=>b.onclick=()=>{$$('[data-bald]').forEach(x=>x.classList.toggle('on',x===b));S.bald=+b.dataset.bald;renderBal()});
+    $('#bal-q').oninput=renderBal}
+  renderBal()}
+const balMoney=v=>v==null?'—':Math.abs(v)>=1e9?'US$ '+fmt(v/1e9,1)+' mil M':'US$ '+fmt(v/1e6,0)+' M';
+const balDay=(d,today)=>{const a=new Date(d+'T12:00:00'),b=new Date(today+'T12:00:00'),n=Math.round((a-b)/864e5);const w=a.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'});return n===0?'Hoy':n===1?'Mañana':n===-1?'Ayer':w.charAt(0).toUpperCase()+w.slice(1)};
+async function renderBal(){
+  const B=await loadBal();
+  if(!B){$('#bal-up').innerHTML='<p class="note">Todavía no hay datos de balances (se generan en la próxima corrida del screener).</p>';$('#bal-rec').innerHTML='';return}
+  $('#bal-meta').textContent='Actualizado '+B.generated+'.';
+  const q=($('#bal-q').value||'').trim().toUpperCase(),mine=new Set((S.pf||[]).map(p=>p.t));
+  const ok=e=>(!q||e.t.includes(q)||String(e.name||'').toUpperCase().includes(q))&&(S.balf!=='pf'||mine.has(e.t))&&(S.balf!=='big'||(e.mcap||0)>=1e11);
+  const vd=e=>{const r=S.scr&&S.scr.rows.find(x=>x.t===e.t);return r?vdChip(r):'—'};
+  // próximos
+  const up=(B.upcoming||[]).filter(ok);
+  if(!up.length)$('#bal-up').innerHTML='<p class="note">Ninguna empresa con este filtro presenta en los próximos 7 días.</p>';
+  else{const g={};up.forEach(e=>(g[e.date]=g[e.date]||[]).push(e));
+    $('#bal-up').innerHTML=Object.entries(g).map(([d,L])=>`<h4 style="margin:12px 0 4px">${esc(balDay(d,B.today))} <span class="note">· ${L.length} empresa${L.length>1?'s':''}</span></h4>
+      <div class="tw"><table><thead><tr><th>Papel</th><th>Sector</th><th>Monitor</th><th class="n">Ganancia por acción esperada</th><th class="n">vs. hace un año</th><th class="n">Ventas esperadas</th><th class="n">vs. hace un año</th><th class="n">P/E esperado</th><th class="n">Tamaño</th></tr></thead><tbody>
+      ${L.map(e=>`<tr data-t="${esc(e.t)}"><td><b>${esc(e.t)}</b> <span class="note">${esc(e.name||'')}</span>${mine.has(e.t)?' <span class="tag">en tu cartera</span>':''}</td><td class="note">${esc(e.sector||'')}</td><td>${vd(e)}</td>
+        <td class="n">${e.eps_est==null?'—':'US$ '+fmt(e.eps_est,2)}${e.eps_n?` <span class="note">(${e.eps_n})</span>`:''}</td><td class="n ${cls(e.eps_est!=null&&e.eps_ya?e.eps_est/Math.abs(e.eps_ya)-1:null)}">${e.eps_est!=null&&e.eps_ya?pct((e.eps_est-e.eps_ya)/Math.abs(e.eps_ya),0):'—'}</td>
+        <td class="n">${balMoney(e.rev_est)}</td><td class="n ${cls(e.rev_est&&e.rev_ya?e.rev_est/e.rev_ya-1:null)}">${e.rev_est&&e.rev_ya?pct(e.rev_est/e.rev_ya-1,0):'—'}</td>
+        <td class="n">${e.fpe>0?fmt(e.fpe,1)+'x':'—'}</td><td class="n note">${balMoney(e.mcap)}</td></tr>`).join('')}</tbody></table></div>`).join('');
+    $('#bal-up').querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t))}
+  // ya presentaron
+  const lim=new Date(B.today+'T12:00:00');lim.setDate(lim.getDate()-S.bald);const limS=lim.toISOString().slice(0,10);
+  const rec=(B.recent||[]).filter(e=>e.date>=limS&&ok(e));
+  const m=(l,v,c)=>`<div><div class="l">${l}</div><b class="${c||''}">${v}</b></div>`;
+  const pts=x=>x==null?'':` <span class="note">(${x>=0?'+':''}${fmt(x*100,1)} pts a/a)</span>`;
+  $('#bal-rec').innerHTML=!rec.length?'<p class="note">Ninguna empresa con este filtro presentó en el período.</p>':rec.map(e=>{
+    const has=e.rev!=null;
+    const chips=[e.react!=null?`<span class="pill ${cls(e.react)}" title="Del cierre previo al balance al cierre del día siguiente">Reacción ${pct(e.react,1)}${e.react_rel!=null?` · vs S&amp;P ${pct(e.react_rel,1)}`:''}</span>`:'',
+      e.surprise!=null?`<span class="pill ${e.surprise>=0.02?'up':e.surprise<=-0.02?'down':''}">Ganancia vs. esperado ${pct(e.surprise,1)}</span>`:''].join(' ');
+    return `<div class="bal-card"><div class="bal-h"><h4><a href="#" data-bt="${esc(e.t)}">${esc(e.t)}</a> <span class="note" style="font-weight:400">${esc(e.name||'')} · ${esc(e.sector||'')}</span></h4>${mine.has(e.t)?'<span class="tag">en tu cartera</span>':''}<span class="note">· presentó ${esc(balDay(e.date,B.today).toLowerCase())}${e.q_end?' · trimestre al '+new Date(e.q_end+'T12:00:00').toLocaleDateString('es-AR'):''}</span><span style="flex:1"></span>${chips}</div>
+      ${has?`<div class="bal-m">${m('Ventas del trimestre',balMoney(e.rev))}${m('Ventas vs. hace un año',pct(e.rev_yoy,0),cls(e.rev_yoy))}${m('Margen bruto',e.gm==null?'—':fmt(e.gm*100,1)+'%'+pts(e.gm_d4))}${m('Margen neto',e.nm==null?'—':fmt(e.nm*100,1)+'%')}${m('Ganancia por acción',e.eps==null?'—':'US$ '+fmt(e.eps,2)+(e.eps_yoy!=null?` <span class="note">(${pct(e.eps_yoy,0)} a/a)</span>`:''))}${m('Caja / ganancia',e.ocf_ni==null?'—':fmt(e.ocf_ni,1)+'x',e.ocf_ni==null?'':e.ocf_ni>=0.9?'up':e.ocf_ni<0.6?'down':'')}${e.dso!=null?m('Días de cobranza',fmt(e.dso,0)+(e.dso_prev?` <span class="note">(antes ${fmt(e.dso_prev,0)})</span>`:'')):''}</div>
+      <div class="bal-l"><div><b class="up" style="font-size:13px">Lo positivo</b><ul>${(e.pos||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="note">—</li>'}</ul></div><div><b class="down" style="font-size:13px">A vigilar</b><ul>${(e.neg||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="note">Nada destacable en los números.</li>'}</ul></div></div>`
+      :'<p class="note" style="margin:8px 0 0">Yahoo todavía no cargó los números del trimestre: se completan en el próximo cierre.</p>'}
+      <p class="note" style="margin:8px 0 0"><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=${encodeURIComponent(e.t)}&amp;type=8-K&amp;dateb=&amp;owner=include&amp;count=10" target="_blank" rel="noopener">Comunicado y guía de la empresa (SEC, 8-K) ↗</a></p></div>`}).join('');
+  $('#bal-rec').querySelectorAll('[data-bt]').forEach(a=>a.onclick=ev=>{ev.preventDefault();openDetail(a.dataset.bt)});
 }
 
 /* ---------- KPIs ---------- */
