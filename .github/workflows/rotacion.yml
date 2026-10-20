@@ -1,0 +1,36 @@
+name: Rotación de sectores PROSPEI
+
+on:
+  schedule:
+    - cron: "0 14 1 * *"     # una vez por mes (día 1, 11:00 hora Argentina)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rotacion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar librerias
+        run: pip install yfinance pandas numpy
+
+      - name: Probar estrategias de rotación
+        run: python rotacion.py
+
+      - name: Guardar rotacion.json
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add rotacion.json
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza prueba de rotación $(date -u +'%Y-%m-%d')"
+          git pull --rebase
+          git push
