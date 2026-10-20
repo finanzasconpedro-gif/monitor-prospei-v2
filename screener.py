@@ -1385,6 +1385,30 @@ def pe5_hist(df, folder="fund"):
     return df
 
 
+def add_risk(df, series):
+    """Riesgo para el cliente: beta contra el S&P 500 (rendimientos semanales de 2 años), peor caída de los
+    últimos 3 años y un nivel simple (bajo, medio, alto) combinando beta y volatilidad."""
+    b_ = series.get(BENCH)
+    beta, mdd3 = [], []
+    bw = b_.resample("W-FRI").last().pct_change() if b_ is not None else None
+    for t in df.t:
+        s_ = series.get(t)
+        bt = md = np.nan
+        if s_ is not None and len(s_) > 300:
+            if bw is not None:
+                w = pd.concat([s_.resample("W-FRI").last().pct_change(), bw], axis=1, join="inner").dropna().tail(104)
+                if len(w) >= 52 and w.iloc[:, 1].var() > 0:
+                    bt = float(w.iloc[:, 0].cov(w.iloc[:, 1]) / w.iloc[:, 1].var())
+            x = s_.tail(756)
+            md = float((x / x.cummax() - 1).min())
+        beta.append(bt); mdd3.append(md)
+    df["beta"], df["mdd3"] = beta, mdd3
+    vol = df.volat_y.where(df.volat_y > 0, df.volat)
+    df["risk"] = np.select([(df.beta > 1.3) | (vol > 0.45), (df.beta < 0.8) & (vol < 0.25)], ["Alto", "Bajo"], "Medio")
+    df.loc[df.beta.isna() & vol.isna(), "risk"] = None
+    return df
+
+
 def profile(r):
     return SECTOR_PROFILE.get(getattr(r, "sector", None), PROFILE_DEFAULT)
 
@@ -1567,7 +1591,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
             "setup", "elig", "rank", "val_model", "eps_gap", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
-            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r"]
+            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
@@ -1708,6 +1732,7 @@ def main():
         macro["breadth"] = {"name": "Amplitud S&P 500", "v": round(float((us.p > us.sma200).mean()) * 100, 1),
                             "v50": round(float((us.p > us.sma50).mean()) * 100, 1)}
     df = add_value_momentum(df, series)
+    df = add_risk(df, series)
     # filtro de mercado: con el S&P 500 debajo de su media de 200 días no hay "Comprar" pleno
     st = technical(*prices[BENCH]) if BENCH in prices else None
     mkt = {"up": bool(st["p"] > st["sma200"]), "p": r2(st["p"], 2), "sma200": r2(st["sma200"], 2),
