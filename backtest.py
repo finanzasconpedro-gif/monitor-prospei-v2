@@ -932,6 +932,222 @@ def prob_model(close, fund, meta, us_t, design, valid, grp, mkx):
                       "secs": secs, "horizon": PM_H}}
 
 
+# ======================================================================== análisis de variables por familia
+# ¿Qué condiciones aparecen más seguido en las buenas oportunidades? Buena oportunidad = a 12 meses ganó plata
+# Y le ganó a lo que debía rendir según su riesgo (beta x lo que hizo el S&P 500). Así una defensiva que sube
+# menos que el índice pero más de lo que le corresponde cuenta como acierto, y una tecnológica que solo subió
+# con el mercado no. Las condiciones se eligen con las acciones de diseño y se prueban con las de validación.
+VA_FAM = {"Tecnología": "Crecimiento", "Comunicaciones": "Crecimiento", "Industrial": "Crecimiento",
+          "Energía": "Cíclicas", "Materiales": "Cíclicas", "Consumo discrecional": "Cíclicas",
+          "Salud": "Defensivas", "Consumo básico": "Defensivas", "Utilities": "Defensivas", "Servicios públicos": "Defensivas",
+          "Financiero": "Financieras", "Real estate": "Financieras", "Inmobiliario": "Financieras"}
+VA_K = 8              # condiciones del checklist de cada familia
+VA_MIN_LIFT = 0.02    # una condición entra si sube la chance de buena oportunidad al menos 2 puntos
+VA_HALF = "2017-01-01"
+VA_LBL = {
+    "trend": ("Técnica", "Tendencia alcista (arriba de la media de 200 y la de 50 sobre la de 200)"),
+    "slope": ("Técnica", "Media de 200 subiendo"),
+    "near200": ("Técnica", "Entre 0% y 15% arriba de su media de 200 (no estirada)"),
+    "ext30": ("Técnica", "Más de 30% arriba de su media de 200 (estirada)"),
+    "below200": ("Técnica", "Debajo de su media de 200"),
+    "mom_hi": ("Técnica", "Momentum: entre el 30% más fuerte del mercado (6 meses sin el último)"),
+    "mom_lo": ("Técnica", "Momentum: entre el 30% más débil del mercado"),
+    "mom_sec": ("Técnica", "Momentum: entre el 30% más fuerte de su sector"),
+    "rs3": ("Técnica", "Le ganó al S&P 500 en los últimos 3 meses"),
+    "rsi_mid": ("Técnica", "RSI entre 40 y 60"),
+    "rsi_lo": ("Técnica", "RSI menor a 35 (sobrevendida)"),
+    "rsi_hi": ("Técnica", "RSI mayor a 70 (sobrecomprada)"),
+    "rebound": ("Técnica", "Corrección de 5% a 20% con rebote (sobre su media de 20)"),
+    "dd_mid": ("Técnica", "Entre 10% y 30% debajo de su máximo de 52 semanas"),
+    "dd_deep": ("Técnica", "Más de 30% debajo de su máximo de 52 semanas"),
+    "at_high": ("Técnica", "A menos de 3% de su máximo de 52 semanas"),
+    "fell1m": ("Técnica", "Cayó más de 5% en el último mes"),
+    "lowvol": ("Riesgo", "Volatilidad menor a 25% anual"),
+    "highvol": ("Riesgo", "Volatilidad mayor a 45% anual"),
+    "beta_lo": ("Riesgo", "Beta menor a 0,8"),
+    "beta_hi": ("Riesgo", "Beta mayor a 1,3"),
+    "eps_pos": ("Fundamental", "Ganancia de 12 meses positiva"),
+    "rev_up": ("Fundamental", "Ventas creciendo contra el año anterior"),
+    "rev_10": ("Fundamental", "Ventas creciendo más de 10%"),
+    "eps_up": ("Fundamental", "Ganancias creciendo contra el año anterior"),
+    "eps_15": ("Fundamental", "Ganancias creciendo más de 15%"),
+    "pe_cheap": ("Valuación", "P/E 30% o más debajo de su mediana de 5 años"),
+    "pe_below": ("Valuación", "P/E debajo de su mediana de 5 años"),
+    "pe_rich": ("Valuación", "P/E 30% o más arriba de su mediana de 5 años"),
+    "pe_lt15": ("Valuación", "P/E menor a 15"),
+    "pe_gt40": ("Valuación", "P/E mayor a 40"),
+    "mkt_up": ("Mercado", "S&P 500 arriba de su media de 200"),
+    "breadth": ("Mercado", "Más de la mitad de las acciones arriba de su media de 200"),
+    "vix_hi": ("Mercado", "VIX mayor a 25 (miedo en el mercado)"),
+}
+
+
+def var_analysis(close, fund, meta, us_t, design, valid, mkx):
+    idx = close.index
+    n = len(idx)
+    C = close[us_t]
+    spy = close["SPY"]
+    m_ = len(us_t)
+    sec = [meta[t][1] or "Otro" for t in us_t]
+    fam = np.array([VA_FAM.get(x, "Otras") for x in sec])
+    s20, s50, s200 = C.rolling(20).mean(), C.rolling(50).mean(), C.rolling(200).mean()
+    mom_raw = (C / C.shift(126)) / (C / C.shift(21)) - 1
+    mom = mom_raw.rank(axis=1, pct=True)
+    mom_s = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    for sname in set(sec):
+        cols = [t for t, x in zip(us_t, sec) if x == sname]
+        mom_s[cols] = mom_raw[cols].rank(axis=1, pct=True)
+    d = C.diff()
+    up = d.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+    dn = (-d.clip(upper=0)).ewm(alpha=1 / 14, adjust=False).mean()
+    rsi = 100 - 100 / (1 + up / dn.replace(0, np.nan))
+    dd52 = C / C.rolling(252, min_periods=120).max() - 1
+    dd3 = C / C.rolling(63, min_periods=40).max() - 1
+    vol = np.log(C).diff().rolling(63).std() * np.sqrt(252)
+    dist = C / s200 - 1
+    # beta de 5 años con rendimientos mensuales (la misma medida que la ficha del monitor), conocida a fin de cada mes
+    Cm, sm = C.resample("ME").last().pct_change(), spy.resample("ME").last().pct_change()
+    mean_xy = Cm.mul(sm, axis=0).rolling(60, min_periods=36).mean()
+    beta_m = (mean_xy - Cm.rolling(60, min_periods=36).mean().mul(sm.rolling(60, min_periods=36).mean(), axis=0)).div(
+        sm.rolling(60, min_periods=36).var(ddof=0), axis=0)
+    beta = beta_m.reindex(idx, method="ffill")
+    pe = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    pe_r = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    eps = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    rev_g = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    eps_g = pd.DataFrame(np.nan, index=idx, columns=us_t)
+    for t in us_t:
+        fd = fund.get(t)
+        if fd is None:
+            continue
+        e, pe_, med, rg, eg = fd
+        eps[t], pe[t], rev_g[t], eps_g[t] = e, pe_, rg, eg
+        with np.errstate(divide="ignore", invalid="ignore"):
+            pe_r[t] = np.where((pe_ > 0) & (med > 0), pe_ / med, np.nan)
+    spy200 = spy / spy.rolling(200).mean() - 1
+    br = (C > s200).sum(axis=1) / s200.notna().sum(axis=1).replace(0, np.nan)
+    vix = mkx["^VIX"] if "^VIX" in mkx else pd.Series(np.nan, index=idx)
+    r3 = C / C.shift(63) - 1
+    spy3 = spy / spy.shift(63) - 1
+    bc = lambda s_: np.broadcast_to(s_.values[:, None], (n, m_))
+    K = {
+        "trend": (C > s200) & (s50 > s200), "slope": s200 > s200.shift(21), "near200": (dist >= 0) & (dist <= 0.15),
+        "ext30": dist > 0.30, "below200": C < s200, "mom_hi": mom >= 0.70, "mom_lo": mom <= 0.30, "mom_sec": mom_s >= 0.70,
+        "rs3": r3.gt(spy3, axis=0), "rsi_mid": (rsi >= 40) & (rsi <= 60), "rsi_lo": rsi < 35, "rsi_hi": rsi > 70,
+        "rebound": (dd3 <= -0.05) & (dd3 >= -0.20) & (C > s20), "dd_mid": (dd52 <= -0.10) & (dd52 >= -0.30),
+        "dd_deep": dd52 < -0.30, "at_high": dd52 > -0.03, "fell1m": (C / C.shift(21) - 1) < -0.05,
+        "lowvol": vol < 0.25, "highvol": vol > 0.45, "beta_lo": beta < 0.8, "beta_hi": beta > 1.3,
+        "eps_pos": eps > 0, "rev_up": rev_g > 0, "rev_10": rev_g > 0.10, "eps_up": eps_g > 0, "eps_15": eps_g > 0.15,
+        "pe_cheap": pe_r <= 0.70, "pe_below": pe_r < 1.0, "pe_rich": pe_r >= 1.30,
+        "pe_lt15": (pe > 0) & (pe < 15), "pe_gt40": pe > 40,
+        "mkt_up": bc(spy200 > 0), "breadth": bc(br > 0.5), "vix_hi": bc(vix > 25),
+    }
+    keys = list(K)
+    # ---- filas: cada 5 ruedas por acción, con resultado a 12 meses conocido
+    rows_i = np.arange(260, n - PM_H, PM_STEP)
+    R = len(rows_i)
+    ti, tj = np.tile(rows_i, m_), np.repeat(np.arange(m_), R)
+    y = (C.shift(-PM_H) / C - 1).values[rows_i].ravel(order="F")
+    sp_y = (spy.shift(-PM_H) / spy - 1).values[rows_i]
+    sp_y = np.tile(sp_y, m_)
+    b = beta.values[rows_i].ravel(order="F")
+    b = np.where(np.isfinite(b), b, 1.0)
+    ok = np.isfinite(y) & np.isfinite(sp_y)
+    good = (y > 0) & (y > b * sp_y)
+    Xc = np.zeros((len(y), len(keys)), dtype=bool)
+    for k_, k in enumerate(keys):
+        v = K[k]
+        v = v.values if hasattr(v, "values") else np.asarray(v)
+        Xc[:, k_] = np.asarray(v[rows_i], dtype=bool).ravel(order="F")
+    dates = idx.values[ti]
+    half1 = dates < np.datetime64(VA_HALF)
+    tnames = np.array(us_t)
+    is_d = np.isin(tnames, list(design))[tj]
+    is_v = np.isin(tnames, list(valid))[tj]
+    famr = fam[tj]
+    print(f"Análisis de variables: {ok.sum()} observaciones con resultado, {len(keys)} condiciones")
+
+    def lift_of(m, k_):
+        c = Xc[m, k_]
+        g = good[m]
+        if c.sum() < 200 or (~c).sum() < 200:
+            return None, None, None
+        return float(g[c].mean() - g.mean()), float(g[c].mean()), float(g[~c].mean())
+
+    out_f = {}
+    for fname in ["Todas", "Crecimiento", "Cíclicas", "Defensivas", "Financieras"]:
+        fm = ok if fname == "Todas" else ok & (famr == fname)
+        md, mv = fm & is_d, fm & is_v
+        if md.sum() < 2000 or mv.sum() < 1000:
+            continue
+        p0d = float(good[md].mean())
+        conds = []
+        for k_, k in enumerate(keys):
+            ld, py, pn = lift_of(md, k_)
+            if ld is None:
+                continue
+            lv, _, _ = lift_of(mv, k_)
+            l1, _, _ = lift_of(md & half1, k_)
+            l2, _, _ = lift_of(md & ~half1, k_)
+            c = Xc[md, k_]
+            g = good[md]
+            same = lambda a: a is not None and np.sign(a) == np.sign(ld) and abs(a) >= 0.01
+            conds.append({"k": k, "grp": VA_LBL[k][0], "lbl": VA_LBL[k][1], "freq": float(c.mean()),
+                          "in_good": float(c[g].mean()), "in_bad": float(c[~g].mean()), "p_yes": py, "p_no": pn,
+                          "lift": ld, "lift_v": lv, "lift_h1": l1, "lift_h2": l2,
+                          "robust": bool(abs(ld) >= VA_MIN_LIFT and same(l1) and same(l2) and same(lv))})
+        conds.sort(key=lambda x: -x["lift"])
+        # ---- checklist: las condiciones que más suben la chance EN DISEÑO (estables en las dos mitades), sin repetir
+        pick = []
+        for c in conds:
+            if len(pick) >= VA_K:
+                break
+            if c["lift"] < VA_MIN_LIFT or not (c["lift_h1"] or 0) > 0.005 or not (c["lift_h2"] or 0) > 0.005:
+                continue
+            if c["grp"] == "Mercado":
+                continue        # el mercado no elige acciones: es igual para todas ese día
+            if not 0.05 <= c["freq"] <= 0.95:
+                continue
+            k_ = keys.index(c["k"])
+            if any(abs(np.corrcoef(Xc[md, k_], Xc[md, keys.index(p)])[0, 1]) > 0.6 for p in pick):
+                continue
+            pick.append(c["k"])
+        ck = []
+        if pick:
+            cols = [keys.index(p) for p in pick]
+            score = Xc[:, cols].sum(axis=1)
+            for samp, mm in (("design", md), ("valid", mv)):
+                n_months = max(1, len({str(x)[:7] for x in dates[mm]}))
+                n_st = len(set(tj[mm]))
+                rows_ = []
+                for th in range(len(pick), 0, -1):
+                    q = mm & (score >= th)
+                    if not q.any():
+                        rows_.append({"n_of": th, "n": 0})
+                        continue
+                    # señales nuevas por mes: la acción pasa a cumplir th o más (no cumplía en la observación anterior)
+                    qq = score >= th
+                    prev_same = np.r_[False, tj[1:] == tj[:-1]]
+                    new_ = qq & ~(np.r_[False, qq[:-1]] & prev_same)
+                    rows_.append({"n_of": th, "n": int(q.sum()), "share": float(q.sum() / mm.sum()),
+                                  "good": float(good[q].mean()), "win": float((y[q] > 0).mean()), "avg": float(y[q].mean()),
+                                  "alpha_b": float((y[q] - b[q] * sp_y[q]).mean()), "l20": float((y[q] <= -0.20).mean()),
+                                  "pm": float((new_ & mm).sum() / n_months), "stocks": n_st,
+                                  "good_h1": float(good[q & half1].mean()) if (q & half1).any() else None,
+                                  "good_h2": float(good[q & ~half1].mean()) if (q & ~half1).any() else None})
+                base_ = {"n": int(mm.sum()), "good": float(good[mm].mean()), "win": float((y[mm] > 0).mean()),
+                         "avg": float(y[mm].mean()), "alpha_b": float((y[mm] - b[mm] * sp_y[mm]).mean()),
+                         "l20": float((y[mm] <= -0.20).mean()),
+                         "good_h1": float(good[mm & half1].mean()), "good_h2": float(good[mm & ~half1].mean())}
+                ck.append({"sample": samp, "base": base_, "rows": rows_})
+        out_f[fname] = {"n": int(md.sum()), "n_v": int(mv.sum()), "p0": p0d, "p0_v": float(good[mv].mean()),
+                        "sectors": sorted({x for x, f_ in zip(sec, fam) if fname == "Todas" or f_ == fname}),
+                        "conds": conds, "pick": pick, "pick_lbl": [VA_LBL[p][1] for p in pick], "check": ck}
+    return {"label": "Buena oportunidad = a 12 meses ganó plata y le ganó a lo que debía rendir según su riesgo (beta × S&P 500)",
+            "from": str(idx[rows_i[0]].date()), "to": str(idx[rows_i[-1]].date()), "half": VA_HALF, "k": VA_K,
+            "families": out_f}
+
+
 def industries():
     try:
         rows = json.load(open("data.json", encoding="utf-8"))["rows"]
@@ -1318,10 +1534,21 @@ def main():
             traceback.print_exc()
             return {"error": str(e)}
 
+    def vars_safe():
+        try:
+            design = (member.get("broad") or set()) | (member.get("broad2") or set()) | (member.get("top") or set())
+            valid = (member.get("broad3") or set()) | (member.get("broad4") or set())
+            return var_analysis(close, fund, meta, us_t, design - valid, valid, mkx)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return {"error": str(e)}
+
     out = {
         "alerts": alerts_out(),
         "portfolio": pf_out(),
         "prob": prob_safe(),
+        "vars": vars_safe(),
         "matrix": matrix(),
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "period": {"from": str(idx[days[0]].date()), "to": str(end.date())},
