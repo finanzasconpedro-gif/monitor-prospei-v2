@@ -747,6 +747,18 @@ CTY_RANGE = (0.25, 1.5)   # límites del ajuste por riesgo país
 CTY_K = {}                # ajuste vigente por país y familia (se exporta en data.json)
 
 
+# Empresas que se valúan con el riesgo de otro mercado que el de su clasificación. MercadoLibre figura como
+# argentina, pero cotiza en Nasdaq, reporta en dólares y su negocio más grande es Brasil: el descuento y el
+# optimismo de analistas de los ADRs argentinos (bancos, energía) no le corresponden.
+VAL_REGION = {"MELI": "Brasil"}
+# Empresas que se comparan siempre contra su industria aunque tenga menos de 5 pares (su sector no se le parece)
+FORCE_IND = {"MELI"}
+
+
+def val_region(df):
+    return df.t.map(VAL_REGION).fillna(df.region) if "t" in df else df.region
+
+
 def country_adjust(df):
     """Riesgo país. Un banco argentino nunca va a cotizar al P/VL de un banco de EE.UU.: ese descuento es
     estructural (riesgo soberano, moneda, acceso al crédito), no una oportunidad. Por eso cada ADR se compara
@@ -765,8 +777,10 @@ def country_adjust(df):
                               ["pb", "pe"], "ps"), index=df.index)
     lbl = {"pe": "P/E", "pb": "valor libros", "ps": "precio/ventas"}
     ratio = 1 + df.v_peer
-    for reg in sorted(set(df.region) - {"EE.UU."}):
-        m_reg = (df.region == reg) & ratio.notna()
+    vr = val_region(df)
+    own = df.region == vr        # el descuento de cada país se mide solo con sus empresas propias
+    for reg in sorted(set(vr) - {"EE.UU."}):
+        m_reg = (df.region == reg) & own & ratio.notna()
         ks = {f: float(ratio[m_reg & (fam == f)].median()) for f in ("pe", "pb", "ps")
               if (m_reg & (fam == f)).sum() >= CTY_MIN_N}
         for f in ("pe", "pb", "ps"):
@@ -774,7 +788,7 @@ def country_adjust(df):
             if k is None or not math.isfinite(k):
                 continue
             k = min(max(k, CTY_RANGE[0]), CTY_RANGE[1])
-            rows = (df.region == reg) & (fam == f)
+            rows = (vr == reg) & (fam == f)
             df.loc[rows, "cty_k"] = k
             df.loc[rows, "cty_lbl"] = f", ajustado por riesgo {reg}"
             if rows.any():
@@ -784,7 +798,10 @@ def country_adjust(df):
     df["v_peer"] = peer_gap(df)
     for i in df.index[(df.cty_lbl != "") & df.v_peer.notna()]:
         k = df.at[i, "cty_k"]
-        df.at[i, "audit"].append(f"Pares de EE.UU. ajustados por riesgo {df.at[i, 'region']}: las empresas de su mercado cotizan, "
+        if df.at[i, "t"] in VAL_REGION:
+            df.at[i, "audit"].append(f"Se valúa como empresa de {VAL_REGION[df.at[i, 't']]}, no de {df.at[i, 'region']}: "
+                                     "cotiza en EE.UU., reporta en dólares y su mercado principal es otro.")
+        df.at[i, "audit"].append(f"Pares de EE.UU. ajustados por riesgo {vr[i]}: las empresas de su mercado cotizan, "
                                  f"en la mediana, a {fx(k, 2)} veces el múltiplo de sus pares, y ese descuento no se cuenta como oportunidad.")
     return df
 
@@ -855,7 +872,8 @@ def build(universe, prices, infos, hist=None):
     ind_n = fpe_pos.groupby(df.industry).transform("count")
     ind_med = fpe_pos.groupby(df.industry).transform("median")
     sec_med = fpe_pos.groupby(df.sector).transform("median")
-    use_ind = (ind_n >= 5) & (df.industry != "")
+    force = df.t.isin(FORCE_IND) & (df.industry != "")
+    use_ind = ((ind_n >= 5) | (force & (ind_n >= 2))) & (df.industry != "")
     df["sec_fpe"] = ind_med.where(use_ind, sec_med)
     # precio/valor libros y precio/ventas de pares (para los modelos "book" y "sales")
     pb_pos = df.pb.where((df.pb > 0) & (df.val_model == "book") & us_peer)
@@ -863,8 +881,9 @@ def build(universe, prices, infos, hist=None):
     df["peer_pb"] = pb_pos.groupby(df.industry).transform("median").where(pb_ind_n >= 5, float(pb_pos.median()) if pb_pos.notna().any() else np.nan)
     ps_pos = df.ps.where((df.ps > 0) & us_peer)
     ps_ind_n = ps_pos.groupby(df.industry).transform("count")
-    df["peer_ps"] = ps_pos.groupby(df.industry).transform("median").where(ps_ind_n >= 5, ps_pos.groupby(df.sector).transform("median"))
-    df["peer_lbl"] = np.where(use_ind, "su industria", "su sector")
+    df["peer_ps"] = ps_pos.groupby(df.industry).transform("median").where((ps_ind_n >= 5) | (force & (ps_ind_n >= 2)),
+                                                                          ps_pos.groupby(df.sector).transform("median"))
+    df["peer_lbl"] = np.where(use_ind | (force & (ps_ind_n >= 2)), "su industria", "su sector")
     df["peer_grp"] = np.where(use_ind, df.industry, df.sector)
     # ---- tres miradas de valuación (negativo = más barata)
     m = df.val_model
@@ -1118,9 +1137,10 @@ def fair_value(r):
         if d0 and d5 and pd.notna(d0) and pd.notna(d5) and d0 > 0 and d5 > 0:
             add(r.p * d0 / d5, 1, "dividendo vs su promedio de 5 años")
     if r.n_an >= 3 and pd.notna(r.target):
-        k_reg = AN_K_REG.get(r.region)
+        reg = VAL_REGION.get(r.t, r.region)
+        k_reg = AN_K_REG.get(reg)
         add(r.target / (k_reg or AN_K), 1.0 if r.n_an >= 5 else 0.5,
-            "analistas ajustados por optimismo" + (f" típico de {r.region}" if k_reg else "")
+            "analistas ajustados por optimismo" + (f" típico de {reg}" if k_reg else "")
             + ("" if r.n_an >= 5 else ", pocos: peso reducido"))
     if not vals:
         return None, None
@@ -1188,7 +1208,7 @@ def add_value_momentum(df, series):
     # cada mercado de ADRs con su propio sesgo: en Argentina el precio objetivo típico queda muy arriba del precio
     AN_K_REG = {}
     for reg in sorted(set(df.region) - {"EE.UU."}):
-        g = df[(df.region == reg) & (df.n_an >= 3) & df.target.notna() & (df.p > 0)]
+        g = df[(df.region == reg) & (val_region(df) == reg) & (df.n_an >= 3) & df.target.notna() & (df.p > 0)]
         if len(g) >= AN_K_MIN_N:
             AN_K_REG[reg] = float((g.target / g.p).clip(0.5, 2).median())
     raw = [fair_value(r) for r in df.itertuples()]
