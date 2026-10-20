@@ -1,0 +1,19 @@
+{
+ "valor": 675.0,
+ "fecha": "2026-10-19",
+ "fuente": "ArgentinaDatos",
+ "actualizado": "2026-10-20T23:07Z",
+ "fuentes": [
+  {
+   "valor": 675.0,
+   "fecha": "2026-10-19",
+   "fuente": "ArgentinaDatos"
+  }
+ ],
+ "hist": [
+  {
+   "fecha": "2026-10-19",
+   "valor": 675.0
+  }
+ ]
+}
