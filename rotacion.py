@@ -117,6 +117,38 @@ def strat_turn(X, Y, entry_q, exit_on="y", protect=False):
     return W
 
 
+def strat_ride(X, Y, entry_q, exit_mode="p"):
+    """Entra como 'giro' (el punto sube dentro de Rezagado o Perdiendo impulso) pero acompaña el liderazgo:
+    vende recién cuando, después de haber llegado a Liderando, el liderazgo termina.
+    exit_mode="p": vende al salir de Liderando (pasa a Perdiendo impulso o a otro cuadrante).
+    exit_mode="x": más paciente, vende cuando la fuerza (X) cae debajo de 100.
+    Protección: si no llegó a Liderando y el impulso cae dos semanas seguidas dentro de la zona baja, vende."""
+    W = pd.DataFrame(0.0, index=X.index, columns=X.columns)
+    dy = Y - Y.shift(3)
+    for c in X.columns:
+        on, reached, down, out = False, False, 0, []
+        for a, b, d_ in zip(X[c].values, Y[c].values, dy[c].values):
+            q = quadrant(a, b)
+            if q is None:
+                out.append(1.0 if on else 0.0)
+                continue
+            if not on:
+                if q in entry_q and np.isfinite(d_) and d_ > 0:
+                    on, reached, down = True, q == "L", 0
+            else:
+                if q == "L":
+                    reached = True
+                down = down + 1 if (np.isfinite(d_) and d_ < 0) else 0
+                if reached:
+                    if (exit_mode == "p" and q != "L") or (exit_mode == "x" and a < 100):
+                        on = False
+                elif down >= 2 and q in ("R", "P"):
+                    on = False
+            out.append(1.0 if on else 0.0)
+        W[c] = out
+    return W
+
+
 def strat_top(score, n, monthly=True):
     """Los n sectores con mayor puntaje; se rearma una vez por mes (o cada semana)."""
     W = pd.DataFrame(0.0, index=score.index, columns=score.columns)
@@ -242,6 +274,9 @@ def main():
         "giro_x": ("Comprar cuando sube dentro de Rezagado o Perdiendo impulso; vender al llegar a la fuerza media de Liderando", strat_turn(X, Y, {"R", "P"}, "x")),
         "giro_p": ("Igual que 'giro', pero también vende si el impulso vuelve a caer 2 semanas antes de llegar", strat_turn(X, Y, {"R", "P"}, "y", True)),
         "giro_r": ("Solo desde Rezagado: comprar cuando sube; vender al impulso medio de Mejorando/Liderando", strat_turn(X, Y, {"R"})),
+        "ride": ("Entrar con el giro desde abajo (Rezagado o Perdiendo impulso) y quedarse mientras lidere: vender al salir de Liderando", strat_ride(X, Y, {"R", "P"}, "p")),
+        "ride_x": ("Entrar con el giro desde abajo y vender recién cuando la fuerza cae debajo de 100 (más paciente)", strat_ride(X, Y, {"R", "P"}, "x")),
+        "ride_pi": ("Solo desde Perdiendo impulso: entrar cuando retoma y quedarse mientras lidere", strat_ride(X, Y, {"P"}, "p")),
         "giro_pi": ("Solo desde Perdiendo impulso: comprar cuando retoma; vender al impulso medio de Mejorando/Liderando", strat_turn(X, Y, {"P"})),
     }
     out_s, curves = {}, {}
