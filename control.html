@@ -386,6 +386,33 @@ function matrixHtml(B0,VK){
     <tbody>${secs.map(s=>{const b=S_[s].base,bb=best(s);return `<tr><td><b>${esc(s)}</b></td><td class="n">${pct(b.avg,1)}<br><span class="note" style="font-size:11px">${P0(b.win)} pos.</span></td>${ks.map(k=>cell(S_[s].v[k])).join('')}<td>${bb.length?bb.map(k=>`<b>${k}</b>`).join(' · '):'<span class="note">ninguna</span>'}</td></tr>`}).join('')}</tbody></table></div>
     <p class="note" style="margin-top:6px">Ojo: con muchas casillas, alguna va a salir bien por casualidad. Por eso solo cuentan las del recuadro verde, y conviene preferir estrategias que funcionen en varios sectores parecidos.</p>`;
 }
+function varsHtml(B0){
+  const V=B0.vars;if(!V)return '';
+  if(V.error)return `<h3 style="margin:22px 0 4px">Análisis de variables</h3><div class="cedbox">No se pudo calcular: ${esc(V.error)}</div>`;
+  const fams=Object.keys(V.families||{});if(!fams.length)return '';if(!V.families[S.vaf])S.vaf=fams.includes('Crecimiento')?'Crecimiento':fams[0];
+  const F=V.families[S.vaf];
+  const pp=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
+  const lc=x=>x==null?'':x>0.005?'up':x<-0.005?'down':'';
+  const GC={'Técnica':'#2f81f7','Fundamental':'#3fb950','Valuación':'#d29922','Riesgo':'#8957e5','Mercado':'#8b949e'};
+  const row=c=>`<tr${F.pick.includes(c.k)?' style="background:color-mix(in srgb,#3fb950 9%,transparent)"':''}><td style="min-width:260px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${GC[c.grp]||'#888'};margin-right:6px" title="${esc(c.grp)}"></span>${esc(c.lbl)}${F.pick.includes(c.k)?' <b class="up" title="Entra en el checklist">✓</b>':''}</td>
+    <td class="n">${P0(c.freq)}</td><td class="n">${P0(c.in_good)}</td><td class="n">${P0(c.in_bad)}</td><td class="n">${P0(c.p_yes)}</td>
+    <td class="n ${lc(c.lift)}" style="font-weight:600">${pp(c.lift)}</td><td class="n ${lc(c.lift_v)}">${pp(c.lift_v)}</td>
+    <td class="n"><span class="${lc(c.lift_h1)}">${pp(c.lift_h1,0)}</span> / <span class="${lc(c.lift_h2)}">${pp(c.lift_h2,0)}</span></td>
+    <td class="n">${c.robust?'<b class="up">Sí</b>':'<span class="note">No</span>'}</td></tr>`;
+  const ckT=(ck)=>{if(!ck)return '';const b=ck.base;return `<div class="tw"><table style="font-size:13px"><thead><tr><th>Cumple</th><th class="n">% del tiempo</th><th class="n">Señales nuevas por mes (${(ck.rows.find(r=>r.stocks)||{}).stocks||''} acc.)</th><th class="n">Buena oportunidad</th><th class="n">Hasta 2016 / desde 2017</th><th class="n">Ganó plata</th><th class="n">Rendimiento 12m</th><th class="n">Extra según su riesgo</th><th class="n">Cayó 20%+</th></tr></thead><tbody>
+    ${ck.rows.filter(r=>r.n).map(r=>`<tr${r.good>=b.good+0.05?' style="font-weight:600"':''}><td>${r.n_of} o más de ${F.pick.length}</td><td class="n">${P0(r.share)}</td><td class="n">${fmt(r.pm,1)}</td><td class="n ${r.good>b.good+0.005?'up':r.good<b.good-0.005?'down':''}">${P0(r.good)} <span class="note" style="font-size:11px">(${pp(r.good-b.good,0)})</span></td><td class="n">${P0(r.good_h1)} / ${P0(r.good_h2)}</td><td class="n">${P0(r.win)}</td><td class="n ${cls(r.avg)}">${pct(r.avg,1)}</td><td class="n ${cls(r.alpha_b)}">${pp(r.alpha_b)}</td><td class="n down">${P0(r.l20)}</td></tr>`).join('')}
+    <tr style="font-weight:600"><td>Cualquier día (referencia)</td><td class="n">100%</td><td class="n">—</td><td class="n">${P0(b.good)}</td><td class="n">${P0(b.good_h1)} / ${P0(b.good_h2)}</td><td class="n">${P0(b.win)}</td><td class="n ${cls(b.avg)}">${pct(b.avg,1)}</td><td class="n ${cls(b.alpha_b)}">${pp(b.alpha_b)}</td><td class="n down">${P0(b.l20)}</td></tr></tbody></table></div>`};
+  const ckV=(F.check||[]).find(c=>c.sample==='valid'),ckD=(F.check||[]).find(c=>c.sample==='design');
+  return `<h3 style="margin:22px 0 4px">Análisis de variables: qué tienen en común las buenas oportunidades</h3>
+    <p class="sub">${esc(V.label)}. Una observación cada 5 días por acción, ${esc(V.from)} a ${esc(V.to)}. Las condiciones se miden en las acciones de diseño; la columna de validación repite la medición en acciones que nunca se usaron. <b>Robusta</b> = la diferencia tiene el mismo signo antes y después de 2017 y en validación. Las filas en verde forman el checklist de la familia (las de mercado no entran: son iguales para todas las acciones ese día).</p>
+    <div class="bar" style="margin:6px 0">${fams.map(k=>`<button class="chip ${k===S.vaf?'on':''}" data-vaf="${esc(k)}">${esc(k)}</button>`).join('')}</div>
+    <p class="note">${esc(F.sectors.join(' · '))} · fueron buena oportunidad el <b>${P0(F.p0)}</b> de los días (diseño) y el <b>${P0(F.p0_v)}</b> (validación).</p>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Condición</th><th class="n">% del tiempo</th><th class="n">Presente en las buenas</th><th class="n">Presente en el resto</th><th class="n">Chance si se cumple</th><th class="n">Diferencia (diseño)</th><th class="n">Diferencia (validación)</th><th class="n">Hasta 2016 / desde 2017</th><th class="n">Robusta</th></tr></thead><tbody>${F.conds.map(row).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px">"Diferencia" = cuántos puntos sube (o baja) la chance de buena oportunidad cuando se cumple la condición, contra la chance de cualquier día. Colores: <span style="color:#2f81f7">●</span> técnica · <span style="color:#3fb950">●</span> fundamental · <span style="color:#d29922">●</span> valuación · <span style="color:#8957e5">●</span> riesgo · <span style="color:#8b949e">●</span> mercado.</p>
+    ${F.pick.length?`<h4 style="margin:14px 0 6px">Checklist de ${esc(S.vaf)}: ${F.pick.length} condiciones</h4><ol class="note" style="padding-left:20px;margin:4px 0 8px">${F.pick_lbl.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+    <p class="sub" style="margin:4px 0">Validación (acciones que nunca se usaron para elegir las condiciones):</p>${ckT(ckV)}
+    <details style="margin-top:6px"><summary class="note" style="cursor:pointer">Ver el mismo checklist en las acciones de diseño</summary>${ckT(ckD)}</details>`:'<p class="note">Ninguna condición pasó el filtro para armar un checklist en esta familia.</p>'}`;
+}
 function probHtml(B0){
   const M=B0.prob;if(!M)return '';
   if(M.error)return `<h3 style="margin:22px 0 4px">Modelo de probabilidad</h3><div class="cedbox">No se pudo calcular: ${esc(M.error)}</div>`;
@@ -517,6 +544,7 @@ function renderBT(){
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
     ${splitHtml(B,VK)}
     ${convHtml(B)}
+    ${varsHtml(B0)}
     ${probHtml(B0)}
     ${pfHtml(B0)}
     ${indHtml(B)}
@@ -530,6 +558,7 @@ function renderBT(){
   $$('[data-btg]').forEach(b=>b.onclick=()=>{S.btg=b.dataset.btg;renderBT()});
   $$('[data-xh]').forEach(b=>b.onclick=()=>{S.xh=b.dataset.xh;renderBT()});
   $$('[data-pfs]').forEach(b=>b.onclick=()=>{S.pfs=b.dataset.pfs;renderBT()});
+  $$('[data-vaf]').forEach(b=>b.onclick=()=>{S.vaf=b.dataset.vaf;renderBT()});
   const sel=$('#bt-sec');sel.innerHTML='<option value="">Todos los sectores</option>'+Object.keys(B.by_sector.A).map(k=>`<option>${esc(k)}</option>`).join('');
   sel.onchange=renderBTEp;
   $$('[data-btf]').forEach(b=>b.onclick=()=>{S.btf=b.dataset.btf;$$('[data-btf]').forEach(x=>x.classList.toggle('on',x===b));renderBTEp()});
