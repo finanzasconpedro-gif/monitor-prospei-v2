@@ -945,6 +945,7 @@ def build_macro(series):
 
 # ---------------------------------------------------------------- rotacion (RRG)
 RRG_WEEKS = 26
+RRG_WEEKS_SEC = 52     # los sectores guardan 12 meses (la página deja elegir 6 o 12)
 
 
 def weekly(ser):
@@ -1014,7 +1015,7 @@ def build_etfs(prices, series=None):
     out = []
     bw = weekly(series[BENCH]) if series and BENCH in series else None
     for r in df.itertuples():
-        pts, dates = rrg(series.get(r.etf) if series else None, bw)
+        pts, dates = rrg(series.get(r.etf) if series else None, bw, weeks=RRG_WEEKS_SEC)
         rs3 = (r.r3m - spy["r3m"]) if r.r3m is not None else None
         rs1 = (r.r1m - spy["r1m"]) if r.r1m is not None else None
         rs6 = (r.r6m - spy["r6m"]) if r.r6m is not None else None
