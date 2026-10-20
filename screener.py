@@ -1386,18 +1386,18 @@ def pe5_hist(df, folder="fund"):
 
 
 def add_risk(df, series):
-    """Riesgo para el cliente: beta contra el S&P 500 (rendimientos semanales de 2 años), peor caída de los
+    """Riesgo para el cliente: beta contra el S&P 500 (rendimientos mensuales de 5 años, la medida estándar), peor caída de los
     últimos 3 años y un nivel simple (bajo, medio, alto) combinando beta y volatilidad."""
     b_ = series.get(BENCH)
     beta, mdd3 = [], []
-    bw = b_.resample("W-FRI").last().pct_change() if b_ is not None else None
+    bw = b_.resample("ME").last().pct_change() if b_ is not None else None
     for t in df.t:
         s_ = series.get(t)
         bt = md = np.nan
         if s_ is not None and len(s_) > 300:
             if bw is not None:
-                w = pd.concat([s_.resample("W-FRI").last().pct_change(), bw], axis=1, join="inner").dropna().tail(104)
-                if len(w) >= 52 and w.iloc[:, 1].var() > 0:
+                w = pd.concat([s_.resample("ME").last().pct_change(), bw], axis=1, join="inner").dropna().tail(60)
+                if len(w) >= 36 and w.iloc[:, 1].var() > 0:
                     bt = float(w.iloc[:, 0].cov(w.iloc[:, 1]) / w.iloc[:, 1].var())
             x = s_.tail(756)
             md = float((x / x.cummax() - 1).min())
