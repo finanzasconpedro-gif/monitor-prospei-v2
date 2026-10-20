@@ -26,6 +26,8 @@ jobs:
         run: python screener.py
 
       - name: Balances del día y la semana
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
         run: python balances.py || echo "Balances sin actualizar hoy"
 
       - name: Guardar data.json
@@ -36,4 +38,5 @@ jobs:
           git add balances.json 2>/dev/null || true
           git diff --cached --quiet && echo "Sin cambios" && exit 0
           git commit -m "Actualiza screener $(date -u +'%Y-%m-%d')"
+          git pull --rebase
           git push
