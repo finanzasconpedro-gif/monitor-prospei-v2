@@ -67,14 +67,24 @@ VARIANTS = {
     "X": "U + rebote: P/E 30%+ debajo de su historia y además corrección con señal de rebote (puntaje técnico ≥ 65)",
     "Y": "Vía 'barata contra su historia' solo en consumo discrecional, industrial y salud: U en esos tres sectores (propuesta de Comprar en partes)",
     "Z": "Motor por sector + vía barata: T, o Y en consumo discrecional, industrial y salud (propuesta de motor completo)",
+    "DF": "Checklist de defensivas (salud, consumo básico, utilities): 5 o más de 7: beta < 0,8, volatilidad < 25%, a menos de 3% del máximo, P/E 30%+ sobre su historia, tendencia alcista, 0-15% sobre la media de 200, RSI > 70",
+    "CR": "Checklist de crecimiento (tecnología, comunicaciones, industrial): 3 o más de 5: beta < 0,8, 30%+ debajo del máximo, volatilidad > 45%, P/E > 40, RSI < 35",
+    "CI": "Checklist de cíclicas (energía, materiales, consumo discrecional): 2 o más de 4: beta < 0,8, volatilidad > 45%, 30%+ sobre la media de 200, 30%+ debajo del máximo",
+    "ZX": "Motor completo propuesto: Z (motor por sector + vía barata) o cualquiera de los tres checklists por familia",
 }
 VARIANTS.pop("_", None)
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX")
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
 PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}
 # ---- cartera simulada: sigue las señales con posiciones iguales; la plata sin usar queda en el S&P 500
 PF_SLOTS = 30          # hasta 30 posiciones de 1/30 del capital cada una
-PF_KEYS = {"Z": ("Motor nuevo (Z), 12 meses", 252), "T": ("Motor anterior (T), 12 meses", 252), "Z6": ("Motor nuevo (Z), 6 meses", 126)}
+PF_KEYS = {"Z": ("Motor nuevo (Z), 12 meses", 252, "Z"), "T": ("Motor anterior (T), 12 meses", 252, "T"),
+           "Z6": ("Motor nuevo (Z), 6 meses", 126, "Z"), "ZX": ("Motor + checklists (ZX), 12 meses", 252, "ZX"),
+           "ZX6": ("Motor + checklists (ZX), 6 meses", 126, "ZX")}
+# Checklists por familia (elegidos por el análisis de variables con las acciones de diseño): familia, condiciones, mínimo
+CK = {"DF": ("Defensivas", ["beta_lo", "lowvol", "at_high", "pe_rich", "trend", "near200", "rsi_hi"], 5),
+      "CR": ("Crecimiento", ["beta_lo", "dd_deep", "highvol", "pe_gt40", "rsi_lo"], 3),
+      "CI": ("Cíclicas", ["beta_lo", "highvol", "ext30", "dd_deep"], 2)}
 IND_MIN = 5            # empresas mínimas para comparar contra la industria; si no, contra el sector   # sectores donde la vía barata se sostuvo (Y, Z)
 S_MAP = {"Tecnología": "J", "Industrial": "J", "Comunicaciones": "J", "Consumo discrecional": "D",
          "Utilities": "G", "Servicios públicos": "G", "Energía": "G", "Materiales": "G"}
@@ -982,7 +992,8 @@ VA_LBL = {
 }
 
 
-def var_analysis(close, fund, meta, us_t, design, valid, mkx):
+def va_frames(close, fund, meta, us_t, mkx):
+    """Condiciones de sí o no (fecha x acción) que usan el análisis de variables y los checklists."""
     idx = close.index
     n = len(idx)
     C = close[us_t]
@@ -1042,6 +1053,18 @@ def var_analysis(close, fund, meta, us_t, design, valid, mkx):
         "pe_lt15": (pe > 0) & (pe < 15), "pe_gt40": pe > 40,
         "mkt_up": bc(spy200 > 0), "breadth": bc(br > 0.5), "vix_hi": bc(vix > 25),
     }
+    return K, sec, fam, beta
+
+
+def var_analysis(close, fund, meta, us_t, design, valid, mkx, KF=None):
+    idx = close.index
+    n = len(idx)
+    C = close[us_t]
+    spy = close["SPY"]
+    m_ = len(us_t)
+    K, sec, fam, beta = KF or va_frames(close, fund, meta, us_t, mkx)
+    sec = list(sec)
+    fam = np.array(fam)
     keys = list(K)
     # ---- filas: cada 5 ruedas por acción, con resultado a 12 meses conocido
     rows_i = np.arange(260, n - PM_H, PM_STEP)
@@ -1262,6 +1285,77 @@ def main():
     for t in us_t:
         n_ind[ind_map.get(t, "")] = n_ind.get(ind_map.get(t, ""), 0) + 1
     grp = {t: ("I:" + ind_map[t]) if ind_map.get(t) and n_ind[ind_map[t]] >= IND_MIN else "S:" + (meta[t][1] or "Otro") for t in us_t}
+    # ---- checklists por familia como señales de compra (misma mecánica que las variantes: compra al cierre
+    # siguiente, una señal cada 20 ruedas por acción) + ZX = Z o cualquier checklist
+    try:
+        KF = va_frames(close, fund, meta, us_t, mkx)
+        Kc, sec_c, fam_c = KF[0], KF[1], KF[2]
+        famj = {t: f_ for t, f_ in zip(us_t, fam_c)}
+        Cv = close[us_t].values
+        spv = close["SPY"].values
+        cnt = {k: np.zeros(Cv.shape) for k in CK}
+        for k, (fname, conds, _) in CK.items():
+            for cnd in conds:
+                v = Kc[cnd]
+                v = v.values if hasattr(v, "values") else np.asarray(v)
+                cnt[k] += np.asarray(v, dtype=float)
+        dset = set(days)
+        n_ = len(idx)
+        for j, t in enumerate(us_t):
+            c_ = Cv[:, j]
+            sig_days = {}
+            for k, (fname, conds, mn) in CK.items():
+                if famj[t] != fname:
+                    continue
+                hit = cnt[k][:, j] >= mn
+                sig_days[k] = hit
+            z_days = {pos.get(e["date"]) for e in res[t]["eps"].get("Z", [])}
+            for k in list(CK) + ["ZX"]:
+                res[t]["eps"].setdefault(k, [])
+                res[t]["eps"][k] = []
+                last = -999
+                for i in days:
+                    if i + 1 >= n_ or not np.isfinite(c_[i + 1]):
+                        continue
+                    if k == "ZX":
+                        on = (i in z_days) or any(bool(h[i]) for h in sig_days.values())
+                    else:
+                        on = k in sig_days and bool(sig_days[k][i])
+                    if not on:
+                        continue
+                    if i - last > GAP:
+                        p0 = c_[i + 1]
+                        e = {"date": str(idx[i].date()), "setup": "Checklist " + (CK[k][0] if k in CK else "o motor"),
+                             "at": int(sum(cnt[q][i, j] for q in sig_days) * 10) if sig_days else 0, "p": round(float(p0), 2),
+                             "year": str(idx[i].year)}
+                        for h, hn in H.items():
+                            if i + 1 + hn < n_ and np.isfinite(c_[i + 1 + hn]):
+                                e[h] = float(c_[i + 1 + hn] / p0 - 1)
+                                e["spy_" + h] = float(spv[i + 1 + hn] / spv[i + 1] - 1)
+                        path = c_[i + 2:i + 2 + TS_DAYS] / p0 - 1
+                        ht = int(np.argmax(path >= TARGET)) if (path >= TARGET).any() else None
+                        hs = int(np.argmax(path <= STOP)) if (path <= STOP).any() else None
+                        if ht is not None and (hs is None or ht < hs):
+                            e["ts"] = "objetivo"
+                        elif hs is not None:
+                            e["ts"] = "stop"
+                        elif len(path) >= TS_DAYS:
+                            e["ts"] = "abierta"
+                        res[t]["eps"][k].append(e)
+                    last = i
+        print("Checklists:", {k: sum(len(res[t]["eps"][k]) for t in us_t) for k in list(CK) + ["ZX"]})
+    except Exception as e_:
+        import traceback
+        traceback.print_exc()
+        KF = None
+        for t in tick:
+            if res.get(t):
+                for k in list(CK) + ["ZX"]:
+                    res[t]["eps"].setdefault(k, [])
+    for t in tick:
+        if res.get(t):
+            for k in KEYS:
+                res[t]["eps"].setdefault(k, [])
     cl = close[us_t]
     gcols = {}
     for j, t in enumerate(us_t):
@@ -1371,8 +1465,8 @@ def main():
             ser = {"spy": {"label": "S&P 500 (SPY)", "years": yearly(spy_eq), **pf_stats(spy_eq, d0, dN), "curve": [round(float(spy_eq[d]), 2) for d in wk]},
                    "ew": {"label": "Todas las acciones del grupo, igual peso (referencia del sesgo)", "years": yearly(ew), **pf_stats(ew, d0, dN),
                           "curve": [round(float(ew[d]), 2) for d in wk]}}
-            for k, (klbl, hold) in PF_KEYS.items():
-                r_ = portfolio(univ, k[0], hold)
+            for k, (klbl, hold, key_) in PF_KEYS.items():
+                r_ = portfolio(univ, key_, hold)
                 if not r_:
                     continue
                 eq, ex_, tk, sk_ = r_
@@ -1538,7 +1632,7 @@ def main():
         try:
             design = (member.get("broad") or set()) | (member.get("broad2") or set()) | (member.get("top") or set())
             valid = (member.get("broad3") or set()) | (member.get("broad4") or set())
-            return var_analysis(close, fund, meta, us_t, design - valid, valid, mkx)
+            return var_analysis(close, fund, meta, us_t, design - valid, valid, mkx, KF)
         except Exception as e:
             import traceback
             traceback.print_exc()
