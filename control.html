@@ -386,6 +386,50 @@ function matrixHtml(B0,VK){
     <tbody>${secs.map(s=>{const b=S_[s].base,bb=best(s);return `<tr><td><b>${esc(s)}</b></td><td class="n">${pct(b.avg,1)}<br><span class="note" style="font-size:11px">${P0(b.win)} pos.</span></td>${ks.map(k=>cell(S_[s].v[k])).join('')}<td>${bb.length?bb.map(k=>`<b>${k}</b>`).join(' · '):'<span class="note">ninguna</span>'}</td></tr>`}).join('')}</tbody></table></div>
     <p class="note" style="margin-top:6px">Ojo: con muchas casillas, alguna va a salir bien por casualidad. Por eso solo cuentan las del recuadro verde, y conviene preferir estrategias que funcionen en varios sectores parecidos.</p>`;
 }
+function indHtml(B){
+  const V=B.variants,ks=['T','Z','Y','A'].filter(k=>V[k]&&V[k]['6m'].n&&V[k]['6m'].n_ind);if(!ks.length)return '';
+  const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
+  const c=(v,k)=>v&&v[k]!=null?v[k]:null;
+  const row=(lbl,v,ref)=>`<tr${ref?' style="font-weight:600"':''}><td style="min-width:200px">${lbl}</td><td class="n">${v['6m'].n_ind||0}</td>
+    <td class="n">${P0(c(v['6m'],'beat'))}</td><td class="n ${cls(c(v['6m'],'alpha'))}">${sg(c(v['6m'],'alpha'))}</td>
+    <td class="n">${P0(c(v['6m'],'beat_ind'))}</td><td class="n ${cls(c(v['6m'],'alpha_ind'))}">${sg(c(v['6m'],'alpha_ind'))}</td>
+    <td class="n">${P0(c(v['12m'],'beat_ind'))}</td><td class="n ${cls(c(v['12m'],'alpha_ind'))}">${sg(c(v['12m'],'alpha_ind'))}</td></tr>`;
+  const Z=B.by_sector&&B.by_sector.Z||{};
+  const secs=Object.keys(Z).filter(s=>Z[s]['6m']&&Z[s]['6m'].n_ind);
+  return `<h3 style="margin:22px 0 4px">¿Le ganó a su propia industria?</h3>
+    <p class="sub">Cada compra contra el rendimiento promedio (igual peso) de las <b>demás empresas de su industria</b> en el mismo plazo, desde el mismo día (industria con 5+ empresas; si no, su sector). Así una industrial se compara con industriales y no con el S&amp;P 500. Si la señal elige "la perlita" de su industria, le gana más de la mitad de las veces.</p>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Estrategia</th><th class="n">Compras</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Extra vs S&amp;P 6m</th><th class="n">Le ganó a su industria 6m</th><th class="n">Extra vs industria 6m</th><th class="n">Le ganó a su industria 12m</th><th class="n">Extra vs industria 12m</th></tr></thead>
+    <tbody>${ks.map(k=>row('<b>'+k+'</b> · '+VSHORT[k],V[k])).join('')}${row('Referencia: cualquier día',B.base,true)}</tbody></table></div>
+    ${secs.length?`<h4 style="margin:14px 0 6px">Motor nuevo (Z) por sector, contra su industria</h4><div class="tw"><table style="font-size:13px"><thead><tr><th>Sector</th><th class="n">Compras</th><th class="n">Le ganó a su industria 6m</th><th class="n">Extra 6m</th><th class="n">Le ganó a su industria 12m</th><th class="n">Extra 12m</th></tr></thead><tbody>${secs.map(s=>{const a=Z[s]['6m'],b=Z[s]['12m']||{};return `<tr><td>${esc(s)}</td><td class="n">${a.n_ind}</td><td class="n">${P0(a.beat_ind)}</td><td class="n ${cls(a.alpha_ind)}">${sg(a.alpha_ind)}</td><td class="n">${P0(b.beat_ind)}</td><td class="n ${cls(b.alpha_ind)}">${sg(b.alpha_ind)}</td></tr>`}).join('')}</tbody></table></div><p class="note" style="margin-top:6px">Con menos de 30 compras por sector, los números son orientativos.</p>`:''}`;
+}
+function pfHtml(B0){
+  const P=B0.portfolio;if(!P||!P.scopes)return '';const sk=Object.keys(P.scopes);if(!P.scopes[S.pfs])S.pfs=sk[0];
+  const SC=P.scopes[S.pfs],ser=SC.series,order=['Z','Z6','T','ew','spy'].filter(k=>ser[k]);
+  const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d)+'%';
+  const COL={Z:'var(--accent,#2f81f7)',Z6:'#8957e5',T:'#d29922',ew:'#8b949e',spy:'#3fb950'};
+  // gráfico
+  const W=760,H=260,L=48,R=12,T0=14,B=28,n=P.dates.length;
+  const all=order.flatMap(k=>ser[k].curve).filter(x=>x!=null&&isFinite(x));const lo=Math.log(Math.min(...all)),hi=Math.log(Math.max(...all));
+  const X=i=>L+(W-L-R)*i/(n-1),Y=v=>T0+(H-T0-B)*(1-(Math.log(v)-lo)/(hi-lo||1));
+  const ticks=[50,100,150,200,300,400,600,800].filter(v=>Math.log(v)>=lo-0.01&&Math.log(v)<=hi+0.01);
+  const yrs=P.years.map(y=>{const i=P.dates.findIndex(d=>d.slice(0,4)===y);return [y,i]}).filter(([y,i])=>i>0);
+  const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Evolución de 100 dólares"><g>${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" stroke-opacity=".12"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="currentColor" opacity=".6">${v}</text>`).join('')}${yrs.map(([y,i])=>`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="11" fill="currentColor" opacity=".6">${y}</text>`).join('')}</g>${order.map(k=>`<polyline fill="none" stroke="${COL[k]}" stroke-width="${k==='Z'?2.4:1.4}" points="${ser[k].curve.map((v,i)=>v==null?'':X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}"><title>${esc(ser[k].label)}</title></polyline>`).join('')}</svg>`;
+  const leg=order.map(k=>`<span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:12px"><span style="width:14px;height:3px;background:${COL[k]};display:inline-block;border-radius:2px"></span>${esc(ser[k].label)}</span>`).join('');
+  const yr=P.years;
+  return `<h3 style="margin:22px 0 4px">Cartera simulada: seguir las señales contra el S&amp;P 500</h3>
+    <p class="sub">Empieza con 100 dólares en el S&amp;P 500. Cada señal compra una posición de 1/${P.slots} del capital (hasta ${P.slots} a la vez), sacando la plata del S&amp;P 500; la mantiene 12 meses (o 6) y vuelve al S&amp;P 500. Si ya hay ${P.slots} posiciones, la señal se saltea. Sin costos ni impuestos. <b>Igual peso</b> = todas las acciones del grupo en partes iguales: muestra cuánto del resultado es solo por elegir empresas que sobrevivieron.</p>
+    <div class="bar" style="margin:6px 0">${sk.map(k=>`<button class="chip ${k===S.pfs?'on':''}" data-pfs="${k}">${esc(P.scopes[k].label)} (${P.scopes[k].n})</button>`).join('')}</div>
+    <div style="margin:6px 0">${leg}</div>${svg}
+    <div class="tw" style="margin-top:8px"><table style="font-size:13px"><thead><tr><th>Año</th>${order.map(k=>`<th class="n">${esc(k==='spy'?'S&P 500':k==='ew'?'Igual peso':k)}</th>`).join('')}<th class="n">Z menos S&amp;P</th><th class="n">Z menos igual peso</th></tr></thead><tbody>
+    ${yr.map(y=>`<tr><td>${y}${P.partial.includes(y)?' <span class="note">(parcial)</span>':''}</td>${order.map(k=>`<td class="n ${cls(ser[k].years[y])}">${sg(ser[k].years[y])}</td>`).join('')}<td class="n ${ser.Z?cls(ser.Z.years[y]-ser.spy.years[y]):''}">${ser.Z?(x=>(x>=0?'+':'')+fmt(x*100,1)+' pts')(ser.Z.years[y]-ser.spy.years[y]):'—'}</td><td class="n ${ser.Z&&ser.ew?cls(ser.Z.years[y]-ser.ew.years[y]):''}">${ser.Z&&ser.ew?(x=>(x>=0?'+':'')+fmt(x*100,1)+' pts')(ser.Z.years[y]-ser.ew.years[y]):'—'}</td></tr>`).join('')}
+    <tr style="font-weight:600"><td>Anual compuesto</td>${order.map(k=>`<td class="n ${cls(ser[k].cagr)}">${sg(ser[k].cagr)}</td>`).join('')}<td class="n">${ser.Z?(x=>(x>=0?'+':'')+fmt(x*100,1)+' pts')(ser.Z.cagr-ser.spy.cagr):'—'}</td><td class="n">${ser.Z&&ser.ew?(x=>(x>=0?'+':'')+fmt(x*100,1)+' pts')(ser.Z.cagr-ser.ew.cagr):'—'}</td></tr>
+    <tr><td>Total del período</td>${order.map(k=>`<td class="n ${cls(ser[k].total)}">${sg(ser[k].total,0)}</td>`).join('')}<td></td><td></td></tr>
+    <tr><td>Peor caída desde un máximo</td>${order.map(k=>`<td class="n down">${sg(ser[k].mdd,0)}</td>`).join('')}<td></td><td></td></tr>
+    <tr><td>Invertido en acciones (promedio)</td>${order.map(k=>`<td class="n">${ser[k].exposure!=null?P0(ser[k].exposure):'—'}</td>`).join('')}<td></td><td></td></tr>
+    <tr><td>Señales compradas / salteadas</td>${order.map(k=>`<td class="n">${ser[k].taken!=null?ser[k].taken+' / '+ser[k].skipped:'—'}</td>`).join('')}<td></td><td></td></tr>
+    </tbody></table></div>
+    <p class="note" style="margin-top:6px">La comparación justa del motor es contra <b>Igual peso</b>: las dos usan las mismas empresas (las que hoy están en el S&amp;P 500, que son las que sobrevivieron). La diferencia contra el S&amp;P 500 incluye ese sesgo a favor.</p>`;
+}
 function peHtml(B){
   const V=B.variants,ks=['T','U','V','W','X','Y','Z'].filter(k=>V[k]&&V[k]['6m'].n);if(!ks.some(k=>k!=='T'))return '';
   const b6=B.base['6m'],b12=B.base['12m'],sp=B.split||{},sb=sp.base||{};
@@ -446,6 +490,8 @@ function renderBT(){
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
     ${splitHtml(B,VK)}
     ${convHtml(B)}
+    ${pfHtml(B0)}
+    ${indHtml(B)}
     ${peHtml(B)}
     ${matrixHtml(B0,VK)}
     ${alertsHtml(B0)}
@@ -455,6 +501,7 @@ function renderBT(){
     ${exitsHtml(B)}`;
   $$('[data-btg]').forEach(b=>b.onclick=()=>{S.btg=b.dataset.btg;renderBT()});
   $$('[data-xh]').forEach(b=>b.onclick=()=>{S.xh=b.dataset.xh;renderBT()});
+  $$('[data-pfs]').forEach(b=>b.onclick=()=>{S.pfs=b.dataset.pfs;renderBT()});
   const sel=$('#bt-sec');sel.innerHTML='<option value="">Todos los sectores</option>'+Object.keys(B.by_sector.A).map(k=>`<option>${esc(k)}</option>`).join('');
   sel.onchange=renderBTEp;
   $$('[data-btf]').forEach(b=>b.onclick=()=>{S.btf=b.dataset.btf;$$('[data-btf]').forEach(x=>x.classList.toggle('on',x===b));renderBTEp()});
