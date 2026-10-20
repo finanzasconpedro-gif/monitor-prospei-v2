@@ -1776,7 +1776,7 @@ function riskBox(o){
   const exm=b!=null&&isFinite(b)?` Si el S&P 500 cae 10%, históricamente esta acción tiende a caer ${fmt(Math.max(0,b)*10,0)}%.`:'';
   return `<div class="cedbox" style="margin:10px 0">${o.risk?`<span class="fase" style="background:${RC[o.risk]}22;color:${RC[o.risk]};font-weight:600">Riesgo ${esc(o.risk.toLowerCase())}</span> `:''}
     ${b!=null&&isFinite(b)?`Beta <b>${fmt(b,2)}</b> (${bt})`:''}${v?` · volatilidad <b>${fmt(v*100,0)}%</b> anual`:''}${o.mdd3!=null?` · peor caída en 3 años <b class="down">${pct(o.mdd3,0)}</b>`:''}
-    <div class="note" style="margin-top:4px">La beta mide cuánto acompaña los movimientos del mercado (1 = igual que el S&amp;P 500).${exm} Riesgo bajo: beta menor a 0,8 y volatilidad menor a 25%; alto: beta mayor a 1,3 o volatilidad mayor a 45%.</div></div>`;
+    <div class="note" style="margin-top:4px">La beta mide cuánto acompaña los movimientos del mercado (1 = igual que el S&amp;P 500; calculada con 5 años de rendimientos mensuales).${exm} Riesgo bajo: beta menor a 0,8 y volatilidad menor a 25%; alto: beta mayor a 1,3 o volatilidad mayor a 45%.</div></div>`;
 }
 function trendKv(o,kv){if(!o.trend)return '';
   return kv('Tendencia (media 200)',`<span class="${TRC[o.trend_n]||''}">${esc(o.trend)}</span>`)+kv('Ruedas del mismo lado',o.run200==null?'—':Math.abs(o.run200)+(Math.abs(o.run200)>=60?'+':'')+(o.run200>=0?' arriba':' debajo'))
