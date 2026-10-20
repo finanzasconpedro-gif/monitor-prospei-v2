@@ -44,7 +44,7 @@ def ambito():
             j = r.json()
             v = num(j.get("ultimo") or j.get("valor") or j.get("cierre"))
             f = str(j.get("fecha") or "")
-            m = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", f)
+            m = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", f)
             if v and m:
                 d = dt.date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
                 return {"valor": v, "fecha": d.isoformat(), "fuente": "Ámbito", "hora": f}
