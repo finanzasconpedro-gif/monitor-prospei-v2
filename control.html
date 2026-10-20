@@ -337,7 +337,7 @@ async function showOne(t){
     <p class="note" style="margin-top:8px">La regla actual del monitor además exige valor justo y analistas, que no tienen historia: lo verde es lo más parecido que se puede reconstruir.</p>`;
 }
 S.btu='broad';
-const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado',G:'solo corrección con rebote',H:'corrección + momentum',J:'H + crecimiento',P:'en partes: giro temprano',Q:'en partes: giro + fundamentos',R:'en partes: mercado bajista',S:'estrategia por sector',T:'motor por sector'};
+const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado',G:'solo corrección con rebote',H:'corrección + momentum',J:'H + crecimiento',P:'en partes: giro temprano',Q:'en partes: giro + fundamentos',R:'en partes: mercado bajista',S:'estrategia por sector',T:'motor por sector',U:'P/E 30% bajo su historia',V:'P/E 50% bajo su historia',W:'P/E bajo + crecimiento',X:'P/E bajo + rebote'};
 S.btg='A';
 function exitsHtml(B){
   const X=B.exits;if(!X||!X.hold)return '';const h=X.hold;
@@ -386,6 +386,20 @@ function matrixHtml(B0,VK){
     <tbody>${secs.map(s=>{const b=S_[s].base,bb=best(s);return `<tr><td><b>${esc(s)}</b></td><td class="n">${pct(b.avg,1)}<br><span class="note" style="font-size:11px">${P0(b.win)} pos.</span></td>${ks.map(k=>cell(S_[s].v[k])).join('')}<td>${bb.length?bb.map(k=>`<b>${k}</b>`).join(' · '):'<span class="note">ninguna</span>'}</td></tr>`}).join('')}</tbody></table></div>
     <p class="note" style="margin-top:6px">Ojo: con muchas casillas, alguna va a salir bien por casualidad. Por eso solo cuentan las del recuadro verde, y conviene preferir estrategias que funcionen en varios sectores parecidos.</p>`;
 }
+function peHtml(B){
+  const V=B.variants,ks=['T','U','V','W','X'].filter(k=>V[k]&&V[k]['6m'].n);if(!ks.some(k=>k!=='T'))return '';
+  const b6=B.base['6m'],b12=B.base['12m'],sp=B.split||{},sb=sp.base||{};
+  const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
+  const dd=(k,p)=>{const a=sp[k]&&sp[k][p]&&sp[k][p]['6m'],z=sb[p]&&sb[p]['6m'];return a&&a.n&&z&&z.n?a.avg-z.avg:null};
+  const tec=k=>{const t=B.by_sector[k]&&B.by_sector[k]['Tecnología'];return t&&t['6m']&&t['6m'].n?`${pct(t['6m'].avg,1)} <span class="note">(${t['6m'].n})</span>`:'—'};
+  const row=(k,lbl,v,ref)=>{const a=v['6m'],c=v['12m']||{};const d=ref?null:a.avg-b6.avg;
+    return `<tr${ref?' style="font-weight:600"':''}><td style="min-width:220px">${lbl}</td><td class="n">${a.n}</td><td class="n ${cls(a.avg)}">${pct(a.avg,1)}</td><td class="n ${d==null?'':d>0.005?'up':d<-0.005?'down':''}">${ref?'—':sg(d)}</td><td class="n">${P0(a.win)}</td><td class="n ${cls(c.avg)}">${c.n?pct(c.avg,1):'—'}</td><td class="n down">${c.l20==null?'—':P0(c.l20)}</td><td class="n">${ref?'—':sg(dd(k,'d'))+' / '+sg(dd(k,'v'))}</td><td class="n">${ref?'—':tec(k)}</td></tr>`};
+  return `<h3 style="margin:22px 0 4px">¿Comprar con P/E bajo contra su propia historia funciona?</h3>
+    <p class="sub">La tesis "está barata contra su historia": P/E de los últimos 12 meses contra su mediana de los 5 años anteriores, con los balances que se conocían cada día. U, V y W compran solo por valuación, sin esperar señal técnica; X espera además una corrección con rebote. <b>Cayó 20%+ a 12m</b> mide la trampa: compras baratas que siguieron cayendo (típico de cíclicas en el pico de ganancias).</p>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Estrategia</th><th class="n">Señales</th><th class="n">Promedio 6m</th><th class="n">vs. cualquier día</th><th class="n">Positivas 6m</th><th class="n">Promedio 12m</th><th class="n">Cayó 20%+ a 12m</th><th class="n">vs. cualquier día: hasta 2021 / desde 2022</th><th class="n">Solo Tecnología (6m)</th></tr></thead>
+    <tbody>${ks.map(k=>row(k,'<b>'+k+'</b> · '+VSHORT[k],V[k],false)).join('')}${row('base','Referencia: cualquier día',B.base,true)}</tbody></table></div>
+    <p class="note" style="margin-top:6px">Para ver cada una por sector contra su propio sector, mirá las columnas U a X de la matriz de abajo. La columna de Tecnología compara contra el promedio de todas las acciones; en la matriz se compara contra comprar tecnológicas cualquier día.</p>`;
+}
 function alertsHtml(B0){
   const A=B0.alerts;if(!A||!A.signals||!A.base||!A.base.n)return '';
   const H=S.xh||'60d',b=A.base[H];
@@ -414,7 +428,7 @@ function renderBT(){
   const secWarn=B0.sec&&B0.sec.ok<B0.sec.total*0.8?`<div class="cedbox" style="margin-bottom:10px">⚠️ Solo se pudieron bajar los balances de ${B0.sec.ok} de ${B0.sec.total} empresas de la SEC${B0.sec.error?': '+esc(B0.sec.error):''}. La variante B queda incompleta.</div>`:'';
   const A=B.variants.A,Bv=B.variants.B,base=B.base,g=B.goal;
   const tile=(lbl,v,meta,good)=>`<div class="kpi"><div class="l">${lbl}</div><div class="v ${good==null?'':good?'up':'down'}">${v}</div><div class="s">${meta}</div></div>`;
-  const V=B.variants,VK=['A','B','C','D','E','F','G','H','J','P','Q','R','S','T'];if(!V[S.btg])S.btg='A';const GK=S.btg;
+  const V=B.variants,VK=['A','B','C','D','E','F','G','H','J','P','Q','R','S','T','U','V','W','X'];if(!V[S.btg])S.btg='A';const GK=S.btg;
   const row=(name,v)=>`<tr><td><b>${name}</b></td><td class="n">${v['6m'].n||0}</td>${['3m','6m','12m'].map(h=>`<td class="n ${v[h].n?(v[h].win>=g?'up':''):''}">${P0(v[h].win)}</td>`).join('')}<td class="n">${P0(v['6m'].beat)}</td><td class="n ${cls(v['6m'].avg)}">${pct(v['6m'].avg,1)}</td><td class="n ${cls(v['6m'].med)}">${pct(v['6m'].med,1)}</td><td class="n down">${pct(v['6m'].p10,1)}</td><td class="n">${P0(v.ts.target)}</td></tr>`;
   const grp=(obj,title)=>`<div style="min-width:0"><h4 style="margin:16px 0 6px">${title}</h4><div class="tw"><table><thead><tr><th></th><th class="n">Señales</th><th class="n">Positivas 6m</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Promedio 6m</th><th class="n">Positivas 12m</th></tr></thead><tbody>${Object.entries(obj).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.n}</td><td class="n ${v['6m'].n&&v['6m'].win>=g?'up':''}">${P0(v['6m'].win)}${v['6m'].n?` <span class="note">(${v['6m'].n})</span>`:''}</td><td class="n">${P0(v['6m'].beat)}</td><td class="n ${cls(v['6m'].avg)}">${pct(v['6m'].avg,1)}</td><td class="n">${P0(v['12m'].win)}</td></tr>`).join('')}</tbody></table></div></div>`;
   $('#bt-body').innerHTML=secWarn+`
@@ -426,12 +440,13 @@ function renderBT(){
     <div class="tw"><table><thead><tr><th></th><th class="n">Señales</th><th class="n">Positivas 3m</th><th class="n">Positivas 6m</th><th class="n">Positivas 12m</th><th class="n">Le ganó al S&amp;P 6m</th><th class="n">Promedio 6m</th><th class="n">Mediana 6m</th><th class="n">Peor 10% 6m</th><th class="n">+${P0(B.target)} antes que ${P0(B.stop)}</th></tr></thead>
       <tbody>${VK.filter(k=>V[k]).map(k=>row(k+' · '+VSHORT[k],V[k])).join('')}${row('Referencia: cualquier día',base)}</tbody></table></div>
     <details style="margin-top:10px"><summary class="note" style="cursor:pointer">Qué es cada variante y qué no se pudo reconstruir</summary>
-      <ul class="note" style="padding-left:18px"><li><b>A:</b> ${esc(A.label)}.</li><li><b>B:</b> ${esc(Bv.label)}.${['C','D','E','F','G','H','J','P','Q','R','S','T'].filter(k=>V[k]).map(k=>`<li><b>${k}:</b> ${esc(V[k].label)}.</li>`).join('')} Fundamentos de los balances presentados a la SEC hasta ese día.</li>
+      <ul class="note" style="padding-left:18px"><li><b>A:</b> ${esc(A.label)}.</li><li><b>B:</b> ${esc(Bv.label)}.${['C','D','E','F','G','H','J','P','Q','R','S','T','U','V','W','X'].filter(k=>V[k]).map(k=>`<li><b>${k}:</b> ${esc(V[k].label)}.</li>`).join('')} Fundamentos de los balances presentados a la SEC hasta ese día.</li>
       <li>El precio objetivo de los analistas, la ganancia esperada y el valor justo <b>no tienen historia gratuita</b>: por eso el veredicto completo (con recorrido a valor justo ≥ 10%) no se puede reproducir hacia atrás. Para medirlo exacto, el monitor guarda desde ahora las señales de cada día.</li>
       <li>Se eligieron las empresas más grandes de <b>hoy</b>: son las que mejor les fue, lo que favorece los resultados (sesgo de supervivencia). Comparar contra la referencia corrige buena parte de ese sesgo.</li>
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
     ${splitHtml(B,VK)}
     ${convHtml(B)}
+    ${peHtml(B)}
     ${matrixHtml(B0,VK)}
     ${alertsHtml(B0)}
     <div class="bar" style="margin:18px 0 0;flex-wrap:wrap;gap:6px"><span class="note" style="align-self:center">Detalle de la variante:</span>${VK.filter(k=>V[k]&&V[k]['6m'].n).map(k=>`<button class="chip ${k===GK?'on':''}" data-btg="${k}">${k}</button>`).join('')}</div>
