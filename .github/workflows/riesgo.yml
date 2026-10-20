@@ -1,0 +1,40 @@
+name: Riesgo pais PROSPEI
+
+on:
+  schedule:
+    - cron: "5 13-23/2 * * 1-5"   # lunes a viernes, cada 2 horas de 10:05 a 20:05 hora Argentina
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: riesgo
+  cancel-in-progress: false
+
+jobs:
+  riesgo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar librerias
+        run: pip install requests
+
+      - name: Buscar riesgo pais
+        run: python riesgo.py
+
+      - name: Guardar riesgo.json
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add riesgo.json 2>/dev/null || exit 0
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza riesgo pais $(date -u +'%Y-%m-%d %H:%M')"
+          git pull --rebase
+          git push
