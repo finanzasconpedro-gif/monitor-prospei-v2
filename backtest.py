@@ -71,7 +71,11 @@ VARIANTS = {
 VARIANTS.pop("_", None)
 KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
-PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}   # sectores donde la vía barata se sostuvo (Y, Z)
+PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}
+# ---- cartera simulada: sigue las señales con posiciones iguales; la plata sin usar queda en el S&P 500
+PF_SLOTS = 30          # hasta 30 posiciones de 1/30 del capital cada una
+PF_KEYS = {"Z": ("Motor nuevo (Z), 12 meses", 252), "T": ("Motor anterior (T), 12 meses", 252), "Z6": ("Motor nuevo (Z), 6 meses", 126)}
+IND_MIN = 5            # empresas mínimas para comparar contra la industria; si no, contra el sector   # sectores donde la vía barata se sostuvo (Y, Z)
 S_MAP = {"Tecnología": "J", "Industrial": "J", "Comunicaciones": "J", "Consumo discrecional": "D",
          "Utilities": "G", "Servicios públicos": "G", "Energía": "G", "Materiales": "G"}
 # ---- señales de agotamiento: qué pasó en los 30, 60 y 90 días siguientes (21, 42 y 63 ruedas)
@@ -371,6 +375,11 @@ def stats(rows, key):
     if b:
         out["beat"] = float((np.array(b) > 0).mean())
         out["alpha"] = float(np.mean(b))
+    bi = [r[key] - r["ind_" + key] for r in v if r.get("ind_" + key) is not None]
+    if bi:
+        out["beat_ind"] = float((np.array(bi) > 0).mean())
+        out["alpha_ind"] = float(np.mean(bi))
+        out["n_ind"] = len(bi)
     return out
 
 
@@ -680,6 +689,14 @@ UNI_LBL = {"top": "Las 3 más grandes de cada sector", "broad": f"Muestra amplia
            "broad4": "Validación del motor por sector: todas las acciones que no se usaron en ninguna prueba"}
 
 
+def industries():
+    try:
+        rows = json.load(open("data.json", encoding="utf-8"))["rows"]
+        return {r["t"]: r.get("industry") or "" for r in rows}
+    except Exception:
+        return {}
+
+
 def all_tickers():
     """Todas las acciones del monitor (S&P 500 + ADRs) con nombre y sector."""
     try:
@@ -771,6 +788,134 @@ def main():
             if k % 50 == 0:
                 print(f"  señales {k + 1}/{len(tick)}")
 
+    # ---- contra su propia industria: rendimiento promedio (igual peso) de las DEMÁS empresas de su industria
+    # en el mismo plazo (desde el cierre de compra). Industria con 5+ empresas en la prueba; si no, su sector.
+    pos = {str(d)[:10]: i for i, d in enumerate(idx)}
+    ind_map = industries()
+    us_t = [t for t in tick if (meta[t][2] or "EE.UU.") == "EE.UU." and res.get(t)]
+    n_ind = {}
+    for t in us_t:
+        n_ind[ind_map.get(t, "")] = n_ind.get(ind_map.get(t, ""), 0) + 1
+    grp = {t: ("I:" + ind_map[t]) if ind_map.get(t) and n_ind[ind_map[t]] >= IND_MIN else "S:" + (meta[t][1] or "Otro") for t in us_t}
+    cl = close[us_t]
+    gcols = {}
+    for j, t in enumerate(us_t):
+        gcols.setdefault(grp[t], []).append(j)
+    for h, hn in H.items():
+        fv = (cl.shift(-hn) / cl - 1).values
+        gs = {g: (np.nansum(fv[:, js], axis=1), np.isfinite(fv[:, js]).sum(axis=1)) for g, js in gcols.items()}
+        for j, t in enumerate(us_t):
+            sm, nn = gs[grp[t]]
+            r_ = res[t]
+            for e in [x for L in r_["eps"].values() for x in L] + r_["base"]:
+                i = pos.get(e["date"])
+                if i is None or i + 1 >= len(idx):
+                    continue
+                own = fv[i + 1, j]
+                k_ = nn[i + 1] - (1 if np.isfinite(own) else 0)
+                if k_ >= 2:
+                    e["ind_" + h] = float((sm[i + 1] - (own if np.isfinite(own) else 0)) / k_)
+
+    # ---- cartera simulada siguiendo las señales
+    def portfolio(univ, key, hold, slots=PF_SLOTS):
+        names = [t for t in us_t if t in univ]
+        if not names:
+            return None
+        C = close[names].values
+        col = {t: j for j, t in enumerate(names)}
+        spx = close["SPY"].values
+        sigs = {}
+        for t in names:
+            for e in res[t]["eps"][key]:
+                i = pos.get(e["date"])
+                if i is not None:
+                    sigs.setdefault(i + 1, []).append((e.get("at", 0), t))
+        d0, dN = days[0], len(idx) - 1
+        units, held, lp = 100.0 / spx[d0], {}, np.full(len(names), np.nan)
+        eq, expo = np.full(len(idx), np.nan), []
+        taken = skipped = 0
+        for d in range(d0, dN + 1):
+            row = C[d]
+            lp = np.where(np.isfinite(row), row, lp)
+            for t, (sh, ex) in list(held.items()):
+                if d >= ex:
+                    units += sh * lp[col[t]] / spx[d]
+                    del held[t]
+            vpos = sum(sh * lp[col[t]] for t, (sh, _) in held.items())
+            equity = units * spx[d] + vpos
+            for _, t in sorted(sigs.get(d, []), reverse=True):
+                px = row[col[t]]
+                if t in held or not np.isfinite(px):
+                    continue
+                if len(held) >= slots:
+                    skipped += 1
+                    continue
+                amt = equity / slots
+                if units * spx[d] < amt * 0.999:
+                    skipped += 1
+                    continue
+                units -= amt / spx[d]
+                held[t] = (amt / px, d + hold)
+                taken += 1
+                vpos += amt
+            eq[d] = equity
+            expo.append(vpos / equity if equity > 0 else 0)
+        return eq, float(np.mean(expo)), taken, skipped
+
+    def pf_stats(eq, d0, dN):
+        e = eq[d0:dN + 1]
+        yrs = (idx[dN] - idx[d0]).days / 365.25
+        return {"cagr": float((e[-1] / e[0]) ** (1 / yrs) - 1), "total": float(e[-1] / e[0] - 1),
+                "mdd": float((e / np.maximum.accumulate(e) - 1).min())}
+
+    def pf_out():
+        d0, dN = days[0], len(idx) - 1
+        scopes = {"valid": ("Acciones de validación (nunca usadas para elegir reglas)", (member.get("broad3") or set()) | (member.get("broad4") or set())),
+                  "todas": ("Todas las acciones de EE.UU. del monitor", set(us_t))}
+        yrs = sorted({idx[d].year for d in range(d0, dN + 1)})
+        def yearly(eq):
+            o_ = {}
+            for y in yrs:
+                ds = [d for d in range(d0, dN + 1) if idx[d].year == y]
+                prev = [d for d in range(d0, dN + 1) if idx[d].year < y]
+                a = eq[prev[-1]] if prev else eq[ds[0]]
+                o_[str(y)] = float(eq[ds[-1]] / a - 1)
+            return o_
+        spx = close["SPY"].values.astype(float)
+        spy_eq = np.full(len(idx), np.nan)
+        spy_eq[d0:] = 100 * spx[d0:] / spx[d0]
+        wk = list(range(d0, dN + 1, 5)) + ([dN] if (dN - d0) % 5 else [])
+        out_ = {"slots": PF_SLOTS, "years": [str(y) for y in yrs], "partial": [str(yrs[0]), str(yrs[-1])],
+                "dates": [str(idx[d].date()) for d in wk], "scopes": {}}
+        for sk, (lbl, univ) in scopes.items():
+            names = [t for t in us_t if t in univ]
+            if not names:
+                continue
+            # referencia de igual peso: todas las acciones del grupo, rebalanceo anual (incluye el sesgo de supervivencia)
+            C = close[names].values
+            ew = np.full(len(idx), np.nan)
+            v, start = 100.0, d0
+            for y in yrs:
+                ds = [d for d in range(d0, dN + 1) if idx[d].year == y]
+                b = C[start]
+                ok = np.isfinite(b) & (b > 0)
+                for d in ds:
+                    r_ = C[d][ok] / b[ok]
+                    ew[d] = v * float(np.nanmean(r_)) if ok.any() else v
+                v, start = ew[ds[-1]], ds[-1]
+            ser = {"spy": {"label": "S&P 500 (SPY)", "years": yearly(spy_eq), **pf_stats(spy_eq, d0, dN), "curve": [round(float(spy_eq[d]), 2) for d in wk]},
+                   "ew": {"label": "Todas las acciones del grupo, igual peso (referencia del sesgo)", "years": yearly(ew), **pf_stats(ew, d0, dN),
+                          "curve": [round(float(ew[d]), 2) for d in wk]}}
+            for k, (klbl, hold) in PF_KEYS.items():
+                r_ = portfolio(univ, k[0], hold)
+                if not r_:
+                    continue
+                eq, ex_, tk, sk_ = r_
+                ser[k] = {"label": klbl, "years": yearly(eq), **pf_stats(eq, d0, dN), "exposure": ex_, "taken": tk, "skipped": sk_,
+                          "curve": [round(float(eq[d]), 2) for d in wk]}
+            out_["scopes"][sk] = {"label": lbl, "n": len(names), "series": ser}
+        return out_
+
     def pack(u):
         bk = {k: [] for k in KEYS + ("base",)}
         for t in member[u]:
@@ -830,7 +975,7 @@ def main():
             "by_setup": {k: by(bk[k], "setup") for k in KEYS},
             "by_year": {k: by(bk[k], "year") for k in KEYS + ("base",)},
             "split": {k: split_stats(bk[k]) for k in KEYS + ("base",)},
-            "episodes": sorted([{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items() if k not in ("b", "c", "d", "m", "g")}
+            "episodes": sorted([{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items() if k not in ("b", "c", "d", "m", "g") and not k.startswith("ind_")}
                                 for r in bk["A"]], key=lambda r: r["date"], reverse=True),
             "b_set": bset,
             "exits": exits,
@@ -916,6 +1061,7 @@ def main():
 
     out = {
         "alerts": alerts_out(),
+        "portfolio": pf_out(),
         "matrix": matrix(),
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "period": {"from": str(idx[days[0]].date()), "to": str(end.date())},
