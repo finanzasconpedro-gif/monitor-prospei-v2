@@ -386,6 +386,33 @@ function matrixHtml(B0,VK){
     <tbody>${secs.map(s=>{const b=S_[s].base,bb=best(s);return `<tr><td><b>${esc(s)}</b></td><td class="n">${pct(b.avg,1)}<br><span class="note" style="font-size:11px">${P0(b.win)} pos.</span></td>${ks.map(k=>cell(S_[s].v[k])).join('')}<td>${bb.length?bb.map(k=>`<b>${k}</b>`).join(' · '):'<span class="note">ninguna</span>'}</td></tr>`}).join('')}</tbody></table></div>
     <p class="note" style="margin-top:6px">Ojo: con muchas casillas, alguna va a salir bien por casualidad. Por eso solo cuentan las del recuadro verde, y conviene preferir estrategias que funcionen en varios sectores parecidos.</p>`;
 }
+function probHtml(B0){
+  const M=B0.prob;if(!M)return '';
+  if(M.error)return `<h3 style="margin:22px 0 4px">Modelo de probabilidad</h3><div class="cedbox">No se pudo calcular: ${esc(M.error)}</div>`;
+  if(!M.calib)return '';
+  const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
+  const b=M.base;
+  const crow=c=>{if(!c.n)return '';const gap=c.win-c.p;return `<tr><td>${fmt(c.lo*100,0)}% a ${fmt(c.hi*100,0)}%</td><td class="n">${c.n}</td><td class="n">${P0(c.p)}</td><td class="n" style="font-weight:600">${P0(c.win)} <span class="note" style="font-size:11px">(${gap>=0?'+':''}${fmt(gap*100,0)})</span></td><td class="n ${cls(c.avg)}">${pct(c.avg,1)}</td><td class="n">${P0(c.beat)}</td><td class="n">${P0(c.beat_ind)}</td><td class="n down">${P0(c.l20)}</td></tr>`};
+  const trow=t=>`<tr${t.thr===0.8?' style="font-weight:600"':''}><td>${fmt(t.thr*100,0)}% o más</td><td class="n">${P0(t.share)}</td><td class="n">${fmt(t.new_pm,1)}</td><td class="n">${P0(t.win)}</td><td class="n ${cls(t.avg)}">${pct(t.avg,1)}</td><td class="n">${P0(t.beat)}</td><td class="n ${cls(t.alpha)}">${sg(t.alpha)}</td><td class="n">${P0(t.beat_ind)}</td><td class="n ${cls(t.alpha_ind)}">${sg(t.alpha_ind)}</td><td class="n down">${P0(t.l20)}</td></tr>`;
+  const yrow=y=>{const c=(o)=>o&&o.n?`${P0(o.win)} <span class="note" style="font-size:11px">${P0(o.share)}</span>`:'<span class="note">—</span>';return `<tr><td>${y.y}</td><td class="n">${P0(y.all.win)}</td><td class="n ${cls(y.all.avg)}">${pct(y.all.avg,1)}</td><td class="n">${c(y.t80)}</td><td class="n ${y.t80&&y.t80.n?cls(y.t80.avg):''}">${y.t80&&y.t80.n?pct(y.t80.avg,1):'—'}</td><td class="n">${c(y.t75)}</td><td class="n">${c(y.t70)}</td></tr>`};
+  const mx=Math.max(...M.coefs.map(c=>Math.abs(c.w)))||1;
+  const coef=M.coefs.slice(0,15).map(c=>`<div style="display:grid;grid-template-columns:minmax(150px,280px) 1fr 52px;gap:8px;align-items:center;font-size:12px;margin:3px 0"><span>${esc(c.lbl)}</span><span style="position:relative;height:10px;background:color-mix(in srgb,currentColor 6%,transparent);border-radius:3px"><span style="position:absolute;top:0;bottom:0;${c.w>=0?'left:50%':'right:50%'};width:${Math.abs(c.w)/mx*50}%;background:${c.w>=0?'var(--up,#3fb950)':'var(--down,#f85149)'};border-radius:3px"></span></span><span class="n ${c.w>=0?'up':'down'}">${c.w>=0?'+':''}${fmt(c.w,2)}</span></div>`).join('');
+  return `<h3 style="margin:22px 0 4px">Modelo de probabilidad: ¿se puede acertar 80%?</h3>
+    <p class="sub">En vez de filtros de sí o no, un modelo estima la <b>probabilidad de que comprar hoy dé ganancia a 12 meses</b>, combinando variables de la acción y del mercado (amplitud, VIX, tasas, tendencia del S&amp;P 500). Se valida <b>año por año</b>: para predecir cada año solo usa lo que ya se sabía antes, y se mide en ${M.stocks} acciones que nunca se usaron para elegir reglas (${M.test_years[0]} a ${M.test_years[M.test_years.length-1]}). Referencia: comprar cualquiera de esas acciones cualquier día ganó plata a 12 meses el <b>${P0(b.win)}</b> de las veces (${pct(b.avg,1)} promedio).</p>
+    <h4 style="margin:14px 0 6px">¿Cuando dice 80%, acierta 80%?</h4>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Probabilidad que dio</th><th class="n">Casos</th><th class="n">Promedio que dio</th><th class="n">Ganaron plata (diferencia)</th><th class="n">Rendimiento 12m</th><th class="n">Le ganó al S&amp;P</th><th class="n">Le ganó a su industria</th><th class="n">Cayó 20%+</th></tr></thead><tbody>${M.calib.map(crow).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px">Un buen modelo tiene la columna "Ganaron plata" parecida a "Promedio que dio" en cada fila: eso quiere decir que sus probabilidades son creíbles.</p>
+    <h4 style="margin:14px 0 6px">Si se compra solo arriba de cierto nivel</h4>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Comprar si la probabilidad es</th><th class="n">% del tiempo que califica</th><th class="n">Señales nuevas por mes (${M.stocks} acciones)</th><th class="n">Ganaron plata</th><th class="n">Rendimiento 12m</th><th class="n">Le ganó al S&amp;P</th><th class="n">Extra vs S&amp;P</th><th class="n">Le ganó a su industria</th><th class="n">Extra vs industria</th><th class="n">Cayó 20%+</th></tr></thead>
+    <tbody>${M.thr.map(trow).join('')}<tr style="font-weight:600"><td>Cualquier día (referencia)</td><td class="n">100%</td><td class="n">—</td><td class="n">${P0(b.win)}</td><td class="n ${cls(b.avg)}">${pct(b.avg,1)}</td><td class="n">${P0(b.beat)}</td><td class="n">${sg(b.alpha)}</td><td class="n">${P0(b.beat_ind)}</td><td class="n">${sg(b.alpha_ind)}</td><td class="n down">${P0(b.l20)}</td></tr></tbody></table></div>
+    <p class="note" style="margin-top:6px">Para todo el monitor (~500 acciones), las señales por mes son aproximadamente el doble.</p>
+    <h4 style="margin:14px 0 6px">Año por año: aciertos y cuánto del tiempo califica</h4>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Año de compra</th><th class="n">Cualquier día: ganaron</th><th class="n">Rendimiento</th><th class="n">80%+: ganaron · <span class="note">califica</span></th><th class="n">Rendimiento 80%+</th><th class="n">75%+</th><th class="n">70%+</th></tr></thead><tbody>${M.years.map(yrow).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px">El número chico es qué parte del tiempo calificaba: en años difíciles el modelo debería dar menos probabilidades altas (comprar menos), no acertar menos.</p>
+    <h4 style="margin:14px 0 6px">Qué pesa más en la probabilidad</h4>
+    <div>${coef}</div>
+    <p class="note" style="margin-top:6px">Verde = sube la probabilidad, rojo = la baja. Pesos sobre variables estandarizadas (modelo final con todos los datos); se leen como importancia relativa.</p>`;
+}
 function indHtml(B){
   const V=B.variants,ks=['T','Z','Y','A'].filter(k=>V[k]&&V[k]['6m'].n&&V[k]['6m'].n_ind);if(!ks.length)return '';
   const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
@@ -490,6 +517,7 @@ function renderBT(){
       <li><b>+${P0(B.target)} antes que ${P0(B.stop)}</b>: porcentaje de señales que tocaron la ganancia objetivo antes que el stop en un plazo de ${B.ts_days} ruedas.</li></ul></details>
     ${splitHtml(B,VK)}
     ${convHtml(B)}
+    ${probHtml(B0)}
     ${pfHtml(B0)}
     ${indHtml(B)}
     ${peHtml(B)}
