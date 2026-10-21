@@ -78,9 +78,16 @@ PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las var
 PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}
 # ---- cartera simulada: sigue las señales con posiciones iguales; la plata sin usar queda en el S&P 500
 PF_SLOTS = 30          # hasta 30 posiciones de 1/30 del capital cada una
-PF_KEYS = {"Z": ("Motor nuevo (Z), 12 meses", 252, "Z"), "T": ("Motor anterior (T), 12 meses", 252, "T"),
-           "Z6": ("Motor nuevo (Z), 6 meses", 126, "Z"), "ZX": ("Motor + checklists (ZX), 12 meses", 252, "ZX"),
-           "ZX6": ("Motor + checklists (ZX), 6 meses", 126, "ZX")}
+# cartera: nombre -> (etiqueta, meses que mantiene, señales). Las señales son una lista de "cupos": cada cupo tiene
+# sus variantes (en orden de prioridad) y cuántos de los 30 lugares puede ocupar.
+_MIX = [{"keys": ["CR", "CI", "Z"], "slots": 21}, {"keys": ["DF"], "slots": 9}]
+PF_KEYS = {"MIX": ("Repartida: 70% crecimiento/cíclicas castigadas + motor, 30% defensivas firmes · 12 meses", 252, _MIX),
+           "MIX6": ("Repartida 70/30 · 6 meses", 126, _MIX),
+           "CC": ("Solo crecimiento y cíclicas castigadas (CR + CI) · 12 meses", 252, [{"keys": ["CR", "CI"], "slots": 30}]),
+           "CC6": ("Solo CR + CI · 6 meses", 126, [{"keys": ["CR", "CI"], "slots": 30}]),
+           "ZX": ("Motor + checklists sin repartir (ZX) · 12 meses", 252, [{"keys": ["ZX"], "slots": 30}]),
+           "Z": ("Motor actual (Z) · 12 meses", 252, [{"keys": ["Z"], "slots": 30}]),
+           "Z6": ("Motor actual (Z) · 6 meses", 126, [{"keys": ["Z"], "slots": 30}])}
 # Checklists por familia (elegidos por el análisis de variables con las acciones de diseño): familia, condiciones, mínimo
 CK = {"DF": ("Defensivas", ["beta_lo", "lowvol", "at_high", "pe_rich", "trend", "near200", "rsi_hi"], 5),
       "CR": ("Crecimiento", ["beta_lo", "dd_deep", "highvol", "pe_gt40", "rsi_lo"], 3),
@@ -1376,19 +1383,26 @@ def main():
                     e["ind_" + h] = float((sm[i + 1] - (own if np.isfinite(own) else 0)) / k_)
 
     # ---- cartera simulada siguiendo las señales
-    def portfolio(univ, key, hold, slots=PF_SLOTS):
+    def portfolio(univ, buckets, hold, slots=PF_SLOTS):
         names = [t for t in us_t if t in univ]
         if not names:
             return None
+        if isinstance(buckets, str):
+            buckets = [{"keys": [buckets], "slots": slots}]
         C = close[names].values
         col = {t: j for j, t in enumerate(names)}
         spx = close["SPY"].values
         sigs = {}
-        for t in names:
-            for e in res[t]["eps"][key]:
-                i = pos.get(e["date"])
-                if i is not None:
-                    sigs.setdefault(i + 1, []).append((e.get("at", 0), t))
+        for b_i, bk_ in enumerate(buckets):
+            for prio, key in enumerate(bk_["keys"]):
+                for t in names:
+                    for e in res[t]["eps"].get(key, []):
+                        i = pos.get(e["date"])
+                        if i is not None:
+                            # orden: primero la variante de más prioridad, después el puntaje técnico
+                            sigs.setdefault(i + 1, []).append((-prio, e.get("at", 0) or 0, t, b_i))
+        cap = [bk_["slots"] for bk_ in buckets]
+        own = {}
         d0, dN = days[0], len(idx) - 1
         units, held, lp = 100.0 / spx[d0], {}, np.full(len(names), np.nan)
         eq, expo = np.full(len(idx), np.nan), []
@@ -1400,13 +1414,14 @@ def main():
                 if d >= ex:
                     units += sh * lp[col[t]] / spx[d]
                     del held[t]
+                    own.pop(t, None)
             vpos = sum(sh * lp[col[t]] for t, (sh, _) in held.items())
             equity = units * spx[d] + vpos
-            for _, t in sorted(sigs.get(d, []), reverse=True):
+            for _, _, t, b_i in sorted(sigs.get(d, []), reverse=True):
                 px = row[col[t]]
                 if t in held or not np.isfinite(px):
                     continue
-                if len(held) >= slots:
+                if len(held) >= slots or sum(1 for x in own.values() if x == b_i) >= cap[b_i]:
                     skipped += 1
                     continue
                 amt = equity / slots
@@ -1415,6 +1430,7 @@ def main():
                     continue
                 units -= amt / spx[d]
                 held[t] = (amt / px, d + hold)
+                own[t] = b_i
                 taken += 1
                 vpos += amt
             eq[d] = equity
