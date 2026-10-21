@@ -1,1929 +1,1861 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monitor PROSPEI</title>
-<link rel="icon" href="data:image/svg+xml,<svg viewBox='0 0 34 34' xmlns='http://www.w3.org/2000/svg'><rect width='16' height='16' fill='%23551CE3'/><rect x='18' width='16' height='16' fill='%23798DF7'/><rect y='18' width='16' height='16' fill='%239AA8F9'/><rect x='18' y='18' width='16' height='16' fill='%23BCC6FA'/></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#f4f6f9; --card:#ffffff; --ink:#0f1b2d; --muted:#5b6b80; --line:#e2e8f0;
-  --brand:#0b2545; --brand2:#13315c; --accent:#1d7af3; --up:#0f9d58; --down:#d93025;
-  --upbg:#e6f6ee; --downbg:#fdecea; --best:#fff6d6; --bestline:#e0b300; --warn:#a15c00; --warnbg:#fff1dc;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0b1220; --card:#121b2e; --ink:#e6edf7; --muted:#93a3b8; --line:#22304a;
-    --brand:#0a1a33; --brand2:#12284d; --accent:#5aa2ff; --up:#34c77b; --down:#ff6b5e;
-    --upbg:#10301f; --downbg:#3a1714; --best:#3a3010; --bestline:#d4a800; --warn:#f0b35a; --warnbg:#3a2a10;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0b1220; --card:#121b2e; --ink:#e6edf7; --muted:#93a3b8; --line:#22304a;
-  --brand:#0a1a33; --brand2:#12284d; --accent:#5aa2ff; --up:#34c77b; --down:#ff6b5e;
-  --upbg:#10301f; --downbg:#3a1714; --best:#3a3010; --bestline:#d4a800; --warn:#f0b35a; --warnbg:#3a2a10;
-}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:14px}
-.num,td.n,th.n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.mono{font-family:"IBM Plex Mono",monospace}
-header{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;padding:14px 16px}
-.hwrap{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.logo{font-weight:700;letter-spacing:.08em;font-size:18px}
-.logo small{display:block;font-weight:400;letter-spacing:.02em;font-size:11px;opacity:.75}
-.hright{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;opacity:.95;flex-wrap:wrap}
-.btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:12px}
-.btn:hover{background:rgba(255,255,255,.18)}
-.dot{width:8px;height:8px;border-radius:50%;background:#7dd3a0;display:inline-block;margin-right:6px}
-.dot.load{background:#ffd166;animation:p 1s infinite}.dot.err{background:#ff6b5e}
-@keyframes p{50%{opacity:.3}}
-main{max-width:1280px;margin:0 auto;padding:16px}
-.ticker{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.kpi .v{font-size:20px;font-weight:600;margin-top:2px}
-.kpi .s{font-size:11px;color:var(--muted);margin-top:2px}
-.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
-.tab{background:none;border:none;border-bottom:3px solid transparent;padding:10px 12px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
-.tab.on{color:var(--accent);border-color:var(--accent)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
-.card h2{font-size:16px;margin:0 0 4px}
-.card p.sub{margin:0 0 12px;color:var(--muted);font-size:12.5px;line-height:1.45}
-.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-input[type=search],input[type=number],select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
-input[type=search]{min-width:180px;flex:1;max-width:280px}
-.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:12.5px;cursor:pointer}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-table{border-collapse:collapse;width:100%;min-width:640px}
-th,td{padding:8px 10px;border-bottom:1px solid var(--line)}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg);position:sticky;top:0;cursor:pointer;user-select:none;text-align:left;white-space:nowrap}
-th.n{text-align:right}
-th .ar{opacity:.6;margin-left:3px}
-tr:last-child td{border-bottom:none}
-tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
-.up{color:var(--up)}.down{color:var(--down)}
-.pf-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:8px}
-.pf-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-.pf-form input,.pf-form select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;min-width:0}
-.pf-form #pf-t{width:120px;text-transform:uppercase}.pf-form #pf-p,.pf-form #pf-q{width:120px}
-.pf-row{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start}
-.pf-st{font-size:22px;line-height:1}.pf-row h4 a{color:var(--ink);text-decoration:none}.pf-row h4 a:hover{text-decoration:underline}.pf-row h4{margin:0}.pf-row ul{margin:6px 0 0;padding-left:18px;font-size:13px}
-.pf-kv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin-top:4px}.pf-kv b{color:var(--ink)}
-.pf-x{background:none;border:1px solid var(--line);border-radius:8px;color:var(--muted);cursor:pointer;padding:3px 8px;font:inherit}
-.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
-.pill.up{background:var(--upbg)}.pill.down{background:var(--downbg)}
-.pill.warn{background:var(--warnbg);color:var(--warn)}
-tr.best td{background:var(--best)}
-tr.dim td{opacity:.5}
-.tag{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--bestline);color:#1a1300;margin-left:6px;vertical-align:middle}
-.star{cursor:pointer;color:var(--muted);font-size:15px;background:none;border:none;padding:0}
-.star.on{color:#e0a800}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media (max-width:760px){.grid2{grid-template-columns:1fr}}
-.best-box{border:1px solid var(--bestline);background:var(--best);border-radius:10px;padding:12px}
-.best-box .l{font-size:12px;color:var(--muted)}
-.best-box .v{font-size:22px;font-weight:700;margin:2px 0}
-.calc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
-.calc input{width:160px}
-.note{font-size:12px;color:var(--muted);line-height:1.5}
-.alert{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:12px;display:none}
-.sbar{display:flex;align-items:center;gap:8px;min-width:120px}
-.sbar i{display:block;height:7px;border-radius:4px;background:var(--line);flex:1;position:relative;overflow:hidden}
-.sbar i b{position:absolute;inset:0 auto 0 0;border-radius:4px}
-.sbar span{font-weight:700;min-width:26px;text-align:right}
-.setup{font-size:11.5px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);white-space:nowrap;font-weight:600}
-tr[data-t]{cursor:pointer}
-.ced-ok{font-size:11px;font-weight:600;color:var(--up)}
-.tmap{position:relative;width:100%;height:680px;background:#262931;border-radius:10px;overflow:hidden;user-select:none}
-@media (max-width:760px){.tmap{height:1100px}}
-.tsec{position:absolute;border:1px solid #262931;box-sizing:border-box}
-.tsec>span{position:absolute;left:0;right:0;top:0;height:16px;line-height:16px;padding:0 5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#d7dbe3;background:#262931;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tc{position:absolute;box-sizing:border-box;border:1px solid #262931;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:pointer;overflow:hidden;text-align:center;line-height:1.1;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-.tc:hover{border:2px solid #f5d76e;z-index:2}
-.tc b{font-weight:700}
-.tmtip{position:fixed;z-index:60;background:#14171e;color:#fff;border:1px solid #3a3f4b;border-radius:8px;padding:8px 10px;font-size:12.5px;pointer-events:none;min-width:170px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
-.tmtip.hide{display:none}
-.vd{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
-.vd-Comprar{background:#0f9d58;color:#fff}
-.vd-Comprar-en-partes{background:var(--upbg);color:var(--up);border:1px solid var(--up)}
-.vd-Vigilar{background:color-mix(in srgb,#1d7af3 14%,transparent);color:#1d7af3}
-.vd-Mantener{background:var(--warnbg);color:var(--warn)}
-.vd-Evitar{background:var(--downbg);color:var(--down)}
-.vd-new{background:#e0a800;color:#1a1300;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:4px;margin-left:5px;vertical-align:middle}
-.verdict-box{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0 4px}
-.verdict-box .vd{font-size:14px;padding:5px 12px}
-.buy-new{border:1px solid #e0a800;background:var(--best);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px}
-.lensbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
-.lens-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.lens-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
-@media (max-width:640px){.lens-g{grid-template-columns:1fr}}
-.lens b{display:block;font-size:14px;margin:2px 0}
-.et-g{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 12px;margin-top:8px;font-size:13px}
-@media (max-width:640px){.et-g{grid-template-columns:1fr}}
-.setup.s-up{background:var(--upbg);color:var(--up)}
-.setup.s-warn{background:var(--warnbg);color:var(--warn)}
-.setup.s-info{background:color-mix(in srgb,#8a5cf6 14%,transparent);color:#7c4ddb}
-.kpi.us .l::before{content:"EE.UU. · ";opacity:.7}
-.lights{display:inline-flex;gap:3px;align-items:center}
-.lights i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.08)}
-.l2{background:#0f9d58}.l1{background:#e0a800}.l0{background:#d93025}.lnull{background:var(--line)}
-.alert-tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--warnbg);color:var(--warn);margin:2px 4px 0 0;white-space:nowrap}
-.semaf{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-@media (max-width:600px){.semaf{grid-template-columns:repeat(2,1fr)}}
-.semaf div{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:12px;display:flex;align-items:center;gap:8px}
-.semaf i{width:14px;height:14px;border-radius:50%;flex:none}
-.mm-wrap{display:grid;grid-template-columns:1fr 250px;gap:14px;align-items:start}
-@media (max-width:860px){.mm-wrap{grid-template-columns:1fr}}
-.mm-side{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);font-size:13px;min-height:120px}
-.mm-side.on{border-color:var(--accent)}
-.mm-empty{color:var(--muted);line-height:1.5}
-.mm-empty b{color:var(--ink)}
-.mm-h{display:flex;align-items:center;gap:6px;min-width:0}
-.mm-h b{font-size:16px}
-.mm-date{color:var(--muted);font-size:12px;margin-top:6px}
-.mm-zone{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:13px;transition:background .25s,color .25s}
-.sp-chart{display:flex;flex-direction:column;gap:6px}
-.sp-row{display:grid;grid-template-columns:minmax(120px,190px) 1fr 84px;gap:10px;align-items:center;cursor:pointer;font-size:13px}
-.sp-row:hover .sp-track{background:var(--line)}
-.sp-lbl{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sp-track{position:relative;height:20px;background:var(--bg);border-radius:6px}
-.sp-track b{position:absolute;top:2px;bottom:2px;border-radius:4px;min-width:2px}
-.sp-zero{position:absolute;left:50%;top:0;bottom:0;border-left:1px solid var(--line)}
-.sp-ref{position:absolute;top:-3px;bottom:-3px;border-left:2px dashed var(--muted);z-index:1}
-.sp-val{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
-@media (max-width:560px){.sp-row{grid-template-columns:92px 1fr 78px;gap:6px;font-size:12px}.sp-lbl .note{display:none}}
-.secgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin:4px 0 14px}
-.sc{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--bg);cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
-.sc:hover{border-color:var(--accent)}
-.sc .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.sc .nm{font-weight:700;font-size:13px}
-.sc .tk{font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
-.sc .ln{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:5px}
-.sc .ln b{color:var(--ink);font-weight:600}
-.sc.mkt{border-style:dashed}
-.fase{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap}
-.fase.Liderando{background:var(--upbg);color:var(--up)}
-.fase.Mejorando{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
-.fase.Perdiendo{background:var(--warnbg);color:var(--warn)}
-.fase.Rezagado{background:var(--downbg);color:var(--down)}
-.tmtip .row{display:flex;justify-content:space-between;gap:12px}
-.hsec h4{margin:0 0 5px;font-size:12px;color:var(--muted);font-weight:600}
-.hsec h4 b{color:var(--ink)}
-.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:3px}
-.hc{border-radius:5px;padding:5px 3px;text-align:center;cursor:pointer;color:#fff;font-size:11px;line-height:1.25;border:none;font-family:inherit}
-.hc b{display:block;font-size:11.5px}
-.hc:hover{outline:2px solid var(--ink)}
-.modal{position:fixed;inset:0;background:rgba(5,12,25,.55);z-index:50;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:24px 12px}
-.modal.hide{display:none}
-.print-only{display:none}
-@media print{
-  @page{margin:12mm}
-  body.print-ficha>*:not(#modal){display:none!important}
-  body.print-ficha{background:#fff!important}
-  body.print-ficha #modal{position:static;display:block;background:none;padding:0;overflow:visible}
-  body.print-ficha .sheet{max-width:none;border:0;border-radius:0;padding:0;box-shadow:none;background:#fff}
-  body.print-ficha #mclose,body.print-ficha .no-print{display:none!important}
-  body.print-ficha .print-only{display:block}
-  body.print-ficha .print-hd{display:flex!important;justify-content:space-between;align-items:center;font-size:12px;color:#444;text-align:right;border-bottom:2px solid #551CE3;padding-bottom:8px;margin-bottom:12px}
-  body.print-ficha .print-ft{font-size:9.5px;color:#666;border-top:1px solid #ccc;padding-top:6px;margin-top:14px}
-  body.print-ficha .cedbox,body.print-ficha .kv,body.print-ficha .pillars,body.print-ficha .verdict-box,body.print-ficha svg,body.print-ficha canvas,body.print-ficha .pro,body.print-ficha .con{break-inside:avoid}
-  body.print-ficha *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-}
-.sheet{background:var(--card);color:var(--ink);border-radius:16px;max-width:980px;width:100%;padding:20px;position:relative;border:1px solid var(--line)}
-.close{position:absolute;top:12px;right:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:15px}
-.mhead{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;padding-right:40px}
-.mhead h3{margin:0;font-size:22px}
-.mhead .nm{color:var(--muted);font-size:13px;margin-top:2px}
-.bigscore{margin-left:auto;text-align:center;border-radius:12px;padding:8px 14px;color:#fff;min-width:96px}
-.bigscore b{display:block;font-size:30px;line-height:1}
-.bigscore small{font-size:11px;opacity:.9}
-.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 18px;margin:14px 0}
-.pillars .l{font-size:11.5px;color:var(--muted);margin-bottom:3px}
-.lists{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
-@media (max-width:820px){.lists{grid-template-columns:1fr}}
-.lists h4{margin:0 0 6px;font-size:13px}
-.lists ul{margin:0;padding-left:18px;line-height:1.5;font-size:13px}
-.lists li{margin-bottom:4px}
-.lists .pro h4{color:var(--up)}.lists .con h4{color:var(--warn)}.lists .gro h4{color:var(--accent)}
-.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 18px;font-size:13px}
-.kv div{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:4px 0;gap:8px}
-.kv span{color:var(--muted)}
-.chart{width:100%;height:auto;display:block;margin-top:6px}
-.legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
-.fh{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-.fh-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
-.fh-t{font-weight:700;font-size:13.5px}
-.fh-s{font-size:13px;margin:6px 0 0;line-height:1.45}
-.fh-pc{display:inline-block;position:relative;width:54px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--up),var(--line) 50%,var(--down));vertical-align:middle;opacity:.8}
-.bal-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px}
-.bal-card a{color:var(--accent)}
-.bal-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bal-h h4{margin:0;font-size:15px}
-.bal-m{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
-.bal-m div{background:var(--bg);border-radius:8px;padding:6px 8px}
-.bal-m .l{font-size:11px;color:var(--muted)}
-.bal-m b{font-size:14px}
-.bal-l{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.bal-l ul{margin:4px 0 0;padding-left:18px;font-size:13px}
-@media(max-width:640px){.bal-l{grid-template-columns:1fr}}
-.fh-pc i{position:absolute;top:-3px;width:4px;height:12px;border-radius:2px;margin-left:-2px;border:1px solid var(--card)}
-.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
-.cedbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px;background:var(--bg)}
-footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;color:var(--muted);line-height:1.55}
-.hide{display:none}
-</style>
-</head>
-<body>
-<header>
-  <div class="hwrap">
-    <div class="logo" style="display:flex;align-items:center"><svg viewBox="0 0 34 34" width="28" height="28" aria-hidden="true" style="flex:none;vertical-align:middle;margin-right:9px"><rect width="16" height="16" fill="#551CE3"/><rect x="18" width="16" height="16" fill="#798DF7"/><rect y="18" width="16" height="16" fill="#9AA8F9"/><rect x="18" y="18" width="16" height="16" fill="#BCC6FA"/></svg><span>PROSPEI <small>Consultores Financieros · Monitor de Mercado</small></span></div>
-    <div class="hright">
-      <span><span id="dot" class="dot load"></span><span id="upd">Cargando…</span></span>
-      <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="auto" checked> Auto 60s</label>
-      <button class="btn" id="refresh">Actualizar</button>
-      <button class="btn" id="theme">◐ Tema</button>
-    </div>
-  </div>
-</header>
+"""
+Screener PROSPEI - analisis tecnico (AT) y fundamental (AF)
+Universo: S&P 500 + ADRs argentinos + ADRs brasilenos.
+Genera data.json, que lee la pestana "Oportunidades" del monitor.
+Lo corre GitHub Actions todos los dias habiles despues del cierre de EE.UU.
+"""
+import json, math, os, time, datetime as dt
+from io import StringIO
+from concurrent.futures import ThreadPoolExecutor
 
-<main>
-  <div id="alert" class="alert"></div>
+import numpy as np
+import pandas as pd
+import requests
 
-  <section class="ticker" id="kpis"></section>
-  <section class="ticker" id="kpis-us" style="margin-top:-6px"></section>
+ADR_AR = ["GGAL", "YPF", "PAM", "BMA", "BBAR", "SUPV", "CEPU", "TGS", "EDN", "CRESY",
+          "IRS", "LOMA", "TEO", "VIST", "GLOB", "MELI", "CAAP", "BIOX"]
+ADR_BR = ["PBR", "VALE", "ITUB", "BBD", "ABEV", "NU", "SBS", "GGB", "SID",
+          "SUZ", "UGP", "CIG", "BSBR", "XP", "STNE", "PAGS", "VIV", "TIMB", "BAK"]
+TOP_N = 30
+# ---- modelos de valuación por tipo de negocio
+HOLDINGS = {"BRK-B"}                         # holdings/conglomerados: se valúan por valor libros
+BOOK_INDUSTRIES = {"Banks - Diversified", "Banks - Regional", "Insurance - Diversified",
+                   "Insurance - Property & Casualty", "Insurance - Life", "Insurance - Reinsurance",
+                   "Insurance - Specialty", "Mortgage Finance"}
+EPS_GAP = 0.40      # si la ganancia de 12 meses y la esperada difieren más de esto, el P/E no es confiable
+GROW_GAP_REV = 0.25 # ...salvo que la brecha venga de crecimiento real: ventas creciendo 25%+ y ganancia esperada mayor
+GROW_EXCL = {"Energía", "Materiales", "Financiero", "Real estate", "Utilities"}
+DIV_MIN_HIST = 1.0  # el dividendo solo entra en "vs su historia" si rinde al menos 1% (si no, la comparación es ruido)
+MODEL_TXT = {"pe": "P/E (ganancias)", "book": "precio / valor libros", "reit": "dividendo y analistas (REIT)",
+             "sales": "precio / ventas (sin ganancias)", "na": "sin método confiable"}
+TNX_YIELD = None  # se completa en main() con el bono a 10 años
+SECTOR_ETF = {"Tecnología": "XLK", "Financiero": "XLF", "Salud": "XLV", "Consumo discrecional": "XLY",
+              "Consumo básico": "XLP", "Industrial": "XLI", "Energía": "XLE", "Utilities": "XLU",
+              "Materiales": "XLB", "Real estate": "XLRE", "Comunicaciones": "XLC"}
+BENCH = "SPY"
+MACRO = {"^TNX": "Bono EE.UU. 10 años", "^VIX": "VIX", "DX-Y.NYB": "Dólar global (DXY)", "CL=F": "Petróleo WTI"}
+CYCLICAL = {"Semiconductors", "Semiconductor Equipment & Materials", "Steel", "Aluminum", "Copper",
+            "Oil & Gas E&P", "Oil & Gas Integrated", "Oil & Gas Refining & Marketing", "Oil & Gas Equipment & Services",
+            "Oil & Gas Drilling", "Auto Manufacturers", "Auto Parts", "Specialty Chemicals", "Chemicals",
+            "Marine Shipping", "Other Industrial Metals & Mining", "Agricultural Inputs", "Building Materials",
+            "Residential Construction", "Airlines", "Gold", "Silver", "Coking Coal", "Thermal Coal", "Paper & Paper Products",
+            "Lumber & Wood Production", "Trucking", "Railroads", "Farm & Heavy Construction Machinery"}
+UA = {"User-Agent": "Mozilla/5.0 (PROSPEI screener)"}
 
-  <nav class="tabs">
-    <button class="tab on" data-t="opo">Oportunidades AT + AF</button>
-    <button class="tab" data-t="map">Mapa de calor</button>
-    <button class="tab" data-t="rot">Rotación</button>
-    <button class="tab" data-t="acc">Acciones</button>
-    <button class="tab" data-t="mep">Dólar MEP por bono</button>
-    <button class="tab" data-t="ced">CEDEARs desarbitrados</button>
-    <button class="tab" data-t="pf">Mi cartera</button>
-    <button class="tab" data-t="fh">Buscador por valuación</button>
-    <button class="tab" data-t="bal">Balances</button>
-  </nav>
-
-  <!-- OPORTUNIDADES -->
-  <section id="t-opo">
-    <div class="card" id="buy-card">
-      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-        <div style="flex:1;min-width:260px">
-          <h2>Comprar hoy</h2>
-          <p class="sub">Cada sector tiene su propio perfil, según lo que funcionó en 10 años de historia: técnico ≥ 65 y fundamental ≥ 60 siempre, más la señal de entrada que sirvió en ese sector. <b>Tecnología, comunicaciones e industriales</b>: corrección con momentum (y crecimiento en tecnología e industriales), valuación con peso bajo. <b>Consumo discrecional</b>: corrección o ruptura, con recorrido a valor justo completo. <b>Utilities, salud y materiales</b>: corrección en tendencia alcista. <b>Energía</b>: corrección, ruptura o giro temprano. <b>Financiero, consumo básico y real estate</b>: ninguna señal le ganó a comprar cualquier día, así que no se marca momento de compra. Siempre sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días.</p>
-        </div>
-        <div id="verdict-count" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-      </div>
-      <div id="buy-new"></div>
-      <div class="tw"><table id="tb-buy"></table></div>
-      <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Ver también las de <b>Comprar en partes</b> (entrada escalonada con stop)</summary>
-        <div class="tw" style="margin-top:8px"><table id="tb-part"></table></div></details>
-    </div>
-    <div class="card">
-      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-        <div style="flex:1;min-width:260px">
-          <h2>Top 30 oportunidades</h2>
-          <p class="sub" id="opo-meta">Cargando análisis…</p>
-        </div>
-        <div class="bar" style="margin:0">
-          <button class="chip on" data-tf="all">Todas</button>
-          <button class="chip" data-tf="ced">Solo con CEDEAR / BYMA</button>
-          <button class="chip" data-tf="latam">ADR AR + BR</button>
-        </div>
-      </div>
-      <div class="tw"><table id="tb-top"></table></div>
-      <p class="note" style="margin-top:10px">Tocá cualquier papel para ver por qué aparece, su perspectiva de crecimiento y qué vigilar. Puntaje = 50% técnico + 50% fundamental, de 0 a 100. Solo entran papeles con tendencia alcista de largo plazo, o sobrevendidos con buenos fundamentos.</p>
-    </div>
-
-    <div class="card">
-      <h2>Universo completo</h2>
-      <p class="sub">S&amp;P 500 + ADRs argentinos y brasileños, con sus puntajes. Ordená por cualquier columna.</p>
-      <div class="bar">
-        <input type="search" id="q-uni" placeholder="Buscar ticker o empresa…">
-        <select id="f-reg"><option value="">Todas las regiones</option><option>EE.UU.</option><option>Argentina</option><option>Brasil</option></select>
-        <select id="f-sec"><option value="">Todos los sectores</option></select>
-        <label class="note" style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="f-ced"> Solo con CEDEAR / BYMA</label>
-      </div>
-      <div class="tw"><table id="tb-uni"></table></div>
-      <div style="text-align:center;margin-top:10px"><button class="chip" id="more-uni">Mostrar más</button></div>
-    </div>
-    <div class="card" id="audit-card" hidden>
-      <details><summary style="cursor:pointer"><b>Auditoría de datos</b> <span class="note" id="audit-meta"></span></summary>
-        <p class="sub" style="margin-top:8px">Empresas cuyos datos de Yahoo tienen alguna particularidad. El screener las detecta cada día y ajusta el método de valuación para que el valor justo no quede distorsionado. Tocá un ticker para ver su ficha.</p>
-        <div id="audit-list"></div></details>
-    </div>
-  </section>
-
-  <!-- MAPA -->
-  <section id="t-map" class="hide">
-    <div class="card">
-      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-        <div style="flex:1;min-width:240px"><h2>Rendimiento por sector</h2><p class="sub" style="margin:0">Variación de cada sector del S&amp;P 500 (medido con su ETF) en el período elegido. La línea punteada es el S&amp;P 500: los que la superan están liderando. Tocá un sector para ver su ficha.</p></div>
-        <div class="bar" style="margin:0">
-          <select id="sp-mode" title="Forma de las barras"><option value="center">Centrada en 0</option><option value="left">Todas a la derecha</option></select>
-          <button class="chip" data-sp="1">Día</button><button class="chip on" data-sp="5">Semana</button><button class="chip" data-sp="21">Mes</button><button class="chip" data-sp="63">3 meses</button><button class="chip" data-sp="126">6 meses</button><button class="chip" data-sp="252">12 meses</button>
-        </div>
-      </div>
-      <div id="secperf" style="margin-top:10px"></div>
-    </div>
-    <div class="card">
-      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px">
-        <div style="flex:1;min-width:240px"><h2>Mapa de calor</h2><p class="sub" style="margin:0">Cada rectángulo es una empresa: el tamaño es su capitalización y el color, la variación. Tocá uno para ver la ficha.</p></div>
-        <div class="bar" style="margin:0">
-          <button class="chip on" data-hu="us">S&amp;P 500</button>
-          <button class="chip" data-hu="latam">ADRs AR + BR</button>
-        </div>
-      </div>
-      <div id="secgrid" class="secgrid"></div>
-      <div class="bar">
-        <button class="chip on" data-hm="r1d">Var. día</button>
-        <button class="chip" data-hm="r1m">1 mes</button>
-        <button class="chip" data-hm="r6m">6 meses</button>
-        <button class="chip" data-hm="r12m">12 meses</button>
-        <button class="chip" data-hm="score">Puntaje PROSPEI</button>
-        <span class="note" id="hm-legend" style="margin-left:auto"></span>
-      </div>
-      <div id="heat" class="tmap"></div>
-      <div id="tmtip" class="tmtip hide"></div>
-    </div>
-  </section>
-
-  <!-- ROTACION -->
-  <section id="t-rot" class="hide">
-    <div class="card">
-      <h2>Rotación sectorial</h2>
-      <p class="sub">Dónde está hoy cada sector frente al S&amp;P 500. Horizontal: si le gana o le pierde. Vertical: si viene acelerando o frenándose. Los sectores suelen girar en sentido horario: Mejorando → Liderando → Perdiendo impulso → Rezagado. <b>Tocá un sector</b> para ver su recorrido, o mirá <b>todos moviéndose a la vez</b>.</p>
-      <div class="bar" style="margin:4px 0 8px;gap:6px;flex-wrap:wrap;align-items:center"><span class="note">Recorrido:</span><button class="chip" data-rrgp="26">6 meses</button><button class="chip" data-rrgp="52">12 meses</button><span style="flex:1"></span><button class="chip on" id="rrg-all">▶ Ver todos moviéndose</button></div>
-      <div id="rrg-note" class="note" style="margin-bottom:6px"></div>
-      <div class="mm-wrap"><div id="rrg-sec" class="mm-chart"></div><div id="rrg-sec-panel" class="mm-side"></div></div>
-      <div id="rrg-sec-list" class="secgrid" style="margin-top:10px"></div>
-    </div>
-    <div class="card">
-      <h2>Mapa de valor y momentum</h2>
-      <p class="sub">Cada punto es una acción. Horizontal: descuento (izquierda) o premio (derecha) frente a su valor justo estimado; la línea punteada es el valor justo. Vertical: momentum técnico (medias de 50 y 200, RSI y MACD). Ciclo típico: <b style="color:#d93025">Evitar</b> → <b style="color:#1d7af3">Vigilar</b> → <b style="color:#0f9d58">Compra</b> → <b style="color:#b98a00">Mantener</b>. <b>Tocá una acción</b> para ver cómo recorrió el ciclo.</p>
-      <div class="bar">
-        <button class="chip on" data-vmr="us">S&amp;P 500</button>
-        <button class="chip" data-vmr="latam">ADRs AR + BR</button>
-        <select id="vm-sec"><option value="">Todos los sectores</option></select>
-        <input type="search" id="vm-q" list="vm-qlist" placeholder="Buscar papel, ej. MU" autocomplete="off" style="max-width:190px;text-transform:uppercase"><datalist id="vm-qlist"></datalist>
-        <span id="vm-qmsg" class="note"></span>
-        <span id="vm-count" style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap"></span>
-      </div>
-      <div class="mm-wrap"><div id="vm-map" class="mm-chart"></div><div id="vm-panel" class="mm-side"></div></div>
-      <div class="bar" style="margin-top:14px">
-        <button class="chip on" data-vmf="buy">En zona de compra</button>
-        <button class="chip" data-vmf="new">Recién entraron a compra</button>
-        <button class="chip" data-vmf="turn">Por girar</button>
-        <button class="chip" data-vmf="fair">Llegando a valor justo</button>
-        <button class="chip" data-vmf="all">Todas</button>
-      </div>
-      <h3 style="margin:4px 0 8px;font-size:15px" id="vm-tbl-title">En zona de compra</h3>
-      <div class="tw"><table id="tb-vm"></table></div>
-      <p class="note" style="margin-top:10px">Tocá una fila para ver su recorrido en el mapa. Valor justo estimado = promedio de tres métodos: ganancia esperada × P/E mediano de su industria (o sector si tiene menos de 5 pares), ganancia esperada × su propio P/E promedio de los últimos años, y precio objetivo de los analistas. Está <b>calibrado contra el mercado</b>: la acción típica del S&amp;P 500 queda justo en su valor justo, así el eje muestra cuánto más barata o cara está cada una frente al resto. Descuentos de más de 35% se marcan como "valuación dudosa". En los ADRs de Argentina y Brasil, los múltiplos de sus pares de EE.UU. se <b>ajustan por riesgo país</b> (el descuento típico de su mercado) y los analistas por el optimismo típico de ese mercado: el monitor elige las mejores <i>dentro</i> de cada país. Si una ADR informa sus balances en pesos o reales, no se usan su precio/ventas ni su historia de múltiplos, porque no son comparables con el precio en dólares. Si los datos de una acción quedan fuera de la escala, al tocarla el mapa se amplía para mostrar su recorrido completo. Herramienta de screening, no es una recomendación.</p>
-    </div>
-  </section>
-
-  <!-- ACCIONES -->
-  <section id="t-acc" class="hide">
-    <div class="card">
-      <h2>Acciones argentinas</h2>
-      <p class="sub">Precio en pesos y en dólares (al CCL de referencia). Para las que tienen ADR, se muestra el CCL implícito y cuánto se aparta del CCL de referencia. Marcá ★ para armar tu lista.</p>
-      <div class="bar">
-        <input type="search" id="q-acc" placeholder="Buscar ticker…">
-        <button class="chip on" data-pa="lider">Panel líder</button>
-        <button class="chip" data-pa="general">Panel general</button>
-        <button class="chip" data-pa="fav">★ Mi lista</button>
-      </div>
-      <div class="tw"><table id="tb-acc"></table></div>
-    </div>
-  </section>
-
-  <!-- MEP -->
-  <section id="t-mep" class="hide">
-    <div class="grid2" style="margin-bottom:14px">
-      <div class="best-box">
-        <div class="l">Mejor bono para <b>COMPRAR</b> dólares MEP (pagás menos pesos por dólar)</div>
-        <div class="v" id="bestC">—</div>
-        <div class="note" id="bestCn"></div>
-        <div class="calc">
-          <span>Tengo $</span><input type="number" id="calcA" placeholder="1000000" min="0">
-          <span id="calcAr" class="mono">→ US$ —</span>
-        </div>
-      </div>
-      <div class="best-box">
-        <div class="l">Mejor bono para <b>VENDER</b> dólares MEP (recibís más pesos por dólar)</div>
-        <div class="v" id="bestV">—</div>
-        <div class="note" id="bestVn"></div>
-        <div class="calc">
-          <span>Tengo US$</span><input type="number" id="calcU" placeholder="1000" min="0">
-          <span id="calcUr" class="mono">→ $ —</span>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Dólar MEP y CCL implícito por bono</h2>
-      <p class="sub"><b>Compra MEP</b> = punta vendedora en pesos ÷ punta compradora en dólares (lo que pagás). <b>Venta MEP</b> = punta compradora en pesos ÷ punta vendedora en dólares (lo que recibís). Se ordena por liquidez en dólares. Fuera de horario de mercado se usan precios de cierre.</p>
-      <div class="bar">
-        <input type="search" id="q-mep" placeholder="Buscar bono…">
-        <button class="chip on" data-lq="1">Solo con operaciones</button>
-        <button class="chip" data-lq="0">Todos</button>
-      </div>
-      <div class="tw"><table id="tb-mep"></table></div>
-      <p class="note" style="margin-top:10px">Los valores no incluyen comisiones, derechos de mercado ni plazos de liquidación. Verificá las condiciones con tu ALyC antes de operar.</p>
-    </div>
-  </section>
-
-  <!-- CEDEARS -->
-  <section id="t-ced" class="hide">
-    <div class="card">
-      <h2>CEDEARs desarbitrados</h2>
-      <p class="sub"><b>Precio justo en pesos</b> = precio en EE.UU. ÷ ratio × CCL. <b>Precio justo en D</b> (dólar MEP) = precio en EE.UU. ÷ ratio × (CCL ÷ MEP). <b>Desarbitraje</b> = precio de mercado ÷ precio justo − 1: negativo es <span class="up"><b>barato</b></span>, positivo es <span class="down"><b>caro</b></span>, entre −1% y +1% está en precio. Puede haber desarbitraje en D y no en pesos (o al revés) cuando el <b>TC del papel</b> (precio en pesos ÷ precio en D) se aparta del MEP. <b>Conviene comprar en</b>: la moneda en la que el CEDEAR está más barato frente a su precio justo.</p>
-      <p class="note" id="ced-refs" style="margin:-4px 0 10px"></p>
-      <div class="bar">
-        <input type="search" id="q-ced" placeholder="Buscar CEDEAR…">
-        <button class="chip on" data-cf="all">Todos</button>
-        <button class="chip" data-cf="cheap">Baratos (&lt; −1%)</button>
-        <button class="chip" data-cf="exp">Caros (&gt; +1%)</button>
-        <button class="chip" data-cf="split">Desarbitraje solo en $ o solo en D</button>
-        <button class="chip" data-cf="fav">★ Mi lista</button>
-        <label class="note" style="display:flex;align-items:center;gap:6px">CCL ref.
-          <select id="cclsrc"><option value="bono">Bonos (AL30C/GD30C)</option><option value="ced">Mediana CEDEARs</option></select>
-        </label>
-      </div>
-      <div class="tw"><table id="tb-ced"></table></div>
-      <p class="note" style="margin-top:10px">Ratios según el listado de BYMA (actualización sep-2026). Si un ratio cambió por un split, el desvío se dispara: esas filas se marcan “revisar ratio” y quedan fuera de los rankings. Podés corregir el ratio con el botón ✎ (se guarda solo en tu navegador).</p>
-    </div>
-  </section>
-
-  <!-- BALANCES -->
-  <section id="t-bal" class="hide">
-    <div class="card">
-      <h2>Balances: quién presenta y cómo le fue</h2>
-      <p class="sub">Empresas del monitor que presentan resultados hoy y en los próximos 7 días, con lo que esperan los analistas, y el resumen de las que ya presentaron: ventas, márgenes, ganancia contra lo esperado, caja y reacción del precio. Se actualiza todos los días al cierre. <span class="note" id="bal-meta"></span></p>
-      <div class="bar" style="flex-wrap:wrap"><input type="search" id="bal-q" placeholder="Buscar ticker o nombre…"><button class="chip on" data-balf="all">Todas</button><button class="chip" data-balf="pf">Solo mi cartera</button><button class="chip" data-balf="big">Las más grandes (más de US$ 100.000 M)</button></div>
-    </div>
-    <div class="card"><h3 style="margin:0 0 6px">Presentan hoy y en los próximos 7 días</h3><div id="bal-up"></div></div>
-    <div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">Ya presentaron</h3><div class="bar" style="margin:0"><button class="chip on" data-bald="7">Últimos 7 días</button><button class="chip" data-bald="30">Últimos 30 días</button></div></div><div id="bal-rec"></div>
-      <p class="note" style="margin-top:10px">Números de Yahoo Finance, que suele cargar el trimestre entre unas horas y un par de días después del anuncio. Lo que la empresa espera para el próximo trimestre (la "guía") no viene en estos datos: está en el comunicado, en el enlace a la SEC de cada empresa. El resumen es automático y no es una recomendación.</p></div>
-  </section>
-
-  <!-- BUSCADOR POR HISTORIA DE VALUACIÓN -->
-  <section id="t-fh" class="hide">
-    <div class="card">
-      <h2>Buscador por valuación e historia de ganancias</h2>
-      <p class="sub">Compara cada empresa contra <b>su propia historia</b>: si hoy cotiza cara o barata frente a lo que se pagó por ella en los últimos 10 años, cuánto crecieron sus ganancias y ventas, si recompra acciones y si sus ganancias están respaldadas por caja. Para bancos y aseguradoras se usa precio / valor libros; para empresas sin ganancias, precio / ventas. Tocá una fila para ver los gráficos.</p>
-      <div class="bar" style="flex-wrap:wrap">
-        <input type="search" id="fh-q" placeholder="Buscar ticker o nombre…">
-        <select id="fh-sec"><option value="">Todos los sectores</option></select>
-        <span class="note" id="fh-n"></span>
-      </div>
-      <div class="bar" id="fh-pre" style="flex-wrap:wrap;margin-top:6px"></div>
-      <p class="note" id="fh-meta" style="margin:6px 0"></p>
-      <div class="tw"><table id="tb-fh"></table></div>
-      <button class="chip" id="fh-more" hidden style="margin-top:8px">Ver todas</button>
-      <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Cómo leer cada columna</summary>
-        <ul class="note" style="padding-left:18px">
-          <li><b>Percentil vs. su historia</b>: de 0 a 100. 20 significa que en el 80% de los meses de los últimos 10 años estuvo más cara que hoy (verde = barata contra su propia norma; rojo = cara).</li>
-          <li><b>vs. P/E pagado por ganancia siguiente</b>: compara el P/E esperado de hoy (con la ganancia que estiman los analistas) contra lo que históricamente se pagó por la ganancia que efectivamente llegó al año siguiente.</li>
-          <li><b>Ganancia / ventas / precio 5 años</b>: crecimiento anual compuesto. Si la ganancia crece más que el precio, la acción se fue abaratando.</li>
-          <li><b>Acciones 5 años</b>: negativo = recompró acciones (bueno para el accionista); positivo = emitió (dilución).</li>
-          <li><b>Caja / ganancia</b>: flujo de caja libre sobre ganancia neta. Cerca o arriba de 1 = ganancias respaldadas por caja.</li>
-          <li>Barata contra su historia no es lo mismo que oportunidad: puede estar barata porque el negocio empeoró. Mirarlo junto con el veredicto del monitor y el crecimiento.</li>
-        </ul></details>
-    </div>
-  </section>
-
-  <!-- MI CARTERA -->
-  <section id="t-pf" class="hide">
-    <div class="card">
-      <h2>Mi cartera: ¿vendo o mantengo?</h2>
-      <p class="sub">Cargá los papeles que tenés con fecha y precio de compra. El monitor los revisa todos los días contra tu compra y te dice qué hacer con cada uno: 🟢 Mantener · 🟡 Revisar · 🟠 Tomar ganancia o reducir · 🔴 Vender. <b>Tus datos quedan guardados solo en este navegador</b>: nadie más los ve. Para pasarlos a otro dispositivo usá Exportar / Importar.</p>
-      <div class="pf-form">
-        <label>Papel<input id="pf-t" list="pf-list" placeholder="Ej. MSFT" autocomplete="off"><datalist id="pf-list"></datalist></label>
-        <label>Instrumento<select id="pf-i"><option value="us">Acción en EE.UU. (US$)</option><option value="ars">CEDEAR / BYMA en pesos</option><option value="mep">CEDEAR / BYMA en dólares (D)</option></select></label>
-        <label>Fecha de compra<input id="pf-d" type="date"></label>
-        <label>Precio de compra<input id="pf-p" type="number" step="any" min="0" placeholder="por unidad"></label>
-        <label>Cantidad <span class="note">(opcional)</span><input id="pf-q" type="number" step="any" min="0" placeholder="—"></label>
-        <button class="chip on" id="pf-add">Agregar</button>
-      </div>
-      <p class="note" id="pf-msg" style="min-height:18px;margin:6px 0 0"></p>
-    </div>
-    <div class="card">
-      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-        <div style="flex:1;min-width:240px"><h2>Revisión de hoy</h2><p class="sub" id="pf-meta">Todavía no cargaste papeles.</p></div>
-        <div class="bar" style="margin:0"><button class="chip" id="pf-exp">Exportar</button><label class="chip" style="cursor:pointer">Importar<input type="file" id="pf-imp" accept=".json,application/json" hidden></label></div>
-      </div>
-      <div id="pf-sum"></div>
-      <div id="pf-list-body"></div>
-      <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Cómo decide el monitor (reglas iniciales)</summary>
-        <ul class="note" style="padding-left:18px">
-          <li>🔴 <b>Vender</b>: tendencia de largo plazo bajista confirmada · stop: perdés 10% o más y la tendencia no acompaña · perdés más de 20% en cualquier caso · cayó 15% o más desde el máximo posterior a tu compra y además perdió la media de 200.</li>
-          <li>🟠 <b>Tomar ganancia parcial</b>: ganás y ya supera su valor justo · ganás y está en pico de ciclo · devolvió 15% o más desde el máximo pero seguís ganando · ganás 30% o más y está sobrecomprada (RSI mayor a 75).</li>
-          <li>🟡 <b>Revisar</b>: tendencia en definición o bajista en formación · perdió impulso · el monitor dice Evitar · Death Cross · cerca del stop (−7%) · perdés 10% o más con tendencia todavía alcista · presenta balance en 7 días o menos · pesa más del 20% de tu cartera (o su sector más del 40%).</li>
-          <li><b>Riesgo de baja</b> (0 a 5): tendencia de largo plazo bajista · perforó su último mínimo · cara con ganancias esperadas en baja · pico de ciclo · Death Cross o media de 200 bajando. Ninguna sola anticipa una caída con seguridad, pero cuando se juntan 3 o más las chances empeoran y las caídas suelen ser más profundas: en ese caso la sugerencia pasa a 🔴 Vender.</li>
-          <li>🟢 <b>Mantener</b>: ninguna de las anteriores.</li>
-          <li>El resultado se calcula en la moneda en que compraste: en pesos incluye la suba del dólar. El máximo y la tendencia se miden sobre la acción en EE.UU. Son reglas iniciales: las vamos a validar con el track récord.</li>
-        </ul></details>
-    </div>
-  </section>
-
-
-</main>
-
-<div id="modal" class="modal hide" role="dialog" aria-modal="true">
-  <div class="sheet">
-    <button class="close" id="mclose" aria-label="Cerrar">✕</button>
-    <div id="mbody"></div>
-  </div>
-</div>
-
-<footer>
-  Información de carácter informativo y educativo. Los puntajes y oportunidades son una herramienta de screening cuantitativo y no constituyen recomendación de compra o venta de valores negociables; cada decisión debe evaluarse según el perfil de riesgo del inversor. Datos de terceros (data912.com, dolarapi.com, argentinadatos.com) que pueden tener demora o errores; verificá precios en tu ALyC antes de operar. Rendimientos pasados no garantizan resultados futuros. · PROSPEI Consultores Financieros
-</footer>
-
-<script>
-(function(){
-"use strict";
-const API='https://data912.com/live/';
-const LIDER=['ALUA','BBAR','BMA','BYMA','CEPU','COME','CRES','EDN','GGAL','IRSA','LOMA','METR','PAMP','SUPV','TECO2','TGNO4','TGSU2','TRAN','TXAR','VALO','YPFD'];
-/* ratio "a:b" = a CEDEARs equivalen a b acciones */
-const RATIOS={AAPL:'20:1',ABBV:'10:1',ABEV:'1:3',ABNB:'15:1',ABT:'4:1',ACN:'75:1',ADBE:'44:1',ADGO:'1:1',ADI:'15:1',AEM:'6:1',AIG:'5:1',AMAT:'5:1',AMD:'10:1',AMGN:'30:1',AMX:'1:1',AMZN:'144:1',ANET:'29:1',ARKK:'10:1',ARM:'27:1',ASML:'146:1',ASTS:'15:1',AVGO:'39:1',AXP:'15:1',AZN:'4:1',B:'2:1',BA:'24:1','BA.C':'41:1',BABA:'9:1',BBD:'1:1',BHP:'2:1',BIDU:'11:1',BIOX:'1:1',BK:'2:1',BKNG:'700:1',BMY:'3:1',BP:'5:1',BRKB:'22:1',C:'3:1',CAAP:'1:4',CAT:'20:1',CCJ:'23:1',CDE:'1:1',CEG:'45:1',CL:'3:1',COIN:'27:1',COP:'25:1',COST:'48:1',CRM:'18:1',CRWD:'79:1',CRWV:'27:1',CSCO:'5:1',CVS:'15:1',CVX:'16:1',CX:'1:1',DAL:'8:1',DE:'40:1',DELL:'74:1',DIA:'20:1',DISN:'12:1',EBAY:'2:1',EEM:'5:1',ETHA:'5:1',EWZ:'2:1',F:'1:1',FCX:'3:1',FDX:'10:1',FSLR:'18:1',FXI:'5:1',GDX:'10:1',GE:'8:1',GEV:'180:1',GFI:'1:1',GGB:'1:4',GILD:'4:1',GLD:'50:1',GLOB:'18:1',GM:'6:1',GOOGL:'58:1',GS:'13:1',HD:'32:1',HIMS:'4:1',HMY:'1:1',HON:'8:1',HOOD:'29:1',HSBC:'2:1',IBIT:'10:1',IBM:'15:1',INTC:'5:1',IREN:'12:1',ISRG:'90:1',ITUB:'1:1',IWM:'10:1',JD:'4:1',JNJ:'15:1',JPM:'15:1',KLAC:'34:1',KO:'5:1',LLY:'56:1',LMT:'20:1',LRCX:'56:1',MA:'33:1',MCD:'24:1',MELI:'120:1',META:'24:1',MMM:'10:1',MO:'4:1',MRK:'5:1',MRVL:'14:1',MSFT:'30:1',MSTR:'20:1',MU:'5:1',NBIS:'27:1',NEM:'3:1',NFLX:'48:1',NIO:'4:1',NKE:'12:1',NOW:'172:1',NU:'2:1',NVDA:'24:1',NVO:'7:1',OKLO:'28:1',ORCL:'3:1',OXY:'5:1',PAAS:'3:1',PAGS:'3:1',PANW:'50:1',PBR:'1:1',PDD:'25:1',PEP:'18:1',PFE:'4:1',PG:'15:1',PLTR:'3:1',PYPL:'8:1',QCOM:'11:1',QQQ:'20:1',RIO:'8:1',RKLB:'12:1',SBUX:'12:1',SE:'32:1',SHOP:'107:1',SLV:'6:1',SMH:'50:1',SNDK:'170:1',SNOW:'30:1',SPOT:'28:1',SPY:'60:1',STNE:'3:1',T:'3:1',TEN:'1:1',TGT:'24:1',TMO:'22:1',TSLA:'15:1',TSM:'9:1',TXN:'5:1',TXR:'4:1',UBER:'2:1',UNH:'33:1',V:'18:1',VALE:'2:1',VIST:'3:1',VST:'26:1',VZ:'4:1',WFC:'5:1',WMT:'18:1',XLE:'2:1',XLF:'2:1',XOM:'10:1',XP:'4:1',XYZ:'20:1',ZM:'47:1'};
-Object.assign(RATIOS,{SKHY:'25:1',TEM:'12:1',CLS:'20:1',MP:'10:1',ONDS:'2:1',RGTI:'2:1',BMNR:'8:1',TLN:'63:1',XLK:'46:1',XLF:'2:1',XLV:'29:1',XLY:'43:1',XLP:'16:1',XLI:'28:1',XLE:'2:1',XLU:'15:1',XLB:'18:1',XLRE:'9:1',XLC:'19:1',AAL:'2:1',ADP:'6:1',AVY:'18:1',BIB:'13:1',BKR:'7:1',BX:'30:1',CAH:'3:1',CCL:'3:1',DD:'5:1',DECK:'25:1',DHR:'54:1',DOW:'6:1',EA:'14:1',ECL:'56:1',EFX:'16:1',ETSY:'16:1',GLW:'41:1',GRMN:'3:1',HAL:'2:1',HOG:'3:1',HPQ:'1:1',HSY:'21:1',HWM:'1:1',IBKR:'17:1',IFF:'12:1',IP:'4:1',JCI:'2:1',KMB:'6:1',LIN:'102:1',LVS:'2:1',MDLZ:'15:1',MDT:'4:1',MMC:'16:1',MOS:'5:1',MRNA:'19:1',MS:'41:1',MSI:'20:1',NEE:'19:1',NUE:'16:1',O:'13:1',ORLY:'222:1',PCAR:'3:1',PLD:'29:1',PM:'18:1',PSX:'6:1',ROST:'41:1',RTX:'5:1',SCHW:'13:1',SHW:'69:1',SLB:'3:1',SNA:'6:1',SPGI:'45:1',SWKS:'21:1',SYY:'8:1',TJX:'22:1',TMUS:'33:1',TRVV:'6:1',UAL:'5:1',UNP:'20:1',USB:'5:1',VRSN:'6:1',VRTX:'101:1',WDC:'92:1',WELL:'48:1',SBS:'1:2',EBR:'1:4',SID:'1:8',ERJ:'1:1',SUZ:'1:1',BRFS:'1:3',UGP:'1:1',ELP:'1:13',BSBR:'1:1',VIV:'1:1',TIMB:'1:1',BAK:'2:1'});
-const USMAP={'BA.C':['BAC'],BRKB:['BRK.B','BRK-B','BRKB','BRK/B'],DISN:['DIS'],B:['B','GOLD'],BIB:['BIIB'],TRVV:['TRV']};
-const CED_INV={BAC:'BA.C','BRK-B':'BRKB',DIS:'DISN',BIIB:'BIB',TRV:'TRVV',GOOG:'GOOGL'};
-const AR_LOCAL={GGAL:'GGAL',YPF:'YPFD',PAM:'PAMP',BMA:'BMA',BBAR:'BBAR',SUPV:'SUPV',CEPU:'CEPU',TGS:'TGSU2',EDN:'EDN',CRESY:'CRES',IRS:'IRSA',LOMA:'LOMA',TEO:'TECO2'};
-const MAXDESV=0.25;
-
-/* ---------- helpers ---------- */
-const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
-const ok=x=>typeof x==='number'&&isFinite(x)&&x>0;
-const fmt=(n,d=2)=>(n==null||!isFinite(n))?'—':n.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
-const pct=(x,d=2)=>(x==null||!isFinite(x))?'—':(x>0?'+':'')+fmt(x*100,d)+'%';
-const cls=x=>x==null?'':(x>0?'up':(x<0?'down':''));
-const vol=n=>{if(!isFinite(n)||n==null)return'—';const a=Math.abs(n);if(a>=1e9)return fmt(n/1e9,1)+' B';if(a>=1e6)return fmt(n/1e6,1)+' M';if(a>=1e3)return fmt(n/1e3,1)+' K';return fmt(n,0)};
-const median=a=>{const b=a.filter(isFinite).sort((x,y)=>x-y);if(!b.length)return null;const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2};
-function store(k,v){try{if(v===undefined){const r=localStorage.getItem('prospei_'+k);return r?JSON.parse(r):null}localStorage.setItem('prospei_'+k,JSON.stringify(v))}catch(e){return null}}
-function parseRatio(s){const m=String(s).match(/^\s*(\d+(?:[.,]\d+)?)\s*:\s*(\d+(?:[.,]\d+)?)\s*$/);if(!m)return null;const a=parseFloat(m[1].replace(',','.')),b=parseFloat(m[2].replace(',','.'));return a>0&&b>0?{a,b,str:a+':'+b}:null}
-async function getJ(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(url+' → '+r.status);return r.json()}
-
-/* ---------- state ---------- */
-const S={data:{},ref:{},sort:{buy:['score',-1],part:['score',-1],acc:['vol',-1],mep:['liq',-1],ced:['desv',1],top:['rank',1],uni:['score',-1],vm:['fair_up',-1],fh:['pc',1]},
-  fav:new Set(store('fav')||[]),ratioOv:store('ratios')||{},pa:'lider',lq:'1',cf:'all',cclsrc:'bono'};
-function saveFav(){store('fav',[...S.fav])}
-
-/* ---------- theme ---------- */
-(function(){const t=store('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
-$('#theme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);store('theme',n)};
-
-/* ---------- tabs & filters ---------- */
-$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf','fh','bal'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='fh')initFHTab();if(b.dataset.t==='bal')initBal();if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
-function chipGroup(attr,key,fn){$$('[data-'+attr+']').forEach(b=>b.onclick=()=>{$$('[data-'+attr+']').forEach(x=>x.classList.toggle('on',x===b));S[key]=b.dataset[attr];fn()})}
-chipGroup('pa','pa',renderAcc);chipGroup('lq','lq',renderMep);chipGroup('cf','cf',renderCed);
-$('#q-acc').oninput=renderAcc;$('#q-mep').oninput=renderMep;$('#q-ced').oninput=renderCed;
-$('#cclsrc').onchange=e=>{S.cclsrc=e.target.value;renderCed()};
-$('#calcA').oninput=calc;$('#calcU').oninput=calc;
-
-/* ---------- generic table ---------- */
-function table(el,key,cols,rows,rowCls,limit){
-  const [sk,sd]=S.sort[key];
-  const r=rows.slice().sort((a,b)=>{const x=a[sk],y=b[sk];const xa=(x==null||(typeof x==='number'&&!isFinite(x))),ya=(y==null||(typeof y==='number'&&!isFinite(y)));if(xa&&ya)return 0;if(xa)return 1;if(ya)return -1;return (typeof x==='string'?x.localeCompare(y):x-y)*sd}).slice(0,limit||Infinity);
-  let h='<thead><tr>'+cols.map(c=>`<th class="${c.n?'n':''}" data-k="${c.k}">${c.h}${c.k===sk?`<span class="ar">${sd>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr></thead><tbody>';
-  if(!r.length)h+=`<tr><td colspan="${cols.length}" class="note" style="text-align:center;padding:20px">Sin datos para mostrar.</td></tr>`;
-  r.forEach(o=>{h+=`<tr class="${rowCls?rowCls(o):''}"${o.t?` data-t="${o.t}"`:''}>`+cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(o):(o[c.k]??'—')}</td>`).join('')+'</tr>'});
-  el.innerHTML=h+'</tbody>';
-  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab})[key]()});
-  el.querySelectorAll('.star').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=b.dataset.s;S.fav.has(s)?S.fav.delete(s):S.fav.add(s);saveFav();renderAcc();renderCed();renderTop();renderUni()});
-  el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t));
-  el.querySelectorAll('.edit').forEach(b=>b.onclick=e=>{e.stopPropagation();editRatio(b.dataset.s)});
-}
-const star=s=>`<button class="star ${S.fav.has(s)?'on':''}" data-s="${s}" title="Mi lista">${S.fav.has(s)?'★':'☆'}</button>`;
-
-/* ---------- MEP / CCL por bono ---------- */
-function buildBonds(bonds){
-  const m={};bonds.forEach(b=>{if(b&&b.symbol)m[b.symbol]=b});
-  const rows=[];
-  bonds.forEach(b=>{
-    const s=b.symbol;if(!s)return;const u=m[s+'D'];if(!u)return;const c=m[s+'C'];
-    const live=ok(b.px_ask)&&ok(b.px_bid)&&ok(u.px_ask)&&ok(u.px_bid);
-    rows.push({sym:s,ars:b,usd:u,cbl:c,live,
-      compra:(ok(b.px_ask)&&ok(u.px_bid))?b.px_ask/u.px_bid:null,
-      venta:(ok(b.px_bid)&&ok(u.px_ask))?b.px_bid/u.px_ask:null,
-      ult:(ok(b.c)&&ok(u.c))?b.c/u.c:null,
-      ccl:(c&&ok(b.c)&&ok(c.c))?b.c/c.c:null,
-      cclC:(c&&ok(b.px_ask)&&ok(c.px_bid))?b.px_ask/c.px_bid:null,
-      liq:ok(u.v)?u.v:0, varA:b.pct_change, pa:b.c, pu:u.c});
-  });
-  /* control de datos absurdos */
-  const med=median(rows.map(r=>r.ult).filter(x=>x));
-  rows.forEach(r=>{r.out=!!(med&&r.ult&&(r.ult>med*1.15||r.ult<med*0.85));if(r.out){r.compra=r.venta=null}
-    if(r.compra&&med&&(r.compra>med*1.15||r.compra<med*0.85))r.compra=null;
-    if(r.venta&&med&&(r.venta>med*1.15||r.venta<med*0.85))r.venta=null;
-    r.spread=(r.compra&&r.venta)?r.compra/r.venta-1:null});
-  return {rows,med};
-}
-function pickRef(rows,key,prefs){for(const p of prefs){const r=rows.find(x=>x.sym===p&&x[key]&&!x.out);if(r)return {v:r[key],src:p}}const md=median(rows.filter(r=>!r.out).map(r=>r[key]).filter(x=>x));return md?{v:md,src:'mediana'}:null}
-
-function renderMep(){
-  const B=S.data.bonds;const el=$('#tb-mep');if(!B){el.innerHTML='';return}
-  const q=$('#q-mep').value.trim().toUpperCase();
-  let rows=B.rows.filter(r=>!q||r.sym.includes(q));
-  if(S.lq==='1')rows=rows.filter(r=>r.liq>0||r.live);
-  const anyLive=B.rows.some(r=>r.live&&r.compra);
-  const elig=rows.filter(r=>!r.out&&(anyLive?r.live:true)&&r.liq>0);
-  const bc=elig.filter(r=>anyLive?r.compra:r.ult).sort((a,b)=>(anyLive?a.compra-b.compra:a.ult-b.ult))[0];
-  const bv=elig.filter(r=>anyLive?r.venta:r.ult).sort((a,b)=>(anyLive?b.venta-a.venta:b.ult-a.ult))[0];
-  S.bestC=bc?{sym:bc.sym,v:anyLive?bc.compra:bc.ult}:null;S.bestV=bv?{sym:bv.sym,v:anyLive?bv.venta:bv.ult}:null;
-  $('#bestC').innerHTML=S.bestC?`${S.bestC.sym} · $ ${fmt(S.bestC.v)}`:'—';
-  $('#bestV').innerHTML=S.bestV?`${S.bestV.sym} · $ ${fmt(S.bestV.v)}`:'—';
-  const modo=anyLive?'Con puntas en vivo, entre bonos con volumen en dólares.':'Mercado cerrado: comparación con precios de cierre (no hay puntas).';
-  $('#bestCn').textContent=S.bestC?`Comprás pesos→${S.bestC.sym}, vendés ${S.bestC.sym}D. ${modo}`:modo;
-  $('#bestVn').textContent=S.bestV?`Comprás ${S.bestV.sym}D con dólares, vendés ${S.bestV.sym} en pesos. ${modo}`:modo;
-  calc();
-  const cols=[
-    {k:'sym',h:'Bono',f:o=>`<b>${o.sym}</b>${S.bestC&&o.sym===S.bestC.sym?'<span class="tag">MEJOR COMPRA</span>':''}${S.bestV&&o.sym===S.bestV.sym?'<span class="tag">MEJOR VENTA</span>':''}${o.out?' <span class="pill warn">dato dudoso</span>':''}`},
-    {k:'compra',h:'Compra MEP',n:1,f:o=>fmt(o.compra)},
-    {k:'venta',h:'Venta MEP',n:1,f:o=>fmt(o.venta)},
-    {k:'ult',h:'MEP último',n:1,f:o=>`<b>${fmt(o.ult)}</b>`},
-    {k:'spread',h:'Spread',n:1,f:o=>o.spread==null?'—':fmt(o.spread*100,2)+'%'},
-    {k:'ccl',h:'CCL (C)',n:1,f:o=>fmt(o.ccl)},
-    {k:'pa',h:'Precio $',n:1,f:o=>fmt(o.pa)},
-    {k:'pu',h:'Precio US$ (D)',n:1,f:o=>fmt(o.pu,3)},
-    {k:'varA',h:'Var. $',n:1,f:o=>`<span class="${cls(o.varA)}">${o.varA==null?'—':pct(o.varA/100)}</span>`},
-    {k:'liq',h:'Volumen D',n:1,f:o=>vol(o.liq)}
-  ];
-  table(el,'mep',cols,rows,o=>(S.bestC&&o.sym===S.bestC.sym)||(S.bestV&&o.sym===S.bestV.sym)?'best':(o.out?'dim':''));
-}
-function calc(){
-  const a=parseFloat($('#calcA').value),u=parseFloat($('#calcU').value);
-  $('#calcAr').textContent=(S.bestC&&a>0)?`→ US$ ${fmt(a/S.bestC.v)}`:'→ US$ —';
-  $('#calcUr').textContent=(S.bestV&&u>0)?`→ $ ${fmt(u*S.bestV.v)}`:'→ $ —';
+SECTOR_ES = {
+    "Technology": "Tecnología", "Information Technology": "Tecnología",
+    "Financial Services": "Financiero", "Financials": "Financiero",
+    "Healthcare": "Salud", "Health Care": "Salud",
+    "Consumer Cyclical": "Consumo discrecional", "Consumer Discretionary": "Consumo discrecional",
+    "Consumer Defensive": "Consumo básico", "Consumer Staples": "Consumo básico",
+    "Industrials": "Industrial", "Energy": "Energía", "Utilities": "Utilities",
+    "Basic Materials": "Materiales", "Materials": "Materiales",
+    "Real Estate": "Real estate", "Communication Services": "Comunicaciones",
 }
 
-/* ---------- Acciones ---------- */
-function renderAcc(){
-  const st=S.data.stocks;const el=$('#tb-acc');if(!st){el.innerHTML='';return}
-  const ccl=S.ref.ccl&&S.ref.ccl.v;const adr=S.data.adrCcl||{};
-  const q=$('#q-acc').value.trim().toUpperCase();
-  let rows=st.filter(s=>s.symbol&&ok(s.c)).map(s=>{const a=adr[s.symbol];return {sym:s.symbol,c:s.c,chg:s.pct_change,usd:ccl?s.c/ccl:null,vol:ok(s.v)?s.v*s.c:0,bid:s.px_bid,ask:s.px_ask,adr:a||null,adrDesv:(a&&ccl)?a/ccl-1:null}});
-  if(S.pa==='lider')rows=rows.filter(r=>LIDER.includes(r.sym));
-  if(S.pa==='fav')rows=rows.filter(r=>S.fav.has(r.sym));
-  if(q)rows=rows.filter(r=>r.sym.includes(q));
-  const cols=[
-    {k:'fav',h:'',f:o=>star(o.sym)},
-    {k:'sym',h:'Ticker',f:o=>`<b>${o.sym}</b>`},
-    {k:'c',h:'Precio $',n:1,f:o=>fmt(o.c)},
-    {k:'chg',h:'Var. día',n:1,f:o=>`<span class="pill ${cls(o.chg)}">${o.chg==null?'—':pct(o.chg/100)}</span>`},
-    {k:'usd',h:'Precio US$ (CCL)',n:1,f:o=>fmt(o.usd,3)},
-    {k:'bid',h:'Compra',n:1,f:o=>ok(o.bid)?fmt(o.bid):'—'},
-    {k:'ask',h:'Venta',n:1,f:o=>ok(o.ask)?fmt(o.ask):'—'},
-    {k:'vol',h:'Monto $',n:1,f:o=>vol(o.vol)},
-    {k:'adr',h:'CCL vía ADR',n:1,f:o=>fmt(o.adr)},
-    {k:'adrDesv',h:'vs CCL ref.',n:1,f:o=>o.adrDesv==null?'—':`<span class="${cls(o.adrDesv)}">${pct(o.adrDesv)}</span>`}
-  ];
-  table(el,'acc',cols,rows);
-}
 
-/* ---------- CEDEARs ---------- */
-function editRatio(sym){
-  const cur=S.ratioOv[sym]||RATIOS[sym]||'';
-  const v=prompt(`Ratio de ${sym} (CEDEARs:acciones, ej. 20:1). Vacío = volver al de BYMA.`,cur);
-  if(v===null)return;
-  if(!v.trim()){delete S.ratioOv[sym]}else{const p=parseRatio(v);if(!p){alert('Formato inválido. Usá por ejemplo 20:1');return}S.ratioOv[sym]=p.str}
-  store('ratios',S.ratioOv);buildCed();renderCed();
-}
-function buildCed(){
-  const ced=S.data.cedears,us=S.data.us;if(!ced||!us){S.data.ced=null;return}
-  const cm={};ced.forEach(c=>{if(c&&c.symbol)cm[c.symbol]=c});
-  const out=[];
-  Object.keys(RATIOS).forEach(sym=>{
-    const c=cm[sym];if(!c||!ok(c.c))return;
-    const cands=USMAP[sym]||[sym];let u=null,usym=null;for(const k of cands){if(us[k]&&ok(us[k].c)){u=us[k];usym=k;break}}if(!u)return;
-    const rs=S.ratioOv[sym]||RATIOS[sym];const r=parseRatio(rs);if(!r)return;
-    const sh=r.b/r.a; /* acciones por CEDEAR */
-    const d=cm[sym+'D'];
-    out.push({sym,usym,ratio:rs,edited:!!S.ratioOv[sym],c:c.c,chg:c.pct_change,uc:u.c,uchg:u.pct_change,
-      impl:c.c/(u.c*sh), implAsk:ok(c.px_ask)?c.px_ask/(u.c*sh):null,
-      cD:(d&&ok(d.c))?d.c:null, volD:(d&&ok(d.v))?d.v*d.c:0,
-      tc:(d&&ok(d.c))?c.c/d.c:null, vol:ok(c.v)?c.v*c.c:0, sh});
-  });
-  S.data.ced=out;
-}
-function cedCalc(r,ccl,mep){
-  /* Lógica: precio justo $ = subyacente ÷ ratio × CCL ; precio justo D = subyacente ÷ ratio × (CCL ÷ MEP) */
-  const o=Object.assign({},r);
-  const fx=(ccl&&mep)?ccl/mep:null;
-  o.justo=ccl?r.uc*r.sh*ccl:null;
-  o.justoD=fx?r.uc*r.sh*fx:null;
-  const dA=o.justo?r.c/o.justo-1:null, dD=(o.justoD&&r.cD)?r.cD/o.justoD-1:null;
-  o.badA=dA!=null&&Math.abs(dA)>MAXDESV; o.badD=dD!=null&&Math.abs(dD)>MAXDESV;
-  o.desv=o.badA?null:dA; o.desvD=o.badD?null:dD; o.rawDesv=dA; o.rawDesvD=dD; o.bad=o.badA;
-  o.tcDesv=(r.tc&&mep)?r.tc/mep-1:null;
-  const T=0.01;
-  o.onlyD=o.desvD!=null&&o.desv!=null&&Math.abs(o.desvD)>T&&Math.abs(o.desv)<=T;
-  o.onlyA=o.desvD!=null&&o.desv!=null&&Math.abs(o.desv)>T&&Math.abs(o.desvD)<=T;
-  /* dónde conviene comprar: el que esté más barato frente a su precio justo */
-  if(o.desv!=null&&o.desvD!=null&&o.volD>0){const g=o.desv-o.desvD;o.best=g>0.005?'D':g<-0.005?'$':'='}else o.best=o.desv!=null?'$':null;
-  o.bestDesv=o.best==='D'?o.desvD:o.desv;
-  return o;
-}
-const desvPill=(d,bad,raw)=>bad?`<span class="pill warn" title="Desvío ${pct(raw)}">revisar ratio</span>`:(d==null?'—':`<span class="pill ${Math.abs(d)<=0.01?'':d<0?'up':'down'}">${pct(d)} ${d<-0.01?'barato':(d>0.01?'caro':'en precio')}</span>`);
-function cedBoxExtra(code,ratio,usPx){
-  const cm={};(S.data.cedears||[]).forEach(c=>{if(c&&c.symbol)cm[c.symbol]=c});
-  const c=cm[code],d=cm[code+'D'],pr=parseRatio(ratio),ccl=S.cedRef||(S.ref.ccl&&S.ref.ccl.v),mep=S.ref.mep&&S.ref.mep.v;
-  if(!(c&&ok(c.c)&&pr&&ccl&&usPx))return '';
-  const o=cedCalc({c:c.c,cD:d&&ok(d.c)?d.c:null,volD:d&&ok(d.v)?d.v*d.c:0,uc:usPx,sh:pr.b/pr.a,tc:d&&ok(d.c)?c.c/d.c:null},ccl,mep);
-  let h=`<br>En pesos: <b>$ ${fmt(c.c)}</b> · justo $ ${fmt(o.justo)} · ${desvPill(o.desv,o.badA,o.rawDesv)}`;
-  if(o.cD)h+=`<br>En dólares (${esc(code)}D): <b>US$ ${fmt(o.cD,2)}</b> · justo US$ ${fmt(o.justoD,2)} · ${desvPill(o.desvD,o.badD,o.rawDesvD)}`;
-  if(o.best)h+=`<br>Conviene comprar en: <b>${o.best==='D'?'dólares (D)':o.best==='$'?'pesos':'indistinto'}</b>`;
-  return h;
-}
-function renderCed(){
-  const el=$('#tb-ced');const C=S.data.ced;if(!C){el.innerHTML='';return}
-  const okRows=C.filter(r=>r.vol>0);
-  let ref=S.cclsrc==='bono'&&S.ref.ccl?S.ref.ccl.v:null;
-  if(!ref){ref=median(okRows.map(r=>r.impl));}
-  const mep=S.ref.mep&&S.ref.mep.v;
-  $('#ced-refs').innerHTML=ref&&mep?`Referencias: CCL <b>$ ${fmt(ref)}</b> · MEP <b>$ ${fmt(mep)}</b> · CCL/MEP <b>${fmt(ref/mep,4)}</b>`:'';
-  const q=$('#q-ced').value.trim().toUpperCase();
-  let rows=C.map(r=>cedCalc(r,ref,mep));
-  if(q)rows=rows.filter(r=>r.sym.includes(q)||(r.usym||'').includes(q));
-  const live=r=>r.vol>0||r.volD>0;
-  if(S.cf==='cheap')rows=rows.filter(r=>live(r)&&((r.desv!=null&&r.desv<-0.01)||(r.desvD!=null&&r.desvD<-0.01&&r.volD>0)));
-  if(S.cf==='exp')rows=rows.filter(r=>live(r)&&((r.desv!=null&&r.desv>0.01)||(r.desvD!=null&&r.desvD>0.01&&r.volD>0)));
-  if(S.cf==='split')rows=rows.filter(r=>live(r)&&(r.onlyD||r.onlyA));
-  if(S.cf==='fav')rows=rows.filter(r=>S.fav.has(r.sym));
-  const cols=[
-    {k:'fav',h:'',f:o=>star(o.sym)},
-    {k:'sym',h:'CEDEAR',f:o=>`<b>${o.sym}</b>${o.usym!==o.sym?` <span class="note">(${o.usym})</span>`:''}${o.onlyD?'<div><span class="alert-tag">desarbitraje solo en D</span></div>':o.onlyA?'<div><span class="alert-tag">desarbitraje solo en $</span></div>':''}`},
-    {k:'uc',h:'Subyacente US$',n:1,f:o=>fmt(o.uc)},
-    {k:'ratio',h:'Ratio',n:1,f:o=>`<span class="mono">${o.ratio}</span>${o.edited?'*':''} <button class="star edit" data-s="${o.sym}" title="Editar ratio">✎</button>`},
-    {k:'c',h:'Precio $',n:1,f:o=>`<b>${fmt(o.c)}</b>`},
-    {k:'justo',h:'Justo $',n:1,f:o=>fmt(o.justo)},
-    {k:'desv',h:'Desarb. $',n:1,f:o=>desvPill(o.desv,o.badA,o.rawDesv)},
-    {k:'cD',h:'Precio D (US$)',n:1,f:o=>o.cD?`<b>${fmt(o.cD,2)}</b>`:'<span class="note">sin especie D</span>'},
-    {k:'justoD',h:'Justo D',n:1,f:o=>o.cD?fmt(o.justoD,2):'—'},
-    {k:'desvD',h:'Desarb. D',n:1,f:o=>o.cD?desvPill(o.desvD,o.badD,o.rawDesvD)+(o.volD>0?'':'<div class="note">sin operaciones</div>'):'—'},
-    {k:'tc',h:'TC papel ($/D)',n:1,f:o=>o.tc?`${fmt(o.tc)}<div class="note ${cls(o.tcDesv)}">${pct(o.tcDesv)} vs MEP</div>`:'—'},
-    {k:'bestDesv',h:'Conviene comprar en',f:o=>o.best==='D'?'<b class="up">Dólares (D)</b>':o.best==='$'?'<b>Pesos</b>':o.best==='='?'<span class="note">Indistinto</span>':'—'},
-    {k:'chg',h:'Var. $',n:1,f:o=>`<span class="${cls(o.chg)}">${o.chg==null?'—':pct(o.chg/100)}</span>`},
-    {k:'vol',h:'Monto $',n:1,f:o=>vol(o.vol)}
-  ];
-  S.cedRef=ref;
-  table(el,'ced',cols,rows,o=>live(o)?'':'dim');
-}
+# ---------------------------------------------------------------- universo
+def sp500():
+    try:
+        html = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+                            headers=UA, timeout=30).text
+        df = pd.read_html(StringIO(html))[0]
+        return [(str(s).replace(".", "-"), str(n), str(g)) for s, n, g in
+                zip(df["Symbol"], df["Security"], df["GICS Sector"])]
+    except Exception as e:
+        print("Wikipedia fallo, uso CSV alternativo:", e)
+        df = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv")
+        return [(str(s).replace(".", "-"), str(n), str(g)) for s, n, g in
+                zip(df["Symbol"], df["Security"], df["GICS Sector"])]
 
-/* ---------- Oportunidades AT + AF ---------- */
-const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-S.scr=null;S.tf='all';S.uniLimit=100;
-async function loadScreener(){
-  try{
-    const r=await fetch('data.json?v='+Date.now(),{cache:'no-store'});
-    if(!r.ok)throw new Error(r.status);
-    S.scr=await r.json();
-    const secs=[...new Set(S.scr.rows.map(x=>x.sector))].sort();
-    $('#f-sec').innerHTML='<option value="">Todos los sectores</option>'+secs.map(x=>`<option>${esc(x)}</option>`).join('');
-    $('#vm-sec').innerHTML='<option value="">Todos los sectores</option>'+secs.map(x=>`<option>${esc(x)}</option>`).join('');
-    const g=new Date(S.scr.generated);
-    $('#opo-meta').innerHTML=`Análisis de ${S.scr.analyzed} papeles (S&amp;P 500 + ADRs argentinos y brasileños) al cierre del ${g.toLocaleDateString('es-AR')} ${g.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}. Precio y variación del día se actualizan en vivo.`;
-  }catch(e){
-    S.scr=null;
-    $('#opo-meta').innerHTML='Todavía no hay análisis generado. En GitHub entrá a <b>Actions → Screener diario PROSPEI → Run workflow</b> y esperá unos 15 minutos.';
-  }
-  renderKpisUS();renderBuy();renderTop();renderAudit();if(!$('#t-pf').classList.contains('hide'))renderPf();renderHeat();renderSecPerf();renderUni();if(!$('#t-rot').classList.contains('hide')){renderRotSec();renderVM()}
-}
-function liveOf(t){const us=S.data.us||{};for(const k of [t,t.replace('-','.'),t.replace('-','')]){const x=us[k];if(x&&ok(x.c))return x}return null}
-function cedearOf(r){
-  if(r.region==='Argentina'&&AR_LOCAL[r.t])return {type:'local',code:AR_LOCAL[r.t]};
-  const code=CED_INV[r.t]||r.t;
-  const ratio=S.ratioOv[code]||RATIOS[code];
-  return ratio?{type:'ced',code,ratio}:null;
-}
-function enrich(r){
-  const lv=liveOf(r.t);const o=Object.assign({},r);
-  o.px=lv?lv.c:r.p;o.chg=lv&&lv.pct_change!=null?lv.pct_change/100:r.r1d;o.live=!!lv;
-  o.ced=cedearOf(r);o.hasCed=!!o.ced;
-  if(r.target&&o.px)o.upside=r.target/o.px-1;
-  return o;
-}
-const scoreCol=v=>{if(v==null)return 'var(--line)';const h=Math.max(0,Math.min(120,(v-25)/55*120));return `hsl(${h} 62% 42%)`};
-const pctCol=(x,rng)=>{if(x==null||!isFinite(x))return '#7a8597';const a=Math.min(1,Math.abs(x)/rng);return x>=0?`hsl(145 ${35+35*a}% ${46-14*a}%)`:`hsl(4 ${35+40*a}% ${52-16*a}%)`};
-const sbar=v=>`<div class="sbar"><i><b style="width:${Math.max(0,Math.min(100,v||0))}%;background:${scoreCol(v)}"></b></i><span>${v==null?'—':Math.round(v)}</span></div>`;
-const cedCell=o=>!o.ced?'<span class="note">—</span>':o.ced.type==='local'?`<span class="ced-ok">BYMA ${o.ced.code}</span>`:`<span class="ced-ok">CEDEAR ${o.ced.ratio}</span>`;
-function passTf(o){return S.tf==='ced'?o.hasCed:S.tf==='latam'?o.region!=='EE.UU.':true}
-const vdCls=v=>'vd vd-'+String(v||'').replace(/ /g,'-');
-const vdChip=o=>o.verdict?`<span class="${vdCls(o.verdict)}" title="${esc(o.verdict_why||'')}">${esc(o.verdict)}</span>${o.verdict_new?'<span class="vd-new">NUEVA</span>':''}`:'—';
-function renderAudit(){
-  const c=$('#audit-card'),A=S.scr&&S.scr.audit_summary;if(!A||!Object.keys(A).length){c.hidden=true;return}
-  c.hidden=false;const ks=Object.keys(A),n=new Set(ks.flatMap(k=>A[k])).size;
-  $('#audit-meta').textContent=`· ${n} empresas con alguna particularidad en ${ks.length} categorías`;
-  $('#audit-list').innerHTML=ks.map(k=>`<div style="margin:8px 0"><b>${esc(k)}</b> <span class="note">(${A[k].length})</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${A[k].map(t=>`<button class="chip" data-audit="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>`).join('');
-  $('#audit-list').querySelectorAll('[data-audit]').forEach(b=>b.onclick=()=>openDetail(b.dataset.audit));
-}
-/* ---------- MI CARTERA ---------- */
-S.pf=store('cartera')||[];S.hist=null;
-const PF_STOP=-0.10,PF_HARD=-0.20,PF_NEAR=-0.07,PF_TRAIL=-0.15,PF_HOT=75,PF_W=0.20,PF_WS=0.40;
-const PFL=[['🟢','Mantener'],['🟡','Revisar'],['🟠','Tomar ganancia o reducir'],['🔴','Vender']];
-const pfLbl=(l,g)=>l===2?(g!=null&&g>0?'Tomar ganancia parcial':'Reducir posición'):PFL[l][1];
-const INST={us:'Acción EE.UU. (US$)',ars:'CEDEAR en pesos',mep:'CEDEAR en dólares'};
-async function loadHist(){if(S.hist)return S.hist;try{const r=await fetch('hist.json?v='+Date.now(),{cache:'no-store'});if(r.ok)S.hist=await r.json()}catch(e){}return S.hist}
-function pfSave(){store('cartera',S.pf)}
-function cedPx(o,inst){const cm={};(S.data.cedears||[]).forEach(c=>{if(c&&c.symbol)cm[c.symbol]=c});if(!o.ced)return null;const x=cm[inst==='mep'?o.ced.code+'D':o.ced.code];return x&&ok(x.c)?x.c:null}
-function pfEval(p,o,H){
-  const R=[];const add=(l,t)=>R.push([l,t]);const px=o.px;
-  /* precio de la acción en EE.UU. a la fecha de compra y máximo desde entonces */
-  let u0=null,maxU=px;const hc=H&&H.c&&H.c[o.t];
-  let wk=null;
-  if(hc){let i=H.dates.findIndex(d=>d>=p.d);if(i<0)i=H.dates.length-1;u0=hc[i];for(let k=i;k<hc.length;k++)if(hc[k]!=null&&hc[k]>maxU)maxU=hc[k];
-    const hh=H.h&&H.h[o.t],ll=H.l&&H.l[o.t];if(hh&&ll&&hh[i]!=null&&ll[i]!=null)wk={h:hh[i],l:ll[i],end:H.dates[i]}}
-  if(p.i==='us')u0=u0||p.p;
-  const gu=u0?px/u0-1:null;
-  let now=null,approx=false;
-  if(p.i==='us')now=px;else{now=cedPx(o,p.i);if(now==null&&gu!=null){now=p.p*(1+gu);approx=true}}
-  const g=now!=null?now/p.p-1:null,ddm=maxU?px/maxU-1:null;
-  /* control del precio cargado: contra el rango mínimo-máximo de esa semana (con 3% de margen) */
-  const warnPx=p.i==='us'&&(wk?(p.p<wk.l*0.97||p.p>wk.h*1.03):(u0&&Math.abs(p.p/u0-1)>0.25));
-  /* vender */
-  if(o.trend==='Bajista confirmada')add(3,'Tendencia de largo plazo bajista confirmada: debajo de su media de 200 en diario y en semanal.');
-  const ab=x=>fmt(Math.abs(x)*100,0)+'%';
-  if(g!=null&&g<=PF_HARD)add(3,`Pérdida de ${ab(g)} desde tu compra: supera el límite de ${ab(PF_HARD)}, sin importar la tendencia.`);
-  else if(g!=null&&g<=PF_STOP&&o.trend_n<=0)add(3,`Stop: perdés ${ab(g)} desde tu compra y la tendencia no acompaña.`);
-  else if(g!=null&&g<=PF_STOP)add(1,`Perdés ${ab(g)} desde tu compra aunque la tendencia de largo plazo sigue alcista: definí si mantener o cortar.`);
-  if(ddm!=null&&ddm<=PF_TRAIL&&o.sma200&&px<o.sma200)add(3,`Cayó ${ab(ddm)} desde el máximo posterior a tu compra (US$ ${fmt(maxU)}) y perdió la media de 200.`);
-  /* tomar ganancia */
-  if(g!=null&&g>0&&o.fair_up!=null&&o.fair_up<0)add(2,`Ganás ${pct(g,1)} y ya supera su valor justo estimado (US$ ${fmt(o.fair)}, ${pct(o.fair_up,0)}).`);
-  if(g!=null&&g>0&&o.cyc)add(2,'Pico de ciclo: las ganancias de la empresa estarían por bajar. Buen momento para asegurar una parte.');
-  if(ddm!=null&&ddm<=PF_TRAIL&&gu!=null&&gu>0&&!(o.sma200&&px<o.sma200))add(2,`Devolvió ${ab(ddm)} desde el máximo posterior a tu compra (US$ ${fmt(maxU)}): proteger la ganancia que queda.`);
-  if(ddm!=null&&ddm<=PF_TRAIL&&gu!=null&&gu<=0&&!(o.sma200&&px<o.sma200))add(1,`Cayó ${ab(ddm)} desde el máximo posterior a tu compra, todavía arriba de su media de 200.`);
-  if(g!=null&&g>=0.30&&o.rsi>PF_HOT)add(2,`Ganás ${pct(g,0)} y está sobrecomprada (RSI ${fmt(o.rsi,0)}).`);
-  /* revisar */
-  if(o.trend==='Bajista en formación'||o.trend==='Zona de definición')add(1,`Tendencia: ${o.trend.toLowerCase()} alrededor de su media de 200.`);
-  if(/Perdió impulso/.test(o.vm_st||''))add(1,o.vm_st+'.');
-  if(o.verdict==='Evitar')add(1,'El monitor hoy dice Evitar: '+(o.verdict_why||'').replace(/^Evitar por ahora: /,''));
-  if(o.cross==='Death Cross reciente'||o.cross==='Death Cross en formación')add(1,o.cross+': la media de 50 cruza o está por cruzar debajo de la de 200.');
-  if(g!=null&&g<=PF_NEAR&&g>PF_STOP)add(1,`Cerca del stop: perdés ${ab(g)} (el stop sugerido es ${ab(PF_STOP)}).`);
-  if(o.earn_days!=null&&o.earn_days>=0&&o.earn_days<=7)add(1,`Presenta balance ${o.earn_days===0?'hoy':o.earn_days===1?'mañana':'en '+o.earn_days+' días'}: decidir antes si reducir.`);
-  /* riesgo de baja: 5 señales que, juntas, empeoran las chances y agrandan las caídas */
-  const brk=o.et_low!=null&&px<o.et_low*0.99;
-  if(brk)add(o.vol_ratio>1.2?2:1,`Perforó su último mínimo relevante (US$ ${fmt(o.et_low)})${o.vol_ratio>1.2?' con volumen alto':''}: el soporte cedió.`);
-  const dearCut=(o.val_verdict==='Cara'||(o.fair_up!=null&&o.fair_up<-0.10))&&o.eps>0&&o.fwd_eps!=null&&o.fwd_eps<o.eps;
-  if(dearCut)add(2,`Cara y con ganancias esperadas en baja: los analistas esperan US$ ${fmt(o.fwd_eps)} por acción contra US$ ${fmt(o.eps)} de los últimos 12 meses.`);
-  const risk=[['tendencia de largo plazo bajista',o.trend_n<=-1],['perforó su último mínimo',brk],['cara con ganancias en baja',dearCut],['pico de ciclo',!!o.cyc],
-    ['Death Cross o media de 200 bajando',o.cross==='Death Cross reciente'||o.cross==='Death Cross en formación'||(o.sma50<o.sma200&&o.slope200==='Bajando')]];
-  const rk=risk.filter(x=>x[1]).map(x=>x[0]);
-  if(rk.length>=3)add(3,`Se acumulan ${rk.length} de 5 señales de riesgo de baja (${rk.join(', ')}).`);
-  const lvl=R.length?Math.max(...R.map(x=>x[0])):0;
-  const good=[];if(o.trend_n>=1)good.push('tendencia alcista');if(o.fair_up!=null&&o.fair_up>0)good.push(`recorrido ${pct(o.fair_up,0)} a su valor justo`);if(o.verdict)good.push('veredicto del monitor: '+o.verdict);
-  return {lvl,R:R.sort((a,b)=>b[0]-a[0]),g,gu,now,approx,ddm,maxU,u0,warnPx,good,wk,rk};
-}
-async function renderPf(){
-  const dl=$('#pf-list');if(S.scr&&!dl.children.length)dl.innerHTML=S.scr.rows.map(r=>`<option value="${esc(r.t)}">${esc(r.name)}</option>`).join('');
-  if(!$('#pf-d').value)$('#pf-d').value=new Date().toISOString().slice(0,10);
-  const el=$('#pf-list-body'),sum=$('#pf-sum');
-  if(!S.pf.length){el.innerHTML='';sum.innerHTML='';$('#pf-meta').textContent='Todavía no cargaste papeles.';return}
-  if(!S.scr){el.innerHTML='<p class="note">Cargando el análisis del día…</p>';return}
-  const H=await loadHist();const rows={};S.scr.rows.forEach(r=>rows[r.t]=r);
-  const mep=S.ref.mep&&S.ref.mep.v;
-  const items=S.pf.map((p,k)=>{const r=rows[p.t];if(!r)return {p,k,miss:true};const o=enrich(r);const e=pfEval(p,o,H);
-    let val=null;if(p.q&&e.now!=null)val=p.i==='ars'?(mep?p.q*e.now/mep:null):p.q*e.now;return {p,k,o,e,val}});
-  /* concentración: valores aproximados en US$ */
-  const tot=items.reduce((a,x)=>a+(x.val||0),0);
-  if(tot>0){const bs={};items.forEach(x=>{if(x.val&&x.o)bs[x.o.sector]=(bs[x.o.sector]||0)+x.val});
-    items.forEach(x=>{if(!x.val)return;const w=x.val/tot,ws=bs[x.o.sector]/tot;x.w=w;
-      if(items.length>2&&w>PF_W)x.e.R.push([1,`Pesa ${fmt(w*100,0)}% de tu cartera: mucha concentración en un solo papel.`]);
-      if(items.length>2&&ws>PF_WS)x.e.R.push([1,`Su sector (${x.o.sector}) pesa ${fmt(ws*100,0)}% de tu cartera.`]);
-      x.e.lvl=Math.max(x.e.lvl,...x.e.R.map(y=>y[0]),0)})}
-  const cnt=[0,0,0,0];items.forEach(x=>{if(!x.miss)cnt[x.e.lvl]++});
-  $('#pf-meta').innerHTML=`${S.pf.length} posiciones · análisis del cierre del ${esc((S.scr.generated||'').slice(0,10).split('-').reverse().join('/'))} con precios en vivo${tot>0?` · valor aproximado US$ ${fmt(tot,0)}`:''}.`;
-  sum.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">${[3,2,1,0].map(l=>`<span class="pill" style="background:var(--bg);border:1px solid var(--line)">${PFL[l][0]} ${PFL[l][1]}: <b>${cnt[l]}</b></span>`).join('')}</div>`;
-  el.innerHTML=items.slice().sort((a,b)=>(b.miss?-1:b.e.lvl)-(a.miss?-1:a.e.lvl)).map(x=>{
-    const p=x.p;if(x.miss)return `<div class="pf-row"><div class="pf-st">⚪</div><div><h4>${esc(p.t)}</h4><p class="note">No está en el análisis del monitor (S&amp;P 500 y ADRs).</p></div><button class="pf-x" data-del="${x.k}">✕</button></div>`;
-    const o=x.o,e=x.e,cur=p.i==='ars'?'$':'US$';
-    return `<div class="pf-row"><div class="pf-st" title="${pfLbl(e.lvl,e.g)}">${PFL[e.lvl][0]}</div><div>
-      <h4><a href="#" data-open="${esc(o.t)}">${esc(o.t)}</a> <span class="note">${esc(o.name)} · ${INST[p.i]}</span> · <span style="font-size:14px">${pfLbl(e.lvl,e.g)}</span></h4>
-      <div class="pf-kv"><span>Compra <b>${cur} ${fmt(p.p)}</b> el ${esc(p.d.split('-').reverse().join('/'))}</span><span>Hoy <b>${e.now!=null?cur+' '+fmt(e.now):'—'}</b>${e.approx?' <span title="Sin precio en vivo del CEDEAR: estimado con la variación de la acción en EE.UU.">(aprox.)</span>':''}</span>
-        <span>Resultado <b class="${cls(e.g)}">${pct(e.g,1)}</b></span>${p.q?`<span>Cantidad <b>${fmt(p.q,0)}</b>${x.w!=null?` · ${fmt(x.w*100,0)}% de la cartera`:''}</span>`:''}
-        <span>Desde el máximo posterior a tu compra <b class="${cls(e.ddm)}">${pct(e.ddm,1)}</b></span><span>Riesgo de baja <b class="${e.rk.length>=3?'down':''}" title="${esc(e.rk.join(' · ')||'ninguna señal')}">${e.rk.length} de 5 · ${e.rk.length>=3?'alto':e.rk.length===2?'medio':'bajo'}</b></span><span>Monitor: <span class="${vdCls(o.verdict)}">${esc(o.verdict||'—')}</span></span></div>
-      ${e.R.length?`<ul>${e.R.map(r=>`<li>${PFL[r[0]][0]} ${esc(r[1])}</li>`).join('')}</ul>`:`<ul><li>🟢 Sin alertas${e.good.length?': '+esc(e.good.join(' · ')):''}.</li></ul>`}
-      ${e.warnPx?`<p class="note" style="margin:4px 0 0">⚠️ ${e.wk?`La semana de tu compra (hasta el ${esc(e.wk.end.split('-').reverse().join('/'))}) ${esc(o.t)} cotizó entre US$ ${fmt(e.wk.l)} y US$ ${fmt(e.wk.h)}, y cargaste US$ ${fmt(p.p)}`:`El precio cargado difiere más de 25% del que tenía la acción esa semana (US$ ${fmt(e.u0)})`}: revisá la fecha o el precio en el boleto. Si hubo un split después de tu compra, cargá el precio dividido por el split.</p>`:''}
-    </div><div style="display:flex;gap:6px"><button class="pf-x" data-edit="${x.k}" title="Editar">✎</button><button class="pf-x" data-del="${x.k}" title="Quitar">✕</button></div></div>`}).join('');
-  el.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const k=+b.dataset.edit,q=S.pf[k];S.pfEdit=k;$('#pf-t').value=q.t;$('#pf-i').value=q.i;$('#pf-d').value=q.d;$('#pf-p').value=q.p;$('#pf-q').value=q.q||'';$('#pf-add').textContent='Guardar cambios';$('#pf-msg').textContent='Editando '+q.t+': corregí los datos y tocá Guardar cambios.';$('#t-pf').scrollIntoView({behavior:'smooth'})});
-  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const k=+b.dataset.del;if(!confirm('¿Quitar '+S.pf[k].t+' de tu cartera?'))return;S.pf.splice(k,1);pfSave();renderPf()});
-  el.querySelectorAll('[data-open]').forEach(a=>a.onclick=ev=>{ev.preventDefault();openDetail(a.dataset.open)});
-}
-$('#pf-add').onclick=()=>{
-  const t=$('#pf-t').value.trim().toUpperCase().replace('.','-'),i=$('#pf-i').value,d=$('#pf-d').value,pp=parseFloat($('#pf-p').value),q=parseFloat($('#pf-q').value);
-  const msg=$('#pf-msg');const r=S.scr&&S.scr.rows.find(x=>x.t===t);
-  if(!r){msg.textContent='Elegí un papel del monitor (S&P 500 o ADR).';return}
-  if(!d||d>new Date().toISOString().slice(0,10)){msg.textContent='Revisá la fecha de compra.';return}
-  if(!(pp>0)){msg.textContent='Cargá el precio de compra.';return}
-  if(i!=='us'&&!cedearOf(r)){msg.textContent=`${t} no tiene CEDEAR en BYMA: cargalo como acción en EE.UU.`;return}
-  const rec={t,i,d,p:pp,q:q>0?q:null};
-  if(S.pfEdit!=null&&S.pf[S.pfEdit]){S.pf[S.pfEdit]=rec;msg.textContent=`${t} actualizado.`}else{S.pf.push(rec);msg.textContent=`${t} agregado.`}
-  S.pfEdit=null;$('#pf-add').textContent='Agregar';pfSave();$('#pf-t').value='';$('#pf-p').value='';$('#pf-q').value='';renderPf();
-};
-$('#pf-exp').onclick=()=>{const b=new Blob([JSON.stringify(S.pf,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='mi-cartera-prospei.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
-$('#pf-imp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d))throw 0;const okRows=d.filter(x=>x&&x.t&&x.d&&x.p>0&&['us','ars','mep'].includes(x.i));if(!confirm(`¿Importar ${okRows.length} posiciones? Reemplaza las que tenés cargadas en este navegador.`))return;S.pf=okRows;pfSave();renderPf()}catch(err){alert('El archivo no es válido.')}e.target.value=''};
-function renderBuy(){
-  if(!S.scr){$('#buy-card').classList.add('hide');return}
-  const all=S.scr.rows.map(enrich);
-  if(!all.some(o=>o.verdict)){$('#buy-card').classList.add('hide');return}
-  $('#buy-card').classList.remove('hide');
-  const M=S.scr.market;let mb=$('#mkt-banner');if(!mb){mb=document.createElement('div');mb.id='mkt-banner';$('#buy-new').before(mb)}
-  mb.innerHTML=M&&M.up===false?`<div class="buy-new" style="border-color:var(--down)"><b>⚠️ Mercado bajista:</b> el S&amp;P 500 está ${M.dist!=null?pct(Math.abs(M.dist),1).replace('+','')+' ':''}debajo de su media de 200 días. En el track récord, en esos períodos las señales de compra fallaron mucho más (2022), así que hoy no hay "Comprar" pleno: las que cumplen todo pasan a <b>Comprar en partes</b> (entrada escalonada de a tercios, con stop).</div>`:'';
-  const cnt={};all.forEach(o=>{cnt[o.verdict]=(cnt[o.verdict]||0)+1});
-  $('#verdict-count').innerHTML=['Comprar','Comprar en partes','Vigilar','Mantener','Evitar'].map(v=>`<span class="${vdCls(v)}" style="font-size:11px">${v} ${cnt[v]||0}</span>`).join('');
-  const nw=all.filter(o=>o.verdict_new);
-  const prevBuy=all.filter(o=>o.verdict_prev==='Comprar'&&o.verdict!=='Comprar');
-  $('#buy-new').innerHTML=(nw.length||prevBuy.length)?`<div class="buy-new">${nw.length?`<b>Novedades del día${S.scr.verdict_base_date?' <span class="note">(vs. '+esc(S.scr.verdict_base_date.split('-').reverse().join('/'))+')</span>':''}:</b> pasaron a Comprar ${nw.map(o=>`<a href="#" data-open="${esc(o.t)}"><b>${esc(o.t)}</b></a>`).join(', ')}.`:''}${prevBuy.length?` ${nw.length?'<br>':''}<b>Dejaron de ser Comprar:</b> ${prevBuy.map(o=>`<a href="#" data-open="${esc(o.t)}">${esc(o.t)}</a> (ahora ${esc(o.verdict)})`).join(', ')}.`:''}</div>`:'';
-  $('#buy-new').querySelectorAll('[data-open]').forEach(a=>a.onclick=e=>{e.preventDefault();openDetail(a.dataset.open)});
-  const cols=[
-    {k:'fav',h:'',f:o=>star(o.t)},
-    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b>${o.verdict_new?'<span class="vd-new">NUEVA</span>':''}<div class="note">${esc(o.name)}</div>`},
-    {k:'verdict_why',h:'Por qué',f:o=>`<span class="note">${esc(o.verdict_why)}</span>`},
-    {k:'score',h:'Puntaje',f:o=>sbar(o.score)},
-    {k:'fair_up',h:'Recorrido',n:1,f:o=>o.fair_up==null?'—':`<b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>`},
-    {k:'px',h:'Precio US$',n:1,f:o=>fmt(o.px)},
-    {k:'sector',h:'Sector',f:o=>esc(o.sector)},
-    {k:'hasCed',h:'Argentina',f:cedCell}
-  ];
-  const buy=all.filter(o=>o.verdict==='Comprar').sort((a,b)=>b.score-a.score);
-  table($('#tb-buy'),'buy',cols,buy);
-  if(!buy.length)$('#tb-buy').innerHTML='<tbody><tr><td class="note" style="padding:16px;text-align:center">Hoy ninguna acción cumple los criterios de su sector. Es normal: es un filtro exigente. Mirá las de <b>Comprar en partes</b> o el top 30.</td></tr></tbody>';
-  table($('#tb-part'),'part',cols,all.filter(o=>o.verdict==='Comprar en partes').sort((a,b)=>b.score-a.score));
-}
-function renderTop(){
-  const el=$('#tb-top');if(!S.scr){el.innerHTML='';return}
-  let rows=S.scr.rows.filter(r=>r.elig).map(enrich).filter(passTf).sort((a,b)=>b.score-a.score).slice(0,S.scr.top_n||30);
-  rows.forEach((o,i)=>o.rank=i+1);
-  const cols=[
-    {k:'rank',h:'#',n:1,f:o=>`<b>${o.rank}</b>`},
-    {k:'fav',h:'',f:o=>star(o.t)},
-    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b><div class="note" style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.name)}</div>`},
-    {k:'verdict',h:'Veredicto',f:vdChip},
-    {k:'setup',h:'Señal',f:o=>`${setupChip(o.setup)}${alertTags(o)?'<div>'+alertTags(o)+'</div>':''}`},
-    {k:'lights',h:'Cal · Val · Téc · Evt',f:o=>lightsHtml(o.lights)},
-    {k:'score',h:'Puntaje',f:o=>sbar(o.score)},
-    {k:'at',h:'AT',n:1,f:o=>Math.round(o.at)},
-    {k:'af',h:'AF',n:1,f:o=>Math.round(o.af)},
-    {k:'px',h:'Precio US$',n:1,f:o=>fmt(o.px)},
-    {k:'chg',h:'Var. día',n:1,f:o=>`<span class="${cls(o.chg)}">${pct(o.chg)}</span>`},
-    {k:'upside',h:'Potencial analistas',n:1,f:o=>o.n_an>=3&&o.upside!=null?`<span class="${cls(o.upside)}">${pct(o.upside,1)}</span>`:'—'},
-    {k:'rsi',h:'RSI',n:1,f:o=>fmt(o.rsi,0)},
-    {k:'fpe',h:'P/E fwd',n:1,f:o=>o.fpe>0?fmt(o.fpe,1)+'x':'—'},
-    {k:'sector',h:'Sector',f:o=>esc(o.sector)},
-    {k:'hasCed',h:'Argentina',f:cedCell}
-  ];
-  table(el,'top',cols,rows);
-}
-function renderUni(){
-  const el=$('#tb-uni');if(!S.scr){el.innerHTML='';$('#more-uni').classList.add('hide');return}
-  const q=$('#q-uni').value.trim().toUpperCase(),reg=$('#f-reg').value,sec=$('#f-sec').value,oc=$('#f-ced').checked;
-  const rows=S.scr.rows.map(enrich).filter(o=>(!q||o.t.includes(q)||String(o.name).toUpperCase().includes(q))&&(!reg||o.region===reg)&&(!sec||o.sector===sec)&&(!oc||o.hasCed));
-  const cols=[
-    {k:'fav',h:'',f:o=>star(o.t)},
-    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b> <span class="note">${esc(o.name)}</span>`},
-    {k:'verdict',h:'Veredicto',f:vdChip},
-    {k:'score',h:'Puntaje',f:o=>sbar(o.score)},
-    {k:'at',h:'AT',n:1,f:o=>Math.round(o.at)},
-    {k:'af',h:'AF',n:1,f:o=>Math.round(o.af)},
-    {k:'px',h:'Precio US$',n:1,f:o=>fmt(o.px)},
-    {k:'chg',h:'Var. día',n:1,f:o=>`<span class="${cls(o.chg)}">${pct(o.chg)}</span>`},
-    {k:'r6m',h:'Var. 6m',n:1,f:o=>`<span class="${cls(o.r6m)}">${pct(o.r6m,1)}</span>`},
-    {k:'rsi',h:'RSI',n:1,f:o=>fmt(o.rsi,0)},
-    {k:'fpe',h:'P/E fwd',n:1,f:o=>o.fpe>0?fmt(o.fpe,1)+'x':'—'},
-    {k:'sector',h:'Sector',f:o=>esc(o.sector)},
-    {k:'lights',h:'Semáforo',f:o=>lightsHtml(o.lights)},
-    {k:'region',h:'Región',f:o=>esc(o.region)},
-    {k:'hasCed',h:'Argentina',f:cedCell}
-  ];
-  table(el,'uni',cols,rows,o=>o.elig?'':'dim',S.uniLimit);
-  $('#more-uni').classList.toggle('hide',rows.length<=S.uniLimit);
-  $('#more-uni').textContent=`Mostrar más (${Math.min(S.uniLimit,rows.length)} de ${rows.length})`;
-}
-function etfOf(sec){return S.scr&&S.scr.etfs?S.scr.etfs.find(e=>e.sector===sec):null}
-const faseCls=f=>String(f||'').split(' ')[0];
-function etfLive(e){const lv=liveOf(e.etf);return {px:lv?lv.c:e.p,chg:lv&&lv.pct_change!=null?lv.pct_change/100:e.r1d}}
-function renderSectors(){
-  const g=$('#secgrid');if(!g)return;
-  const E=(S.scr&&S.scr.etfs)||[];if(!E.length||S.hu!=='us'){g.innerHTML='';return}
-  const spy=S.scr.spy;let h='';
-  if(spy){const l=etfLive({etf:'SPY',p:spy.p,r1d:spy.r1d});
-    h+=`<button class="sc mkt" data-etf="SPY"><div class="top"><span class="nm">Mercado</span><span class="tk">SPY</span></div>
-    <div class="ln"><span>Var. día</span><b class="${cls(l.chg)}">${pct(l.chg)}</b></div>
-    <div class="ln"><span>1m / 6m</span><b>${pct(spy.r1m,1)} / ${pct(spy.r6m,1)}</b></div>
-    <div class="ln"><span>Tendencia</span><b class="${spy.above200?'up':'down'}">${spy.above200?'Alcista':'Bajista'}</b></div></button>`}
-  E.forEach(e=>{const l=etfLive(e);
-    h+=`<button class="sc" data-etf="${esc(e.etf)}"><div class="top"><span class="nm">${esc(e.sector)}</span><span class="tk">${esc(e.etf)}</span></div>
-    <div style="margin-top:6px">${sbar(e.at)}</div>
-    <div class="ln"><span class="fase ${faseCls(e.fase)}">${esc(e.fase)}</span><b class="${cls(l.chg)}">${pct(l.chg)} hoy</b></div>
-    <div class="ln"><span>vs S&amp;P 3 meses</span><b class="${cls(e.rs3)}">${pct(e.rs3,1)}</b></div></button>`});
-  g.innerHTML=h;
-  g.querySelectorAll('[data-etf]').forEach(b=>b.onclick=()=>openEtf(b.dataset.etf));
-}
-function openEtf(tk){
-  if(!S.scr)return;
-  const spy=S.scr.spy;
-  const e=tk==='SPY'?(spy?Object.assign({etf:'SPY',sector:'S&P 500 (mercado)',fase:'Referencia',pro:[],con:[]},spy):null):(S.scr.etfs||[]).find(x=>x.etf===tk);
-  if(!e)return;const l=etfLive(e);
-  const kv=(a,b)=>`<div><span>${a}</span><b class="num">${b}</b></div>`;
-  const li=a=>a&&a.length?a.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="note">—</li>';
-  const ratio=RATIOS[tk];
-  let ced='';
-  if(ratio){const c=(S.data.cedears||[]).find(x=>x.symbol===tk),pr=parseRatio(ratio),ccl=S.cedRef||(S.ref.ccl&&S.ref.ccl.v);
-    const extra=cedBoxExtra(tk,ratio,l.px);
-    ced=`<div class="cedbox">🇦🇷 Se puede comprar desde Argentina como <b>CEDEAR ${esc(tk)}</b> (ratio ${esc(ratio)}).${extra}</div>`}
-  const comps=tk==='SPY'?[]:S.scr.rows.filter(r=>r.sector===e.sector).sort((a,b)=>b.score-a.score).slice(0,5);
-  $('#mbody').innerHTML=`
-    <div class="mhead"><div>
-      <h3>${esc(tk)} <span class="fase ${faseCls(e.fase)}" style="font-size:12px;vertical-align:middle">${esc(e.fase)}</span></h3>
-      <div class="nm">ETF sectorial · ${esc(e.sector)}</div>
-      <div style="margin-top:8px;display:flex;gap:10px;align-items:center"><span style="font-size:22px;font-weight:700" class="num">US$ ${fmt(l.px)}</span><span class="pill ${cls(l.chg)}">${pct(l.chg)}</span></div>
-    </div>${e.at!=null?`<div class="bigscore" style="background:${scoreCol(e.at)}"><b>${Math.round(e.at)}</b><small>Puntaje técnico</small></div>`:''}</div>
-    ${e.at!=null?`<div class="pillars">${`<div><div class="l">Técnico propio</div>${sbar(e.at_own)}</div><div><div class="l">Fuerza relativa vs S&amp;P 500</div>${sbar(e.rs_score)}</div>`}</div>`:''}
-    ${chartSvg(e.closes)}
-    ${tk==='SPY'?'':`<div class="lists" style="grid-template-columns:1fr 1fr"><div class="pro"><h4>A favor</h4><ul>${li(e.pro)}</ul></div><div class="con"><h4>A vigilar</h4><ul>${li(e.con)}</ul></div></div>`}
-    <div class="kv" style="margin-top:10px">
-      ${trendKv(e,kv)}${kv('RSI (14)',fmt(e.rsi,0))}${e.sma50?kv('vs media 50',pct(e.p/e.sma50-1,1)):''}${e.sma200?kv('vs media 200',pct(e.p/e.sma200-1,1)):''}${kv('Desde máx. 52 sem.',pct(e.dd,1))}
-      ${kv('Var. 1 mes',pct(e.r1m,1))}${kv('Var. 3 meses',pct(e.r3m,1))}${kv('Var. 6 meses',pct(e.r6m,1))}${kv('Var. 12 meses',pct(e.r12m,1))}
-      ${e.rs1!=null?kv('vs S&amp;P 1 mes',pct(e.rs1,1)):''}${e.rs3!=null?kv('vs S&amp;P 3 meses',pct(e.rs3,1)):''}${e.rs6!=null?kv('vs S&amp;P 6 meses',pct(e.rs6,1)):''}
-    </div>
-    ${comps.length?`<h4 style="margin:16px 0 6px">Mejores empresas del sector</h4><div class="tw"><table style="min-width:0"><tbody>${comps.map(c=>`<tr data-t="${esc(c.t)}"><td><b>${esc(c.t)}</b> <span class="note">${esc(c.name)}</span></td><td style="width:160px">${sbar(c.score)}</td><td class="n">${setupChip(c.setup)}</td></tr>`).join('')}</tbody></table></div>
-    <div style="margin-top:8px"><button class="chip" id="see-sec">Ver todas las empresas de ${esc(e.sector)} →</button></div>`:''}
-    ${ced}
-    <p class="note" style="margin-top:12px">Fase: <b>Liderando</b> = le gana al S&amp;P 500 a 3 meses y en el último mes · <b>Perdiendo impulso</b> = le gana a 3 meses pero no en el último mes · <b>Mejorando</b> = pierde a 3 meses pero viene ganando en el último mes · <b>Rezagado</b> = pierde en ambos. Herramienta de screening, no es una recomendación.</p>`;
-  $('#mbody').querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t));
-  const sb=$('#see-sec');if(sb)sb.onclick=()=>{closeDetail();$('#f-sec').value=e.sector;$('#f-reg').value='';S.uniLimit=100;renderUni();$$('.tab').find(b=>b.dataset.t==='opo').click();setTimeout(()=>$('#tb-uni').scrollIntoView({behavior:'smooth'}),50)};
-  $('#modal').classList.remove('hide');document.body.style.overflow='hidden';
-}
-/* ---------- Rotación: mapas con animación por papel ---------- */
-const QCOL={Liderando:'#0f9d58',Mejorando:'#1d7af3','Perdiendo impulso':'#d9a400',Rezagado:'#d93025'};
-const ZCOL={Compra:'#0f9d58',Mantener:'#d9a400',Vigilar:'#1d7af3',Evitar:'#d93025'};
-const qOf=(x,y)=>x>=100?(y>=100?'Liderando':'Perdiendo impulso'):(y>=100?'Mejorando':'Rezagado');
-const vmZone=(x,y)=>x<0?(y>=0?'Compra':'Vigilar'):(y>=0?'Mantener':'Evitar');
-const SVGNS='http://www.w3.org/2000/svg';
-function svgEl(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
-function catmull(P,n){
-  if(P.length<2)return P.map((p,i)=>({x:p[0],y:p[1],w:i}));
-  const out=[];
-  for(let i=0;i<P.length-1;i++){const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||P[i+1];
-    for(let s=0;s<n;s++){const t=s/n,t2=t*t,t3=t2*t;
-      const f=k=>0.5*(2*p1[k]+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3);
-      out.push({x:f(0),y:f(1),w:i+t})}}
-  const L=P[P.length-1];out.push({x:L[0],y:L[1],w:P.length-1});return out;
-}
-/* cfg: el, panel, W,H, bx:[x0,x1], by:[y0,y1], cx,cy (líneas divisorias), quads:[{x0,x1,y0,y1,col,label,anchor}], xLabel, ticks:[{v,t}],
-   items:[{id,pts,r,label,title}], zoneOf(x,y), zcol, dates, panelHtml(item,weekIdx,zone), onOpen(id) */
-function motionMap(cfg){
-  const W=680,H=cfg.H||500,L=12,R=12,T=12,B=34;
-  const X=v=>L+(Math.max(cfg.bx[0],Math.min(cfg.bx[1],v))-cfg.bx[0])/(cfg.bx[1]-cfg.bx[0])*(W-L-R);
-  const Y=v=>T+(1-(Math.max(cfg.by[0],Math.min(cfg.by[1],v))-cfg.by[0])/(cfg.by[1]-cfg.by[0]))*(H-T-B);
-  const el=cfg.el;el.innerHTML='';
-  const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`,style:'width:100%;height:auto;display:block;touch-action:manipulation',role:'img','aria-label':cfg.aria||'Mapa'},el);
-  const cx=X(cfg.cx),cy=Y(cfg.cy);
-  const bg=svgEl('rect',{x:0,y:0,width:W,height:H,fill:'transparent'},svg);
-  cfg.quads.forEach(q=>{
-    const x0=q.left?L:cx,x1=q.left?cx:W-R,y0=q.top?T:cy,y1=q.top?cy:H-B;
-    svgEl('rect',{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:q.col,opacity:'.08'},svg);
-    const t=svgEl('text',{x:q.left?x0+10:x1-10,y:q.top?y0+20:y1-10,'font-size':'13','font-weight':'700',fill:q.col,'text-anchor':q.left?'start':'end',style:'paint-order:stroke;stroke:var(--card);stroke-width:4px;pointer-events:none'},svg);t.textContent=q.label;
-  });
-  svgEl('line',{x1:L,x2:W-R,y1:cy,y2:cy,style:'stroke:var(--muted)','stroke-width':'.7',opacity:'.6'},svg);
-  svgEl('line',{x1:cx,x2:cx,y1:T,y2:H-B,style:'stroke:var(--muted)','stroke-width':cfg.cxStrong?'1.3':'.7','stroke-dasharray':cfg.cxStrong?'6 4':'',opacity:'.7'},svg);
-  if(cfg.cxLabel){const t=svgEl('text',{x:cx+5,y:cy-6,'font-size':'11',style:'fill:var(--muted)'},svg);t.textContent=cfg.cxLabel}
-  (cfg.ticks||[]).forEach(k=>{if(k.v<=cfg.bx[0]||k.v>=cfg.bx[1])return;const t=svgEl('text',{x:X(k.v),y:H-B+14,'font-size':'10.5','text-anchor':'middle',style:'fill:var(--muted)'},svg);t.textContent=k.t});
-  const xl=svgEl('text',{x:W/2,y:H-4,'font-size':'11.5','text-anchor':'middle',style:'fill:var(--muted)'},svg);xl.textContent=cfg.xLabel;
-  const gDots=svgEl('g',{},svg),gSel=svgEl('g',{},svg);
-  const dots={};
-  cfg.items.forEach(it=>{const p=it.pts[it.pts.length-1];if(!p)return;const z=cfg.zoneOf(p[0],p[1]);
-    const g=svgEl('g',{style:'cursor:pointer'},gDots);
-    const c=svgEl('circle',{cx:X(p[0]),cy:Y(p[1]),r:it.r,fill:cfg.zcol[z],stroke:'#fff','stroke-width':'.8',opacity:cfg.dotOp||'.85'},g);
-    if(p[0]<cfg.bx[0]||p[0]>cfg.bx[1]){const lf=p[0]<cfg.bx[0];const a=svgEl('text',{x:X(p[0])+(lf?it.r+2:-it.r-2),y:Y(p[1])+4,'font-size':'11','font-weight':'700','text-anchor':lf?'start':'end',fill:cfg.zcol[z],style:'pointer-events:none'},g);a.textContent=(lf?'◂ ':'')+(cfg.fmtX?cfg.fmtX(p[0]):'')+(lf?'':' ▸')}
-    const tt=svgEl('title',{},c);tt.textContent=it.title;
-    if(it.label){const t=svgEl('text',{x:X(p[0])+it.r+3,y:Y(p[1])+4,'font-size':'11.5','font-weight':'700',style:'fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3px;pointer-events:none'},g);t.textContent=it.label}
-    g.addEventListener('click',e=>{e.stopPropagation();select(it.id)});
-    dots[it.id]={g,it};
-  });
-  let raf=null,selId=null;
-  function clear(){
-    if(raf)cancelAnimationFrame(raf);raf=null;selId=null;gSel.innerHTML='';
-    Object.values(dots).forEach(d=>d.g.style.opacity='1');
-    cfg.panel.innerHTML=cfg.emptyHtml;cfg.panel.classList.remove('on');
-    if(cfg.onClear)cfg.onClear();
-  }
-  function select(id,{noAnim,fitted}={}){
-    const d=dots[id];if(!d)return;
-    if(!fitted&&cfg.onOut&&d.it.pts.some(p=>p[0]<cfg.bx[0]||p[0]>cfg.bx[1])){cfg.onOut(id);return}
-    selId=id;
-    Object.values(dots).forEach(o=>o.g.style.opacity=o===d?'0':'.12');
-    gSel.innerHTML='';
-    const P=d.it.pts,S=catmull(P,16).map(p=>({x:X(p.x),y:Y(p.y),w:p.w,rx:p.x,ry:p.y}));
-    const pathOf=arr=>arr.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join('');
-    svgEl('path',{d:pathOf(S),fill:'none',style:'stroke:var(--muted)','stroke-width':'1.5','stroke-dasharray':'3 5',opacity:'.55'},gSel);
-    P.forEach((p,i)=>svgEl('circle',{cx:X(p[0]),cy:Y(p[1]),r:2.4,fill:cfg.zcol[cfg.zoneOf(p[0],p[1])],opacity:'.55'},gSel));
-    const st=svgEl('text',{x:X(P[0][0])+7,y:Y(P[0][1])-7,'font-size':'11',style:'fill:var(--muted);paint-order:stroke;stroke:var(--card);stroke-width:3px'},gSel);st.textContent=cfg.startLabel||'inicio';
-    const trail=svgEl('path',{d:'',fill:'none','stroke-width':'3.2','stroke-linecap':'round','stroke-linejoin':'round',opacity:'.9'},gSel);
-    const head=svgEl('circle',{r:d.it.r+3,stroke:'#fff','stroke-width':'2'},gSel);
-    const hl=svgEl('text',{'font-size':'13','font-weight':'700',style:'fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:4px'},gSel);hl.textContent=d.it.label||d.it.id;
-    cfg.panel.classList.add('on');
-    let lastW=-1;
-    function frame(k){
-      const p=S[k];const z=cfg.zoneOf(p.rx,p.ry),col=cfg.zcol[z];
-      trail.setAttribute('d',pathOf(S.slice(0,k+1)));trail.setAttribute('stroke',col);
-      head.setAttribute('cx',p.x);head.setAttribute('cy',p.y);head.setAttribute('fill',col);
-      hl.setAttribute('x',p.x+d.it.r+7);hl.setAttribute('y',p.y+4);
-      const wk=Math.round(p.w),isEnd=k===S.length-1,key=wk+(isEnd?'e':'');if(key!==lastW){lastW=key;cfg.panel.innerHTML=cfg.panelHtml(d.it,wk,z,isEnd);wire()}
+
+# ---------------------------------------------------------------- tecnico
+def ema(x, n):
+    return pd.Series(x).ewm(span=n, adjust=False).mean().values
+
+
+def rsi(c, n=14):
+    d = np.diff(c)
+    up = pd.Series(np.where(d > 0, d, 0.0)).ewm(alpha=1 / n, adjust=False).mean().values
+    dn = pd.Series(np.where(d < 0, -d, 0.0)).ewm(alpha=1 / n, adjust=False).mean().values
+    rs = up[-1] / dn[-1] if dn[-1] > 0 else np.inf
+    return float(100 - 100 / (1 + rs))
+
+
+def ret(c, n):
+    return float(c[-1] / c[-1 - n] - 1) if len(c) > n and c[-1 - n] > 0 else None
+
+
+def technical(c, v):
+    """c: cierres ajustados (np.array), v: volumenes. Devuelve dict o None."""
+    c = c[np.isfinite(c)]
+    if len(c) < 210:
+        return None
+    p = float(c[-1])
+    s20, s50, s200 = (float(c[-n:].mean()) for n in (20, 50, 200))
+    s200_prev = float(c[-220:-20].mean())
+    macd = ema(c, 12) - ema(c, 26)
+    sig = ema(macd, 9)
+    hist = macd - sig
+    w = c[-252:]
+    hi, lo = float(w.max()), float(w.min())
+    vv = v[np.isfinite(v)] if v is not None else np.array([])
+    vol_ratio = float(vv[-20:].mean() / vv[-60:].mean()) if len(vv) >= 60 and vv[-60:].mean() > 0 else None
+    dr = np.diff(np.log(c[-64:]))
+    tr = trend_state(c, p, s200, s200 > s200_prev)
+    # corrección: pico reciente (3 meses) y señales de rebote
+    w3 = c[-63:]
+    hi3_i = int(np.argmax(w3))
+    hi3 = float(w3[hi3_i])
+    hi52_age = int(len(w) - 1 - int(np.argmax(w)))
+    rsi_prev = rsi(c[-305:-5])
+    rsi_now = rsi(c[-300:])
+    rebound = bool(p > s20 and (hist[-1] > hist[-2] or rsi_now > rsi_prev + 3))
+    pb_days = max(1, len(w3) - 1 - hi3_i)
+    pb_vol = (float(vv[-min(pb_days, 20):].mean() / vv[-60:].mean())
+              if len(vv) >= 60 and vv[-60:].mean() > 0 and pb_days >= 3 else None)
+    return {**tr, **cross_state(c), **early_turn(c, vv if len(vv) == len(c) else None), "dd3": p / hi3 - 1, "hi3_age": pb_days, "hi52_age": hi52_age, "rebound": rebound,
+            "pb_vol": pb_vol, "near50": bool(abs(p / s50 - 1) <= 0.02), "near200": bool(-0.01 <= p / s200 - 1 <= 0.03),
+        "p": p, "sma20": s20, "sma50": s50, "sma200": s200,
+        "sma200_up": s200 > s200_prev,
+        "rsi": rsi(c[-300:]),
+        "macd_h": float(hist[-1]),
+        "macd_cross": bool(hist[-1] > 0 and (hist[-6:-1] <= 0).any()),
+        "macd_up": bool(hist[-1] > hist[-2]),
+        "r1d": ret(c, 1), "r1w": ret(c, 5), "r1m": ret(c, 21), "r3m": ret(c, 63), "r6m": ret(c, 126),
+        "r12m": ret(c, 251) if len(c) > 251 else None,
+        "hi52": hi, "lo52": lo, "dd": p / hi - 1, "from_lo": p / lo - 1,
+        "vol_ratio": vol_ratio,
+        "volat": float(dr.std() * math.sqrt(252)),
+        # volatilidad de 1 año: más estable, es la que fija el recorrido mínimo exigido a valor justo
+        "volat_y": float(np.diff(np.log(c[-253:])).std() * math.sqrt(252)),
     }
-    function wire(){
-      const a=cfg.panel.querySelector('[data-mm="play"]');if(a)a.onclick=()=>select(id);
-      const o=cfg.panel.querySelector('[data-mm="open"]');if(o)o.onclick=()=>cfg.onOpen(id);
-      const c=cfg.panel.querySelector('[data-mm="close"]');if(c)c.onclick=clear;
-    }
-    if(raf)cancelAnimationFrame(raf);
-    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(noAnim||reduce){frame(S.length-1);return}
-    const dur=Math.min(7000,1800+P.length*190),t0=performance.now();
-    const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-    const step=now=>{const t=Math.min(1,(now-t0)/dur);frame(Math.round(ease(t)*(S.length-1)));if(t<1)raf=requestAnimationFrame(step);else raf=null};
-    raf=requestAnimationFrame(step);
-  }
-  function playAll({dates=[],allPanel}={}){
-    if(raf)cancelAnimationFrame(raf);raf=null;selId=null;gSel.innerHTML='';
-    Object.values(dots).forEach(o=>o.g.style.opacity='0');
-    const pathOf=arr=>arr.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join('');
-    const per=10,tracks=cfg.items.filter(it=>it.pts&&it.pts.length>1).map(it=>{
-      const S_=catmull(it.pts,per).map(p=>({x:X(p.x),y:Y(p.y),w:p.w,rx:p.x,ry:p.y}));
-      const trail=svgEl('path',{d:'',fill:'none','stroke-width':'2.4','stroke-linecap':'round','stroke-linejoin':'round',opacity:'.5'},gSel);
-      const head=svgEl('circle',{r:it.r,stroke:'#fff','stroke-width':'1.2'},gSel);
-      const lb=svgEl('text',{'font-size':'11.5','font-weight':'700',style:'fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3px;pointer-events:none'},gSel);lb.textContent=it.label||it.id;
-      head.style.cursor='pointer';head.addEventListener('click',e=>{e.stopPropagation();select(it.id)});
-      return {it,S:S_,trail,head,lb}});
-    if(!tracks.length)return;
-    const dl=svgEl('text',{x:W/2,y:T+26,'text-anchor':'middle','font-size':'17','font-weight':'700',style:'fill:var(--muted);paint-order:stroke;stroke:var(--card);stroke-width:5px;pointer-events:none'},gSel);
-    const nW=Math.max(...tracks.map(t=>t.it.pts.length))-1,tail=4*per;
-    cfg.panel.classList.add('on');
-    let lastW=-1;
-    function frame(f){
-      const zc={};
-      tracks.forEach(t=>{const k=Math.round(f*(t.S.length-1)),p=t.S[k],z=cfg.zoneOf(p.rx,p.ry),col=cfg.zcol[z];zc[z]=(zc[z]||0)+1;
-        t.trail.setAttribute('d',pathOf(t.S.slice(Math.max(0,k-tail),k+1)));t.trail.setAttribute('stroke',col);
-        t.head.setAttribute('cx',p.x);t.head.setAttribute('cy',p.y);t.head.setAttribute('fill',col);
-        t.lb.setAttribute('x',p.x+t.it.r+3);t.lb.setAttribute('y',p.y+4)});
-      const wk=Math.round(f*nW),isEnd=f>=1;dl.textContent=isEnd?'Hoy':(dates[wk]?fmtWeek(dates[wk]):'');
-      const key=wk+(isEnd?'e':'');
-      if(key!==lastW){lastW=key;cfg.panel.innerHTML=allPanel?allPanel(wk,zc,isEnd):'';
-        const a=cfg.panel.querySelector('[data-mm="playall"]');if(a)a.onclick=()=>playAll({dates,allPanel});
-        const st=cfg.panel.querySelector('[data-mm="stop"]');if(st)st.onclick=()=>{if(raf)cancelAnimationFrame(raf);raf=null;frame(1)};
-        const c=cfg.panel.querySelector('[data-mm="close"]');if(c)c.onclick=clear}
-    }
-    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(reduce){frame(1);return}
-    const dur=Math.min(16000,2000+nW*240),t0=performance.now();
-    const step=now=>{const t=Math.min(1,(now-t0)/dur);frame(t);if(t<1)raf=requestAnimationFrame(step);else raf=null};
-    raf=requestAnimationFrame(step);
-  }
-  bg.addEventListener('click',clear);
-  cfg.panel.innerHTML=cfg.emptyHtml;
-  return {select,clear,playAll,get selected(){return selId}};
-}
-const fmtWeek=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'}):'';
-
-/* ---- Sectores ---- */
-S.mmSec=null;S.rrgP=+(store('rrgP')||26)===52?52:26;
-function renderRotSec(){
-  const el=$('#rrg-sec');if(!el)return;
-  const P_=S.rrgP||26;
-  $$('[data-rrgp]').forEach(b=>{b.classList.toggle('on',+b.dataset.rrgp===P_);b.onclick=()=>{S.rrgP=+b.dataset.rrgp;store('rrgP',S.rrgP);renderRotSec()}});
-  const E=(S.scr&&S.scr.etfs||[]).filter(e=>e.rrg&&e.rrg.length).map(e=>({...e,rrg:e.rrg.slice(-(P_+1))}));
-  if(!E.length){el.innerHTML='<p class="note">El gráfico aparece después de la próxima corrida del análisis diario.</p>';$('#rrg-sec-panel').innerHTML='';$('#rrg-sec-list').innerHTML='';return}
-  const avail=Math.max(...E.map(e=>e.rrg.length))-1;
-  const dates=(S.scr.rrg_dates||[]).slice(-(avail+1));
-  const per=P_===52?'12 meses':'6 meses',hace=P_===52?'hace 12 meses':'hace 6 meses';
-  $('#rrg-note').textContent=avail<P_?`Por ahora hay ${avail} semanas de historia: el recorrido de 12 meses se completa con la próxima corrida del análisis diario.`:'';
-  const all=[];E.forEach(e=>e.rrg.forEach(p=>all.push(p)));
-  const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]);
-  const dx=Math.max(1.5,...xs.map(v=>Math.abs(v-100)))*1.1,dy=Math.max(1.5,...ys.map(v=>Math.abs(v-100)))*1.1;
-  const prev=S.mmSec&&S.mmSec.selected;
-  S.mmSec=motionMap({el,panel:$('#rrg-sec-panel'),H:480,bx:[100-dx,100+dx],by:[100-dy,100+dy],cx:100,cy:100,aria:'Rotación sectorial',
-    quads:[{left:1,top:1,col:QCOL.Mejorando,label:'Mejorando'},{left:0,top:1,col:QCOL.Liderando,label:'Liderando'},{left:0,top:0,col:'#b98a00',label:'Perdiendo impulso'},{left:1,top:0,col:QCOL.Rezagado,label:'Rezagado'}],
-    xLabel:'← pierde contra el S&P 500 · fuerza relativa · le gana al S&P 500 →   ↕ impulso',
-    items:E.map(e=>({id:e.etf,pts:e.rrg,r:8,label:e.etf,title:`${e.etf} · ${e.sector}`,e})),
-    zoneOf:qOf,zcol:QCOL,startLabel:hace,
-    emptyHtml:`<div class="mm-empty"><b>Tocá un sector</b> en el gráfico o en la lista para ver su recorrido de los últimos ${per}, o tocá <b>Ver todos moviéndose</b>.</div>`,
-    panelHtml:(it,wk,z,end)=>{const e=it.e,p0=e.rrg[0];return `<div class="mm-h"><b>${esc(e.etf)}</b> <span class="note">${esc(e.sector)}</span><button class="close" data-mm="close" aria-label="Cerrar" style="position:static;width:28px;height:28px;margin-left:auto">✕</button></div>
-      <div class="mm-date">${end?'Hoy':'Semana del '+fmtWeek(dates[wk])}</div>
-      <div class="mm-zone" style="background:${QCOL[z]}1f;color:${QCOL[z]}">${esc(z)}</div>
-      <div class="kv" style="grid-template-columns:1fr;margin-top:8px">
-        <div><span>${hace[0].toUpperCase()+hace.slice(1)}</span><b>${esc(qOf(p0[0],p0[1]))}</b></div>
-        <div><span>Hoy</span><b>${esc(e.fase)}</b></div>
-        <div><span>Hacia dónde va</span><b>${esc(e.head||'—')}</b></div>
-        <div><span>vs S&amp;P 3 meses</span><b class="${cls(e.rs3)}">${pct(e.rs3,1)}</b></div>
-        <div><span>Puntaje técnico</span><b>${Math.round(e.at)}</b></div>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="chip" data-mm="play">↻ Repetir</button><button class="chip on" data-mm="open">Ver ficha</button></div>`},
-    onOpen:id=>openEtf(id)});
-  const tb=E.map(e=>`<button class="sc" data-etf="${esc(e.etf)}" style="padding:7px 10px"><div class="top"><span class="nm">${esc(e.sector)}</span><span class="tk">${esc(e.etf)}</span></div><div class="ln"><span class="fase ${faseCls(e.fase)}">${esc(e.fase)}</span><b>${esc(e.head||'')}</b></div></button>`).join('');
-  $('#rrg-sec-list').innerHTML=tb;
-  $('#rrg-sec-list').querySelectorAll('[data-etf]').forEach(x=>x.onclick=()=>{S.mmSec.select(x.dataset.etf);$('#rrg-sec').scrollIntoView({behavior:'smooth',block:'center'})});
-  if(prev)S.mmSec.select(prev,{noAnim:true});
-  const QN=['Liderando','Perdiendo impulso','Rezagado','Mejorando'];
-  const allPanel=(wk,zc,end)=>`<div class="mm-h"><b>Todos los sectores</b><button class="close" data-mm="close" aria-label="Cerrar" style="position:static;width:28px;height:28px;margin-left:auto">✕</button></div>
-    <div class="mm-date">${end?'Hoy':'Semana del '+fmtWeek(dates[wk])}</div>
-    <div class="kv" style="grid-template-columns:1fr;margin-top:8px">${QN.map(q=>`<div><span style="color:${QCOL[q]};font-weight:600">${q}</span><b>${zc[q]||0}</b></div>`).join('')}</div>
-    <div class="note" style="margin-top:6px">Cada punto deja una estela de 4 semanas. Tocá un sector para ver solo su recorrido.</div>
-    <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">${end?'<button class="chip" data-mm="playall">↻ Repetir</button>':'<button class="chip" data-mm="stop">■ Ir al final</button>'}</div>`;
-  $('#rrg-all').onclick=()=>{S.mmSec.playAll({dates,allPanel});$('#rrg-sec').scrollIntoView({behavior:'smooth',block:'center'})};
-}
-
-/* ---- Acciones: valor y momentum ---- */
-S.vm={reg:'us',sec:'',flt:'buy'};S.mmVm=null;
-const VMF={buy:o=>o.vm_z==='Compra',new:o=>o.vm_st==='Recién entró a zona de compra',fair:o=>o.vm_st==='Llegando a su valor justo'||o.vm_st==='Alcanzó su valor justo',turn:o=>o.vm_st==='Girando: el momentum mejora'||(o.et_ctx&&o.et_n>=4&&(o.vm_z==='Vigilar'||o.vm_z==='Evitar')),all:o=>true};
-const VMT={buy:'En zona de compra',new:'Recién entraron a zona de compra',fair:'Llegando o llegaron a su valor justo',turn:'Por girar: momentum mejorando o giro temprano (4+ señales)',all:'Todas'};
-function renderVM(){
-  const el=$('#vm-map');if(!el)return;
-  if(!S.scr){el.innerHTML='';return}
-  const dates=S.scr.vm_dates||[],N=dates.length;
-  let rows=S.scr.rows.filter(r=>r.vm&&r.vm.length).map(enrich);
-  if(!rows.length){el.innerHTML='<p class="note">El mapa aparece después de la próxima corrida del análisis diario.</p>';$('#tb-vm').innerHTML='';$('#vm-panel').innerHTML='';return}
-  rows=rows.filter(o=>(S.vm.reg==='us'?o.region==='EE.UU.':o.region!=='EE.UU.')&&(!S.vm.sec||o.sector===S.vm.sec));
-  const xs=rows.map(o=>o.vm[o.vm.length-1][0]).sort((a,b)=>a-b);
-  const q=f=>xs.length?xs[Math.round(f*(xs.length-1))]:0;
-  let m=Math.min(0.6,Math.max(0.25,Math.abs(q(.05)),Math.abs(q(.95))))*1.12;
-  const foc=S.vm.focus&&rows.find(o=>o.t===S.vm.focus);
-  if(foc)m=Math.max(m,...foc.vm.map(p=>Math.abs(p[0])))*1.08;
-  const mc=rows.map(o=>o.mcap||0).filter(x=>x>0).sort((a,b)=>a-b),mmax=mc[mc.length-1]||1;
-  const lab=new Set(rows.filter(o=>o.vm_z==='Compra'&&!o.vm_doubt).sort((a,b)=>(b.fair_up||0)*(b.af||0)-(a.fair_up||0)*(a.af||0)).slice(0,8).map(o=>o.t));
-  const cnt={};rows.forEach(o=>{cnt[o.vm_z]=(cnt[o.vm_z]||0)+1});
-  $('#vm-count').innerHTML=['Compra','Mantener','Vigilar','Evitar'].map(z=>`<span class="fase" style="background:${ZCOL[z]}1f;color:${ZCOL[z]}">${z} ${cnt[z]||0}</span>`).join(' ');
-  const ticks=[-0.5,-0.4,-0.3,-0.2,-0.1,0.1,0.2,0.3,0.4,0.5].filter(v=>m>0.35?Math.round(v*10)%2===0:true).map(v=>({v,t:(v>0?'+':'')+Math.round(v*100)+'%'}));
-  const prev=S.mmVm&&S.mmVm.selected;
-  S.mmVm=motionMap({el,panel:$('#vm-panel'),H:500,bx:[-m,m],by:[-100,100],cx:0,cy:0,cxStrong:1,cxLabel:'valor justo',aria:'Mapa de valor y momentum',dotOp:'.75',
-    quads:[{left:1,top:1,col:ZCOL.Compra,label:'Compra · barata y subiendo'},{left:0,top:1,col:'#b98a00',label:'Mantener · sin margen'},{left:0,top:0,col:ZCOL.Evitar,label:'Evitar · cara y cayendo'},{left:1,top:0,col:ZCOL.Vigilar,label:'Vigilar · barata pero débil'}],
-    xLabel:'← barata (descuento vs valor justo) · cara (premio) →   ↕ momentum técnico',ticks,
-    items:rows.map(o=>({id:o.t,pts:o.vm.slice(-(N||27)),r:o.mcap?3+6*Math.sqrt(o.mcap/mmax):3.5,label:lab.has(o.t)?o.t:'',title:`${o.t} · ${o.name} · ${o.vm_z}`,o})),
-    zoneOf:vmZone,zcol:ZCOL,startLabel:'hace 6 meses',
-    emptyHtml:'<div class="mm-empty"><b>Tocá una acción</b> en el mapa o en la tabla para ver cómo recorrió el ciclo en los últimos 6 meses.<div class="note" style="margin-top:8px">Ciclo típico: Evitar → Vigilar → Compra → Mantener.</div></div>',
-    panelHtml:(it,wk,z,end)=>{const o=it.o,p=it.pts[Math.min(wk,it.pts.length-1)],off=(N||it.pts.length)-it.pts.length;
-      return `<div class="mm-h"><b>${esc(o.t)}</b> <span class="note" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.name)}</span><button class="close" data-mm="close" aria-label="Cerrar" style="position:static;width:28px;height:28px;margin-left:auto;flex:none">✕</button></div>
-      <div class="mm-date">${end?'Hoy':'Semana del '+fmtWeek(dates[wk+off])}</div>
-      <div class="mm-zone" style="background:${ZCOL[z]}1f;color:${ZCOL[z]}">${esc(z)}</div>
-      <div class="kv" style="grid-template-columns:1fr;margin-top:8px">
-        <div><span>Precio vs valor justo</span><b>${pct(p[0],1)}</b></div>
-        <div><span>Momentum</span><b>${Math.round(p[1])}</b></div>
-        ${end?`<div><span>Etapa</span><b>${esc(o.vm_st)}</b></div>
-        <div><span>Valor justo estimado</span><b>US$ ${fmt(o.fair)}</b></div>
-        <div><span>Recorrido restante</span><b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b></div>
-        <div><span>RSI · AF · Puntaje</span><b>${fmt(o.rsi,0)} · ${Math.round(o.af)} · ${Math.round(o.score)}</b></div>`:''}
-      </div>
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="chip" data-mm="play">↻ Repetir</button><button class="chip on" data-mm="open">Ver ficha</button></div>`},
-    onOpen:id=>openDetail(id),fmtX:v=>pct(v,0),
-    onOut:id=>{S.vm.focus=id;S.vm.pendingSel=id;renderVM()},
-    onClear:()=>{if(S.vm.focus){S.vm.focus=null;setTimeout(renderVM,0)}}});
-  const f=VMF[S.vm.flt],list=rows.filter(f);
-  list.forEach(o=>o.mom=o.vm[o.vm.length-1][1]);
-  const cols=[
-    {k:'fav',h:'',f:o=>star(o.t)},
-    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b> <span class="note">${esc(o.name)}</span>`},
-    {k:'vm_st',h:'Etapa',f:o=>`<span class="fase" style="background:${ZCOL[o.vm_z]}1f;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> <span class="note">${esc(o.vm_st)}</span>${alertTags(o)?'<div>'+alertTags(o)+'</div>':''}`},
-    {k:'verdict',h:'Veredicto',f:vdChip},
-    {k:'vm_zp',h:'Hace 8 sem. → hoy',f:o=>o.vm_zp?`<span class="fase" style="background:${ZCOL[o.vm_zp]}1f;color:${ZCOL[o.vm_zp]}">${esc(o.vm_zp)}</span> → <span class="fase" style="background:${ZCOL[o.vm_z]}1f;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span>`:'—'},
-    {k:'fair_up',h:'Recorrido a valor justo',n:1,f:o=>o.fair_up==null?'—':`<b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>`},
-    {k:'mom',h:'Momentum',n:1,f:o=>fmt(o.mom,0)},
-    {k:'rsi',h:'RSI',n:1,f:o=>fmt(o.rsi,0)},
-    {k:'af',h:'AF',n:1,f:o=>Math.round(o.af)},
-    {k:'score',h:'Puntaje',n:1,f:o=>Math.round(o.score)},
-    {k:'sector',h:'Sector',f:o=>esc(o.sector)},
-    {k:'hasCed',h:'Argentina',f:cedCell}
-  ];
-  table($('#tb-vm'),'vm',cols,list,null,150);
-  $('#tb-vm').querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>{S.mmVm.select(tr.dataset.t);$('#vm-map').scrollIntoView({behavior:'smooth',block:'center'})});
-  $('#vm-tbl-title').textContent=`${VMT[S.vm.flt]} (${list.length})`;
-  if(S.vm.pendingSel){const id=S.vm.pendingSel;S.vm.pendingSel=null;S.mmVm.select(id,{fitted:true})}
-  else if(prev)S.mmVm.select(prev,{noAnim:true,fitted:true});
-}
-$$('[data-vmr]').forEach(b=>b.onclick=()=>{$$('[data-vmr]').forEach(x=>x.classList.toggle('on',x===b));S.vm.reg=b.dataset.vmr;renderVM()});
-$$('[data-vmf]').forEach(b=>b.onclick=()=>{$$('[data-vmf]').forEach(x=>x.classList.toggle('on',x===b));S.vm.flt=b.dataset.vmf;renderVM()});
-$('#vm-sec').onchange=e=>{S.vm.sec=e.target.value;renderVM()};
-/* buscar un papel en el mapa de valor y momentum */
-function vmFind(raw){
-  const t=String(raw||'').trim().toUpperCase().replace('.','-'),msg=$('#vm-qmsg');msg.textContent='';if(!t||!S.scr)return;
-  const r=S.scr.rows.find(x=>x.t===t);
-  if(!r){msg.textContent=`${t} no está en el monitor.`;return}
-  if(!r.vm||!r.vm.length){msg.textContent=`${t} no tiene datos suficientes para el mapa.`;return}
-  const reg=r.region==='EE.UU.'?'us':'latam';
-  if(S.vm.reg!==reg){S.vm.reg=reg;$$('[data-vmr]').forEach(x=>x.classList.toggle('on',x.dataset.vmr===reg))}
-  if(S.vm.sec&&S.vm.sec!==r.sector){S.vm.sec='';$('#vm-sec').value=''}
-  S.vm.focus=t;S.vm.pendingSel=t;renderVM();
-  $('#vm-map').scrollIntoView({behavior:'smooth',block:'center'});
-}
-$('#vm-q').addEventListener('focus',()=>{const dl=$('#vm-qlist');if(S.scr&&!dl.children.length)dl.innerHTML=S.scr.rows.filter(r=>r.vm&&r.vm.length).map(r=>`<option value="${esc(r.t)}">${esc(r.name)}</option>`).join('')});
-$('#vm-q').addEventListener('keydown',e=>{if(e.key==='Enter')vmFind(e.target.value)});
-$('#vm-q').addEventListener('change',e=>vmFind(e.target.value));
-
-function squarify(items,x,y,w,h){
-  /* items: [{v,...}] ordenados desc; devuelve [{item,x,y,w,h}] */
-  const out=[];const tot=items.reduce((a,b)=>a+b.v,0);if(!tot||w<=0||h<=0)return out;
-  const sc=w*h/tot;let rest=items.map(it=>({it,a:it.v*sc}));
-  let X=x,Y=y,W=w,H=h;
-  const worst=(row,len)=>{const s=row.reduce((a,b)=>a+b.a,0),mx=Math.max(...row.map(r=>r.a)),mn=Math.min(...row.map(r=>r.a));return Math.max(len*len*mx/(s*s),(s*s)/(len*len*mn))};
-  while(rest.length){
-    const len=Math.min(W,H);let row=[rest[0]],i=1;
-    while(i<rest.length){const nr=row.concat(rest[i]);if(worst(nr,len)<=worst(row,len)){row=nr;i++}else break}
-    rest=rest.slice(row.length);const s=row.reduce((a,b)=>a+b.a,0);
-    if(W>=H){const cw=s/H;let cy=Y;row.forEach(r=>{const rh=r.a/cw;out.push({item:r.it,x:X,y:cy,w:cw,h:rh});cy+=rh});X+=cw;W-=cw}
-    else{const rh=s/W;let cx=X;row.forEach(r=>{const rw=r.a/rh;out.push({item:r.it,x:cx,y:Y,w:rw,h:rh});cx+=rw});Y+=rh;H-=rh}
-  }
-  return out;
-}
-/* escala de colores tipo FINVIZ */
-function fvCol(x,rng){
-  if(x==null||!isFinite(x))return '#414554';
-  const t=Math.max(-1,Math.min(1,x/rng));
-  const neg=[[65,69,84],[139,68,78],[191,64,69],[246,53,56]],pos=[[65,69,84],[53,118,78],[47,158,79],[48,204,90]];
-  const P=t<0?neg:pos,a=Math.abs(t)*3,i=Math.min(2,Math.floor(a)),f=a-i,c0=P[i],c1=P[i+1];
-  return `rgb(${c0.map((v,k)=>Math.round(v+(c1[k]-v)*f)).join(',')})`;
-}
-function scoreFv(v){return v==null?'#414554':fvCol((v-50)/50,1)}
-S.hm='r1d';S.hu='us';
-/* ---------- rendimiento por sector (barras) ---------- */
-S.sp=5;
-const SPK={1:'r1d',5:'r1w',21:'r1m',63:'r3m',126:'r6m',252:'r12m'},SPL={1:'del día',5:'de la semana',21:'del último mes',63:'de los últimos 3 meses',126:'de los últimos 6 meses',252:'de los últimos 12 meses'};
-function etfRet(e,n){
-  if(n===1){const lv=liveOf(e.etf);if(lv&&lv.pct_change!=null)return lv.pct_change/100}
-  const c=e.closes;if(c&&c.length>n&&c[c.length-1-n]>0)return c[c.length-1]/c[c.length-1-n]-1;
-  const v=e[SPK[n]];return v==null?null:v}
-function renderSecPerf(){
-  const el=$('#secperf');if(!el)return;const E=S.scr&&S.scr.etfs;if(!E||!E.length){el.innerHTML='<p class="note">Cargando…</p>';return}
-  const n=S.sp,rows=E.map(e=>({e,v:etfRet(e,n)})).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
-  let spy=S.scr.spy&&S.scr.spy[SPK[n]];if(n===1){const lv=liveOf('SPY');if(lv&&lv.pct_change!=null)spy=lv.pct_change/100}
-  const mx=Math.max(0.005,...rows.map(x=>Math.abs(x.v)),spy!=null?Math.abs(spy):0);
-  const cen=S.spMode!=='left',W=v=>Math.abs(v)/mx*(cen?50:100);
-  const col=v=>{const a=Math.min(1,Math.abs(v)/mx);return v>=0?`hsl(140 ${40+25*a}% ${52-12*a}%)`:`hsl(4 ${50+25*a}% ${58-10*a}%)`};
-  el.innerHTML=`<div class="sp-chart">${rows.map(x=>{const v=x.v,lead=spy!=null&&v>spy;return `<div class="sp-row" data-etf="${esc(x.e.etf)}" title="${esc(x.e.sector)} (${esc(x.e.etf)}): ${pct(v,2)} ${SPL[n]}${spy!=null?' · S&P 500 '+pct(spy,2):''}">
-      <div class="sp-lbl">${esc(x.e.sector)} <span class="note">${esc(x.e.etf)}</span></div>
-      <div class="sp-track">${cen?'<i class="sp-zero"></i>':''}${spy!=null?`<i class="sp-ref" style="left:${cen?50+(spy>=0?1:-1)*W(spy):W(spy)}%;border-color:${spy>=0?'var(--muted)':'var(--down)'}"></i>`:''}<b style="${cen?(v>=0?'left:50%':'right:50%'):'left:0'};width:${W(v)}%;background:${col(v)}"></b></div>
-      <div class="sp-val ${cls(v)}">${pct(v,2)}${lead?' <span class="note">▲</span>':''}</div></div>`}).join('')}</div>
-    <p class="note" style="margin:8px 0 0">${spy!=null?`S&amp;P 500 ${SPL[n]}: <b class="${cls(spy)}">${pct(spy,2)}</b> (línea punteada${spy<0?', en rojo porque el índice bajó':''}). ▲ = le ganó al índice. ${cen?'Vista centrada: lo que queda a la derecha de la línea le ganó al S&amp;P. ':'Vista alineada: el largo es cuánto se movió; la línea sirve para comparar las verdes. '}`:''}${n===1?'Con precios en vivo cuando el mercado está abierto; si no, con el cierre del último análisis diario':'Con el cierre del último análisis diario'}${S.scr.spy&&S.scr.spy.asof?` (rueda del ${new Date(S.scr.spy.asof+'T12:00:00').toLocaleDateString('es-AR')})`:''}.</p>`;
-  el.querySelectorAll('[data-etf]').forEach(r=>r.onclick=()=>openEtf(r.dataset.etf));
-}
-S.spMode=store('spMode')||'center';$('#sp-mode').value=S.spMode;$('#sp-mode').onchange=e=>{S.spMode=e.target.value;store('spMode',S.spMode);renderSecPerf()};
-$$('[data-sp]').forEach(b=>b.onclick=()=>{$$('[data-sp]').forEach(x=>x.classList.toggle('on',x===b));S.sp=+b.dataset.sp;renderSecPerf()});
-function renderHeat(){
-  const el=$('#heat');if(!el)return;
-  if(!S.scr){el.innerHTML='<p class="note" style="color:#ccc;padding:20px">Todavía no hay análisis generado.</p>';return}
-  if(el.offsetParent===null)return; /* pestaña oculta: se dibuja al abrirla */
-  renderSectors();
-  const m=S.hm,rng={r1d:0.03,r1m:0.10,r6m:0.30,r12m:0.40}[m];
-  const lab={r1d:'±3%',r1m:'±10%',r6m:'±30%',r12m:'±40%'}[m];
-  $('#hm-legend').innerHTML=m==='score'?'Rojo: puntaje bajo · Verde: puntaje alto':`Escala de color: ${lab} o más`;
-  const rows=S.scr.rows.filter(r=>S.hu==='us'?r.region==='EE.UU.':r.region!=='EE.UU.').map(enrich);
-  const mc=rows.map(r=>r.mcap).filter(x=>x>0).sort((a,b)=>a-b);const fill=mc.length?mc[Math.floor(mc.length*0.1)]:1e9;
-  const by={};rows.forEach(o=>{o.v=o.mcap>0?o.mcap:fill;(by[o.sector]=by[o.sector]||[]).push(o)});
-  const secs=Object.keys(by).map(k=>({k,v:by[k].reduce((a,b)=>a+b.v,0)})).sort((a,b)=>b.v-a.v);
-  const W=el.clientWidth,H=el.clientHeight;
-  const val=o=>m==='score'?o.score:(m==='r1d'?o.chg:o[m]);
-  let html='';
-  squarify(secs,0,0,W,H).forEach(sr=>{
-    const list=by[sr.item.k].sort((a,b)=>b.v-a.v);
-    const hd=sr.h>40&&sr.w>50?16:0;
-    const E=etfOf(sr.item.k);html+=`<div class="tsec" style="left:${sr.x}px;top:${sr.y}px;width:${sr.w}px;height:${sr.h}px">${hd?`<span title="${E?esc(E.etf+' · puntaje '+Math.round(E.at)+' · '+E.fase):''}">${esc(sr.item.k)}${E&&sr.w>170?` · ${esc(E.etf)} ${Math.round(E.at)} · ${esc(E.fase)}`:''}</span>`:''}</div>`;
-    squarify(list,sr.x,sr.y+hd,sr.w,sr.h-hd).forEach(c=>{
-      const o=c.item,v=val(o);const fs=Math.max(8,Math.min(30,Math.min(c.w/3.6,c.h/2.4)));
-      const txt=m==='score'?(v==null?'':Math.round(v)):pct(v,m==='r1d'?2:1);
-      const show=c.w>=22&&c.h>=13,show2=c.h>=fs*2.3&&c.w>=34;
-      html+=`<div class="tc" data-t="${esc(o.t)}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background:${m==='score'?scoreFv(v):fvCol(v,rng)};font-size:${fs}px">${show?`<b>${esc(o.t)}</b>`:''}${show2?`<span style="font-size:${Math.max(8,fs*0.62)}px">${txt}</span>`:''}</div>`;
-    });
-  });
-  el.innerHTML=html;
-  const tip=$('#tmtip');const map={};rows.forEach(o=>map[o.t]=o);
-  el.querySelectorAll('.tc').forEach(d=>{
-    d.onclick=()=>openDetail(d.dataset.t);
-    d.onmousemove=e=>{const o=map[d.dataset.t];if(!o)return;
-      tip.innerHTML=`<b style="font-size:14px">${esc(o.t)}</b> <span style="opacity:.75">${esc(o.name)}</span><div style="opacity:.7;margin-bottom:6px">${esc(o.sector)}</div>
-      <div class="row"><span>Precio</span><b>US$ ${fmt(o.px)}</b></div><div class="row"><span>Var. día</span><b>${pct(o.chg)}</b></div>
-      <div class="row"><span>1 mes / 6 meses</span><b>${pct(o.r1m,1)} / ${pct(o.r6m,1)}</b></div><div class="row"><span>Puntaje PROSPEI</span><b>${Math.round(o.score)}</b></div>
-      ${o.mcap?`<div class="row"><span>Capitalización</span><b>US$ ${vol(o.mcap)}</b></div>`:''}`;
-      tip.classList.remove('hide');const tw=tip.offsetWidth,th=tip.offsetHeight;
-      tip.style.left=Math.min(innerWidth-tw-8,e.clientX+14)+'px';tip.style.top=Math.min(innerHeight-th-8,e.clientY+14)+'px'};
-    d.onmouseleave=()=>tip.classList.add('hide');
-  });
-}
-let _rz;addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(renderHeat,200)});
-$$('[data-hu]').forEach(b=>b.onclick=()=>{$$('[data-hu]').forEach(x=>x.classList.toggle('on',x===b));S.hu=b.dataset.hu;renderHeat()});
-$$('[data-tf]').forEach(b=>b.onclick=()=>{$$('[data-tf]').forEach(x=>x.classList.toggle('on',x===b));S.tf=b.dataset.tf;renderTop()});
-$$('[data-hm]').forEach(b=>b.onclick=()=>{$$('[data-hm]').forEach(x=>x.classList.toggle('on',x===b));S.hm=b.dataset.hm;renderHeat()});
-$('#q-uni').oninput=()=>{S.uniLimit=100;renderUni()};$('#f-reg').onchange=renderUni;$('#f-sec').onchange=renderUni;$('#f-ced').onchange=renderUni;
-$('#more-uni').onclick=()=>{S.uniLimit+=150;renderUni()};
-
-function sma(a,n){const o=new Array(a.length).fill(null);let s=0;for(let i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)o[i]=s/n}return o}
-function chartSvg(cl){
-  if(!cl||cl.length<60)return '';
-  const s50=sma(cl,50),s200=sma(cl,200),N=Math.min(252,cl.length),st=cl.length-N;
-  const P=cl.slice(st),A=s50.slice(st),B=s200.slice(st);
-  const all=P.concat(A,B).filter(x=>x!=null);const mn=Math.min(...all),mx=Math.max(...all),pad=(mx-mn)*0.06||1;
-  const W=900,H=260,L=8,R=58,T=10,Bm=22;
-  const x=i=>L+i*(W-L-R)/(N-1),y=v=>T+(1-(v-(mn-pad))/((mx+pad)-(mn-pad)))*(H-T-Bm);
-  const path=arr=>{let d='',pen=false;arr.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1);pen=true});return d};
-  const ticks=[0,.25,.5,.75,1].map(f=>mn-pad+f*((mx+pad)-(mn-pad)));
-  const up=P[P.length-1]>=P[0];
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Precio del último año con medias de 50 y 200 ruedas">
-    ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--line)" stroke-width="1"/><text x="${W-R+6}" y="${y(v)+4}" font-size="11" style="fill:var(--muted)">${fmt(v)}</text>`).join('')}
-    <path d="${path(P)}L${x(N-1)} ${H-Bm}L${x(0)} ${H-Bm}Z" style="fill:${up?'var(--up)':'var(--down)'};opacity:.08"/>
-    <path d="${path(B)}" fill="none" style="stroke:var(--muted)" stroke-width="1.6" stroke-dasharray="5 4"/>
-    <path d="${path(A)}" fill="none" style="stroke:#e0a800" stroke-width="1.6"/>
-    <path d="${path(P)}" fill="none" style="stroke:var(--accent)" stroke-width="2"/>
-    <text x="${L}" y="${H-6}" font-size="11" style="fill:var(--muted)">hace 12 meses</text>
-    <text x="${W-R}" y="${H-6}" font-size="11" text-anchor="end" style="fill:var(--muted)">hoy</text>
-  </svg>
-  <div class="legend"><span><i style="background:var(--accent)"></i>Precio</span><span><i style="background:#e0a800"></i>Media 50 ruedas</span><span><i style="background:var(--muted)"></i>Media 200 ruedas</span></div>`;
-}
-function openDetail(t){
-  if(!S.scr)return;const r0=S.scr.rows.find(x=>x.t===t);if(!r0)return;const o=enrich(r0);
-  const kv=(l,v)=>`<div><span>${l}</span><b class="num">${v}</b></div>`;
-  const pill=(l,v)=>`<div><div class="l">${l}</div>${sbar(v)}</div>`;
-  const li=a=>a&&a.length?a.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="note">Sin datos suficientes.</li>';
-  const recTxt=o.rec==null||o.n_an<3?'—':(o.rec<=1.5?'Compra fuerte':o.rec<=2.5?'Compra':o.rec<=3.5?'Mantener':'Venta')+` (${fmt(o.rec,1)})`;
-  let ced='';
-  if(o.ced&&o.ced.type==='ced'){
-    const cm={};(S.data.cedears||[]).forEach(c=>{if(c&&c.symbol)cm[c.symbol]=c});
-    const c=cm[o.ced.code],pr=parseRatio(o.ced.ratio),ccl=S.cedRef||(S.ref.ccl&&S.ref.ccl.v);
-    const extra=cedBoxExtra(o.ced.code,o.ced.ratio,o.px);
-    ced=`<div class="cedbox">🇦🇷 Se puede comprar desde Argentina como <b>CEDEAR ${esc(o.ced.code)}</b> (ratio ${esc(o.ced.ratio)}).${extra}</div>`;
-  }else if(o.ced&&o.ced.type==='local'){
-    const st=(S.data.stocks||[]).find(x=>x.symbol===o.ced.code);
-    ced=`<div class="cedbox">🇦🇷 Cotiza en BYMA como <b>${esc(o.ced.code)}</b>${st&&ok(st.c)?` a $ ${fmt(st.c)} (${pct((st.pct_change||0)/100)})`:''}${S.data.adrCcl&&S.data.adrCcl[o.ced.code]?` · CCL implícito $ ${fmt(S.data.adrCcl[o.ced.code])}`:''}.</div>`;
-  }else{
-    ced=`<div class="cedbox note">No figura en la lista de CEDEARs de este monitor. Se puede operar desde una cuenta en el exterior.</div>`;
-  }
-  $('#mbody').innerHTML=`
-    <div class="mhead">
-      <div>
-        <h3>${esc(o.t)} ${o.rank?`<span class="tag">TOP ${o.rank}</span>`:''}</h3>
-        <div class="nm">${esc(o.name)} · ${esc(o.sector)} · ${esc(o.region)}</div>
-        <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <span style="font-size:22px;font-weight:700" class="num">US$ ${fmt(o.px)}</span>
-          <span class="pill ${cls(o.chg)}">${pct(o.chg)}</span>
-          ${setupChip(o.setup)}
-          ${o.elig?'':'<span class="pill warn">Fuera del filtro de oportunidades</span>'}
-        </div>
-      </div>
-      <div class="bigscore" style="background:${scoreCol(o.score)}"><b>${Math.round(o.score)}</b><small>Puntaje PROSPEI</small></div>
-      <button class="chip no-print" id="pdf-btn" data-t="${esc(o.t)}" style="align-self:center" title="Descargar la ficha en PDF">⬇ Descargar PDF</button>
-    </div>
-    ${o.verdict?`<div class="verdict-box"><span class="${vdCls(o.verdict)}">${esc(o.verdict)}</span><div><div style="font-size:13.5px">${esc(o.verdict_why)}</div>${o.verdict_prev&&o.verdict_prev!==o.verdict?`<div class="note">Ayer: ${esc(o.verdict_prev)}</div>`:''}</div></div>`:''}
-    ${o.perfil&&o.perfil.txt?`<div class="note" style="margin:-2px 0 10px">🧭 Perfil del sector · <b>${esc(o.perfil.fam)}</b> — ${esc(o.perfil.txt)}${o.perfil.edge?'':' El veredicto máximo en este sector es Vigilar.'}</div>`:''}
-    ${o.lights?`<div class="semaf">${['cal','val','tec','evt'].map(k=>{const v=o.lights[k];return `<div><i class="l${v==null?'null':v}"></i><span><b>${LIGHTN[k]}</b><br><span class="note">${v==null?'sin dato':lightTxt[k][v]}</span></span></div>`}).join('')}</div>`:''}
-    ${alertTags(o)?`<div style="margin-bottom:6px">${alertTags(o)}</div>`:''}
-    <div class="pillars">
-      ${pill('Técnico (AT)',o.at)}${pill('Fundamental (AF)',o.af)}
-      ${pill('Valuación',o.f_val*100)}${pill('Crecimiento',o.f_gro*100)}${pill('Calidad',o.f_qua*100)}${pill('Solidez financiera',o.f_sol*100)}${pill('Visión analistas',o.f_ana*100)}
-    </div>
-    ${o.closes?chartSvg(o.closes):'<p class="note">El gráfico está disponible para los papeles del top.</p>'}
-    ${earlyHtml(o)}
-    ${valLensHtml(o)}
-    <div class="fh" id="fh-box" data-t="${esc(o.t)}"><p class="note">Cargando historia de ganancias y valuación…</p></div>
-    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
-    <div class="lists">
-      <div class="pro"><h4>Por qué aparece como oportunidad</h4><ul>${li(o.pro)}</ul></div>
-      <div class="gro"><h4>Perspectiva de crecimiento</h4><ul>${li(o.grow)}</ul></div>
-      <div class="con"><h4>A vigilar</h4><ul>${li(o.con)}</ul></div>
-    </div>
-    ${o.ck==='DF'?`<div class="cedbox" style="margin:10px 0;border-color:#3fb950"><b style="color:#3fb950">🛡 Defensiva sólida</b> · cumple ${o.ck_n} de ${o.ck_m} condiciones (${esc((o.ck_list||[]).join(', '))}).<div class="note" style="margin-top:4px">En 10 años, las defensivas así rindieron menos que el promedio en años de euforia, pero mejor en los años difíciles y con pocas caídas fuertes. Opción para perfiles conservadores.</div></div>`:''}
-    ${riskBox(o)}
-    <div class="grid2">
-      <div><h4 style="margin:0 0 6px">Análisis técnico</h4><div class="kv">
-        ${trendKv(o,kv)}${kv('RSI (14)',fmt(o.rsi,0))}${kv('vs media 50',pct(o.p/o.sma50-1,1))}${kv('vs media 200',pct(o.p/o.sma200-1,1))}
-        ${kv('Desde máx. 52 sem.',pct(o.dd,1))}${kv('Máx. / mín. 52 sem.',fmt(o.hi52)+' / '+fmt(o.lo52))}
-        ${kv('Var. 1 mes',pct(o.r1m,1))}${kv('Var. 3 meses',pct(o.r3m,1))}${kv('Var. 6 meses',pct(o.r6m,1))}${kv('Var. 12 meses',pct(o.r12m,1))}
-        ${kv('Volatilidad anual',o.volat==null?'—':fmt(o.volat*100,0)+'%')}${kv('Volumen relativo',o.vol_ratio==null?'—':fmt(o.vol_ratio,2)+'x')}
-        ${kv('MACD',o.macd_h>0?'Positivo':'Negativo')}
-      </div></div>
-      <div><h4 style="margin:0 0 6px">Análisis fundamental</h4><div class="kv">
-        ${kv('P/E histórico',o.pe>0?fmt(o.pe,1)+'x':'—')}${kv('P/E esperado',o.fpe>0?fmt(o.fpe,1)+'x':'—')}${o.val_model==='book'?kv('P/VL de '+(o.peer_lbl||'pares')+(o.cty_lbl?' (aj. riesgo país)':''),o.peer_pb?fmt(o.peer_pb,2)+'x':'—'):kv('P/E esperado '+(o.peer_lbl==='su industria'?'industria':'sector')+(o.cty_lbl?' (aj. riesgo país)':''),o.sec_fpe?fmt(o.sec_fpe,1)+'x':'—')}${kv('P/E promedio histórico',o.pe_hist?fmt(o.pe_hist,1)+'x ('+(o.hist_n||'')+' años)':'—')}${kv('Precio / ventas (hoy · histórico)',o.ps?fmt(o.ps,1)+'x · '+(o.ps_hist?fmt(o.ps_hist,1)+'x':'—'):'—')}${kv('Dividendo promedio 5 años',o.div5?fmt(o.div5,2)+'%':'—')}
-        ${kv('PEG',o.val_model!=='pe'||o.eps_gap>0.4?'no aplica':o.peg>0?fmt(o.peg,2):'—')}${kv('Precio / valor libros (hoy · histórico)',o.pb>0?fmt(o.pb,2)+'x'+(o.pb_hist?' · '+fmt(o.pb_hist,2)+'x':''):'—')}
-        ${kv('Crec. ventas (a/a)',pct(o.rev_g,1))}${kv('Crec. ganancias (a/a)',pct(o.eps_g,1))}
-        ${kv('ROE',o.roe==null?'—':fmt(o.roe*100,1)+'%')}${kv('Margen neto',o.margin==null?'—':fmt(o.margin*100,1)+'%')}
-        ${kv('Deuda / patrimonio',o.sector==='Financiero'?'n/a (financiero)':o.de==null?'—':fmt(o.de/100,2)+'x')}${kv('Dividendo',o.div==null?'—':fmt(o.div,2)+'%')}
-        ${kv('Flujo de caja libre',o.sector==='Financiero'?'n/a (financiero)':o.fcf==null?'—':'US$ '+vol(o.fcf))}${kv('Rendimiento FCF',o.sector==='Financiero'||o.fcf_y==null?'—':fmt(o.fcf_y*100,1)+'%')}
-        ${kv('Próximo balance',o.earn_days==null||o.earn_days<0?'—':o.earn_days===0?'Hoy':'en '+o.earn_days+' días')}${kv('Industria',esc(o.industry||'—'))}
-        ${kv('Precio objetivo',o.target&&o.n_an>=3?'US$ '+fmt(o.target)+' ('+pct(o.upside,1)+')':'—')}${kv('Consenso ('+(o.n_an||0)+' analistas)',recTxt)}
-      </div></div>
-    </div>
-    ${ced}
-    <p class="note" style="margin-top:12px">Puntaje calculado al cierre del ${new Date(S.scr.generated).toLocaleDateString('es-AR')} con datos de Yahoo Finance. Herramienta de screening: no es una recomendación de inversión.</p>`;
-  $('#modal').classList.remove('hide');document.body.style.overflow='hidden';
-  renderFH(o).catch(e=>{const b=$('#fh-box');if(b)b.innerHTML='<p class="note">No se pudo dibujar la historia de ganancias: '+esc(e.message)+'</p>';console.error(e)});
-}
-const LOGO_H='data:image/png;base64,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';
-function printFicha(t){
-  const mb=$('#mbody');if(!mb)return;
-  const de=document.documentElement,th=de.getAttribute('data-theme'),title=document.title;
-  const hoy=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const asof=S.scr&&S.scr.generated?new Date(S.scr.generated).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}):hoy;
-  const hd=document.createElement('div');hd.className='print-only print-hd';
-  hd.innerHTML=`<img src="${LOGO_H}" alt="PROSPEI Consultores Financieros" style="height:40px;width:auto"><span>Ficha de <b>${esc(t)}</b><br>datos al ${asof}</span>`;
-  const ft=document.createElement('div');ft.className='print-only print-ft';
-  ft.textContent='Información de carácter informativo y educativo. Los puntajes y veredictos son una herramienta de screening cuantitativo y no constituyen recomendación de compra o venta de valores negociables; cada decisión debe evaluarse según el perfil de riesgo del inversor. Rendimientos pasados no garantizan resultados futuros. Generado el '+hoy+'.';
-  mb.prepend(hd);mb.append(ft);
-  mb.querySelectorAll('details').forEach(d=>{if(!d.open){d.open=true;d.dataset.pf='1'}});
-  de.setAttribute('data-theme','light');document.body.classList.add('print-ficha');
-  document.title=`Ficha ${t} - PROSPEI ${hoy.replace(/\//g,'-')}`;
-  const done=()=>{document.body.classList.remove('print-ficha');if(th)de.setAttribute('data-theme',th);else de.removeAttribute('data-theme');
-    document.title=title;hd.remove();ft.remove();mb.querySelectorAll('details[data-pf]').forEach(d=>{d.open=false;delete d.dataset.pf});window.removeEventListener('afterprint',done)};
-  window.addEventListener('afterprint',done);
-  setTimeout(()=>{window.print();setTimeout(()=>{if(document.body.classList.contains('print-ficha')&&!matchMedia('print').matches)done()},1500)},60);
-}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#pdf-btn');if(b)printFicha(b.dataset.t)});
-function closeDetail(){$('#modal').classList.add('hide');document.body.style.overflow=''}
-$('#mclose').onclick=closeDetail;$('#modal').onclick=e=>{if(e.target.id==='modal')closeDetail()};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});
 
 
-/* ---------- Historia de ganancias y valuación (fund/<T>.json + fund_sum.json + fwd_hist.json) ---------- */
-async function loadFsum(){if(S.fsum!==undefined)return S.fsum;try{S.fsum=await getJ('fund_sum.json?v='+Date.now())}catch(e){S.fsum=null}return S.fsum}
-async function loadFwd(){if(S.fwdh!==undefined)return S.fwdh;try{S.fwdh=await getJ('fwd_hist.json?v='+Date.now())}catch(e){S.fwdh=null}return S.fwdh}
-async function loadFund(t){S.fund=S.fund||{};if(t in S.fund)return S.fund[t];try{S.fund[t]=await getJ('fund/'+encodeURIComponent(t)+'.json?v='+Date.now())}catch(e){S.fund[t]=null}return S.fund[t]}
-const fhQ=(q,v)=>{ // percentil aproximado de v dentro de los deciles q[10..90]
-  if(!q||v==null||!isFinite(v))return null;if(v<=q[0])return Math.max(0,0.1*v/q[0]);if(v>=q[8])return Math.min(1,0.9+0.1*Math.min(1,(v-q[8])/Math.max(1e-9,q[8]-q[7])));
-  for(let i=0;i<8;i++)if(v<=q[i+1])return 0.1*(i+1)+0.1*(v-q[i])/Math.max(1e-9,q[i+1]-q[i]);return null};
-function fhMult(o,f){ // múltiplo adecuado al tipo de empresa: P/E, P/VL (bancos y aseguradoras) o P/V (sin ganancias)
-  if(!f)return null;const p=o.px||o.p;if(!p)return null;
-  if(o.val_model==='book'&&f.bv>0&&f.sh>0&&f.pb_q)return {k:'pb',lbl:'P/VL',now:p/(f.bv/f.sh),q:f.pb_q};
-  if(f.eps>0&&f.pe_q&&o.val_model!=='sales'&&!fhBad(o,f))return {k:'pe',lbl:'P/E',now:p/f.eps,q:f.pe_q};
-  if(f.rev>0&&f.sh>0&&f.ps_q)return {k:'ps',lbl:'P/V',now:p*f.sh/f.rev,q:f.ps_q};
-  return null}
-const fhBad=(o,f)=>o.eps>0&&f&&f.eps>0&&Math.abs(f.eps/o.eps-1)>0.35; // la ganancia de la SEC no coincide con la de Yahoo
-const fhWord=pc=>pc==null?'':pc<=0.2?'muy barata contra su historia':pc<=0.4?'barata contra su historia':pc<0.6?'en su rango normal':pc<0.8?'cara contra su historia':'muy cara contra su historia';
-const fhCol=pc=>pc==null?'var(--muted)':pc<=0.4?'var(--up)':pc>=0.6?'var(--down)':'var(--ink)';
-
-/* gráfico de líneas genérico (SVG) */
-function fhChart(o){
-  const W=o.W||900,sm_=W<600,H=o.h||(sm_?220:250),L=8,T=12,Bm=24,N=o.labels.length;if(N<2)return '';let R=62;
-  const vals=[];o.series.forEach(s=>{if(!s.right)s.v.forEach(v=>{if(v!=null&&isFinite(v))vals.push(v)})});
-  if(o.band){o.band.lo.forEach(v=>v!=null&&vals.push(v));o.band.hi.forEach(v=>v!=null&&vals.push(v))}
-  (o.marks||[]).forEach(m=>!m.right&&m.v!=null&&isFinite(m.v)&&vals.push(m.v));
-  (o.bars||[]).forEach(v=>v!=null&&vals.push(v));
-  if(!vals.length)return '';
-  let mn=Math.min(...vals),mx=Math.max(...vals);if(o.zero)mn=Math.min(0,mn);const pad=(mx-mn)*0.07||Math.abs(mx)*0.1||1;mn-=o.zero&&mn>=0?0:pad;mx+=pad;
-  const yfm=o.yf||(v=>fmt(v,1));R=Math.max(36,Math.max(...[0,.25,.5,.75,1].map(f=>String(yfm(mn+f*(mx-mn))).length))*6.6+12);
-  const xs=N+(o.extra||0);const x=i=>L+i*(W-L-R)/(xs-1),y=v=>T+(1-(v-mn)/(mx-mn))*(H-T-Bm);
-  let rmn,rmx,yr;const rv=[];o.series.forEach(s=>{if(s.right)s.v.forEach(v=>{if(v!=null&&isFinite(v))rv.push(v)})});
-  if(rv.length){rmn=Math.min(...rv);rmx=Math.max(...rv);const rp=(rmx-rmn)*0.1||Math.abs(rmx)*0.1||0.01;rmn-=rp;rmx+=rp;yr=v=>T+(1-(v-rmn)/(rmx-rmn))*(H-T-Bm)}
-  const path=(arr,yf)=>{let d='',pen=false;arr.forEach((v,i)=>{if(v==null||!isFinite(v)){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+' '+yf(v).toFixed(1);pen=true});return d};
-  const ticks=[0,.25,.5,.75,1].map(f=>mn+f*(mx-mn));
-  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||'')}">`;
-  s+=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" style="stroke:var(--line)"/><text x="${W-R+6}" y="${(y(v)+4).toFixed(1)}" font-size="11" style="fill:var(--muted)">${o.yf?o.yf(v):fmt(v,1)}</text>`).join('');
-  if(o.zero&&mn<0)s+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" style="stroke:var(--muted)" stroke-width="1"/>`;
-  if(o.band){let up='',dn='';const ok=i=>o.band.lo[i]!=null&&o.band.hi[i]!=null;const idx=o.labels.map((_,i)=>i).filter(ok);
-    if(idx.length>1){up=idx.map((i,k)=>(k?'L':'M')+x(i).toFixed(1)+' '+y(o.band.hi[i]).toFixed(1)).join('');dn=idx.slice().reverse().map(i=>'L'+x(i).toFixed(1)+' '+y(o.band.lo[i]).toFixed(1)).join('');
-      s+=`<path d="${up}${dn}Z" style="fill:var(--accent);opacity:.10"/>`}}
-  if(o.bars){const bw=Math.max(2,(W-L-R)/xs*(o.barW||2.2));o.bars.forEach((v,i)=>{if(v==null||!isFinite(v))return;const y0=y(Math.max(0,mn)),y1=y(v);s+=`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.abs(y1-y0).toFixed(1)}" style="fill:${o.barCol||'var(--accent)'};opacity:.35"/>`})}
-  if(o.fillBetween){const [a,b]=o.fillBetween;for(let i=0;i<N-1;i++){const p0=a[i],p1=a[i+1],q0=b[i],q1=b[i+1];if([p0,p1,q0,q1].some(v=>v==null||!isFinite(v)))continue;const c=(p0+p1)/2>(q0+q1)/2?'var(--down)':'var(--up)';s+=`<path d="M${x(i).toFixed(1)} ${y(p0).toFixed(1)}L${x(i+1).toFixed(1)} ${y(p1).toFixed(1)}L${x(i+1).toFixed(1)} ${y(q1).toFixed(1)}L${x(i).toFixed(1)} ${y(q0).toFixed(1)}Z" style="fill:${c};opacity:.13"/>`}}
-  (o.hl||[]).forEach(h=>{if(h.v==null||!isFinite(h.v))return;s+=`<line x1="${L}" x2="${W-R}" y1="${y(h.v).toFixed(1)}" y2="${y(h.v).toFixed(1)}" style="stroke:${h.c}" stroke-width="1.4" stroke-dasharray="${h.dash||'6 4'}"/>`});
-  o.series.forEach(sr=>{if(sr.right&&!yr)return;const d=path(sr.v,sr.right?yr:y);if(d)s+=`<path d="${d}" fill="none" style="stroke:${sr.c}" stroke-width="${sr.w||2}"${sr.dash?` stroke-dasharray="${sr.dash}"`:''}/>`});
-  if(yr){[0,.5,1].forEach(f=>{const v=rmn+f*(rmx-rmn);s+=`<text x="${L+2}" y="${(yr(v)-3).toFixed(1)}" font-size="10.5" style="fill:var(--muted)">${o.ryf?o.ryf(v):fmt(v,1)}</text>`})}
-  (o.marks||[]).forEach(m=>{if(m.v==null||!isFinite(m.v))return;const cx=x(m.i),cy=(m.right?yr:y)(m.v);
-    s+=m.shape==='d'?`<path d="M${cx} ${cy-7}L${cx+7} ${cy}L${cx} ${cy+7}L${cx-7} ${cy}Z" style="fill:${m.c};stroke:var(--card)" stroke-width="1.5"/>`:`<circle cx="${cx}" cy="${cy}" r="5.5" style="fill:${m.c};stroke:var(--card)" stroke-width="1.5"/>`;
-    if(m.lbl)s+=`<text x="${cx-9}" y="${cy-9}" font-size="11.5" font-weight="600" text-anchor="end" style="fill:${m.c}">${esc(m.lbl)}</text>`});
-  const step=Math.max(1,Math.round(N/Math.max(3,Math.floor(W/150))));o.labels.forEach((l,i)=>{if(i%step===0&&i<N-step/2)s+=`<text x="${x(i).toFixed(1)}" y="${H-6}" font-size="11" text-anchor="${i===0?'start':'middle'}" style="fill:var(--muted)">${esc(l)}</text>`});
-  s+=`<text x="${x(N-1).toFixed(1)}" y="${H-6}" font-size="11" text-anchor="end" style="fill:var(--muted)">hoy</text></svg>`;
-  if(o.legend)s+=`<div class="legend">${o.legend.map(l=>`<span><i style="background:${l.c}${l.dash?';opacity:.7':''}"></i>${l.t}</span>`).join('')}</div>`;
-  return s}
-
-function fhSlice(f,yrs){const n=f.d.length,k=Math.max(0,n-12*yrs);const cut=a=>a?a.slice(k):[];
-  const o={};['d','p','eps','fe','rev','ni','fcf','sh','bv'].forEach(c=>o[c]=cut(f[c]));o.lab=o.d.map(d=>d.slice(0,4));return o}
-const fhMed=a=>{const v=a.filter(x=>x!=null&&isFinite(x)).sort((x,y)=>x-y);if(!v.length)return null;const m=v.length>>1;return v.length%2?v[m]:(v[m-1]+v[m])/2};
-const fhPct=(a,p)=>{const v=a.filter(x=>x!=null&&isFinite(x)).sort((x,y)=>x-y);if(v.length<6)return null;const k=(v.length-1)*p,i=Math.floor(k);return v[i]+(v[Math.min(i+1,v.length-1)]-v[i])*(k-i)};
-const fhRoll=(a,w,p)=>a.map((_,i)=>i<w-1?null:fhPct(a.slice(i-w+1,i+1),p));
-const fhCagr=(a,b,y)=>a>0&&b>0&&y>0?Math.pow(b/a,1/y)-1:null;
-const fhLast=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]!=null&&isFinite(a[i]))return a[i];return null};
-const fhFirst=a=>{for(let i=0;i<a.length;i++)if(a[i]!=null&&isFinite(a[i])&&a[i]>0)return [i,a[i]];return [null,null]};
-const mill=v=>v==null||!isFinite(v)?'—':Math.abs(v)>=1000?'US$ '+fmt(v/1000,Math.abs(v)>=100000?0:1)+' mil M':'US$ '+fmt(v,0)+' M';
-
-async function renderFH(o){
-  const box=$('#fh-box');if(!box)return;
-  const [f,fs,fw]=await Promise.all([loadFund(o.t),loadFsum(),loadFwd()]);
-  if(!$('#fh-box')||$('#fh-box').dataset.t!==o.t)return;
-  if(!f||!f.d||!f.d.length){box.innerHTML=`<h4 style="margin:0 0 4px">Historia de ganancias y valuación</h4><p class="note">Sin historia de balances de la SEC para ${esc(o.t)}${o.region!=='EE.UU.'?' (empresa extranjera: presenta sus balances con otro formato)':''}.</p>`;return}
-  const CW=Math.max(330,Math.min(900,(box.clientWidth||900)-26));
-  const yrs=S.fhy||store('fhy')||10,F=fhSlice(f,yrs),N=F.d.length,sm=(fs&&fs.rows&&fs.rows[o.t])||{};
-  const p=F.p.slice();p[N-1]=o.px||p[N-1];          // el último punto con el precio de hoy
-  const book=o.val_model==='book';
-  const pe=F.eps.map((e,i)=>e>0&&p[i]>0&&p[i]/e<200?p[i]/e:null);
-  const pf=F.fe.map((e,i)=>e>0&&p[i]>0&&p[i]/e<200?p[i]/e:null);
-  const pb=F.bv.map((b,i)=>b>0&&F.sh[i]>0&&p[i]>0?p[i]/(b/F.sh[i]):null).map(v=>v!=null&&v<60?v:null);
-  const ps=F.rev.map((r,i)=>r>0&&F.sh[i]>0&&p[i]>0?p[i]*F.sh[i]/r:null);
-  const useM=book&&pb.filter(v=>v!=null).length>12?'pb':pe.filter(v=>v!=null).length>=Math.min(24,N*0.5)?'pe':ps.filter(v=>v!=null).length>12?'ps':null;
-  const M={pe:{a:pe,lbl:'P/E',name:'precio / ganancia'},pb:{a:pb,lbl:'P/VL',name:'precio / valor libros'},ps:{a:ps,lbl:'P/V',name:'precio / ventas'}}[useM]||null;
-  const chips=`<div class="bar" style="margin:4px 0 8px">${[5,10,15].map(y=>`<button class="chip ${y===yrs?'on':''}" data-fhy="${y}">${y} años</button>`).join('')}</div>`;
-  let h=`<h4 style="margin:0 0 2px">Historia de ganancias y valuación</h4><p class="note" style="margin:0">Balances presentados a la SEC, con la información que se conocía en cada mes. Precios ajustados por splits.</p>${chips}`;
-  if(f.approx)h+=`<div class="note" style="margin-top:6px">ℹ️ Esta empresa no informa la ganancia por acción con el formato estándar de la SEC (por ejemplo, por tener dos clases de acciones): parte de la historia se aproxima con ganancia neta / acciones de hoy.</div>`;
-  const eL=fhLast(F.eps);if(o.eps>0&&eL>0&&Math.abs(eL/o.eps-1)>0.35)h+=`<div class="cedbox" style="margin-top:6px">⚠️ La ganancia por acción de los balances de la SEC (US$ ${fmt(eL,2)}) no coincide con la que informa Yahoo (US$ ${fmt(o.eps,2)}). Puede deberse a fusiones, splits o ajustes contables: tomar los gráficos de ganancias con cautela.</div>`;
-  // 1) precio vs ganancias
-  const medPE=M&&useM==='pe'?fhMed(pe):null;
-  if(medPE){
-    const fair=F.eps.map(e=>e!=null&&isFinite(e)?Math.max(0,e*medPE):null);
-    const [i0,e0]=fhFirst(F.eps),eN=fhLast(F.eps),yy=i0==null?null:(N-1-i0)/12;
-    const cp=fhCagr(p[i0],p[N-1],yy),ce=fhCagr(e0,eN,yy);
-    const fwdFair=o.fwd_eps>0?o.fwd_eps*medPE:null;
-    const lab=F.lab.concat(['+12m']);
-    const gap=fair[N-1]>0?p[N-1]/fair[N-1]-1:null;
-    h+=`<div class="fh-card"><div class="fh-t">Precio vs. ganancias</div>
-      <p class="note" style="margin:2px 0 4px">La línea naranja es el precio que "corresponde" a la ganancia de cada momento si la acción cotizara a su P/E normal (mediana de ${yrs} años: <b>${fmt(medPE,1)}x</b>). Precio arriba de la naranja = más cara que lo habitual (rojo); abajo = más barata (verde).</p>
-      ${fhChart({W:CW,title:'Precio vs ganancias',labels:lab.slice(0,N),extra:fwdFair?12:0,series:[{v:fair,c:'#e8890c',w:2.2},{v:p,c:'var(--accent)',w:2.2}],fillBetween:[p,fair],marks:fwdFair?[{i:N-1+12,v:fwdFair,c:'#e8890c',shape:'d',lbl:'esperada'}]:[],zero:true,yf:v=>fmt(v,0),
-        legend:[{t:'Precio',c:'var(--accent)'},{t:'Ganancia × P/E normal',c:'#e8890c'},...(fwdFair?[{t:'◆ con la ganancia esperada a 12 meses',c:'#e8890c'}]:[])]})}
-      <p class="fh-s">${cp!=null&&ce!=null?`En ${fmt(yy,0)} años el precio ${cp>=0?'subió':'bajó'} <b>${pct(cp,1)} anual</b> y la ganancia por acción <b>${pct(ce,1)} anual</b>: ${cp-ce>0.02?'el precio corrió más rápido que las ganancias (se encareció).':ce-cp>0.02?'las ganancias crecieron más que el precio (se abarató).':'precio y ganancias avanzaron parejo.'}`:'Ganancias negativas en parte del período: el crecimiento anual no es comparable.'}${gap!=null?` Hoy cotiza <b class="${gap>0?'down':'up'}">${pct(gap,0)}</b> contra el precio que corresponde a su ganancia actual con su P/E normal.`:''}</p></div>`;
-  }
-  // 2) múltiplo vs su historia (+ forward)
-  if(M){
-    const a=M.a,med=fhMed(a),lo=fhPct(a,0.25),hi=fhPct(a,0.75);
-    const now=a[N-1];const all=a.filter(v=>v!=null);const pc=now!=null&&all.length?all.filter(v=>v<now).length/all.length:null;
-    const isPE=useM==='pe';const pfm=isPE?fhMed(pf):null;
-    const marks=[{i:N-1,v:now,c:fhCol(pc),lbl:'hoy '+fmt(now,1)+'x'}];
-    if(isPE&&o.fpe>0&&o.fpe<200)marks.push({i:N-1,v:o.fpe,c:'#8e5bd6',shape:'d',lbl:'esperado '+fmt(o.fpe,1)+'x'});
-    // P/E esperado guardado semana a semana desde que se empezó a registrar
-    let fwdLine=null;if(isPE&&fw&&fw.f&&fw.f[o.t]&&fw.dates){const m={};fw.dates.forEach((d,i)=>{const v=fw.f[o.t][i];if(v!=null)m[d.slice(0,7)]=v});fwdLine=F.d.map(d=>m[d]??null);if(fwdLine.filter(v=>v!=null).length<2)fwdLine=null}
-    const ser=[{v:a,c:'var(--accent)',w:2.2}];if(isPE&&pf.some(v=>v!=null))ser.push({v:pf,c:'#8e5bd6',w:1.6,dash:'5 4'});if(fwdLine)ser.push({v:fwdLine,c:'#8e5bd6',w:2.4});
-    h+=`<div class="fh-card"><div class="fh-t">${M.lbl} hoy contra su propia historia</div>
-      ${fhChart({W:CW,title:M.lbl+' histórico',labels:F.lab,series:ser,hl:[{v:med,c:'var(--muted)'}],band:{lo:a.map(()=>lo),hi:a.map(()=>hi)},marks,yf:v=>fmt(v,0)+'x',
-        legend:[{t:M.lbl+' ('+M.name+')',c:'var(--accent)'},{t:'Rango normal (mitad central)',c:'color-mix(in srgb,var(--accent) 25%,transparent)'},{t:'Mediana '+fmt(med,1)+'x',c:'var(--muted)'},...(isPE&&pf.some(v=>v!=null)?[{t:'P/E pagado sobre la ganancia que llegó 12 meses después',c:'#8e5bd6',dash:1}]:[]),...(isPE&&o.fpe>0?[{t:'◆ P/E esperado hoy (analistas)',c:'#8e5bd6'}]:[])]})}
-      <p class="fh-s">${now!=null?`${M.lbl} de hoy <b>${fmt(now,1)}x</b> contra una mediana de <b>${fmt(med,1)}x</b> en ${yrs} años (rango normal ${fmt(lo,1)}x a ${fmt(hi,1)}x): <b style="color:${fhCol(pc)}">${fhWord(pc)}</b>, más cara que el ${fmt(pc*100,0)}% de los meses.`:'Hoy el múltiplo no es calculable (ganancia negativa).'}
-      ${isPE&&o.fpe>0&&pfm?` P/E esperado <b>${fmt(o.fpe,1)}x</b> contra <b>${fmt(pfm,1)}x</b> que el mercado pagó en promedio por la ganancia del año siguiente (${o.fpe<pfm*0.9?'<span class="up">más barato que su norma</span>':o.fpe>pfm*1.1?'<span class="down">más caro que su norma</span>':'en línea con su norma'}). Ojo: la ganancia esperada es una estimación de los analistas, que suelen ser optimistas.`:''}
-      ${useM==='pb'?' Para bancos y aseguradoras se usa precio / valor libros, que es como los valúa el mercado.':useM==='ps'?' Como la ganancia fue negativa o irregular, se usa precio / ventas.':''}${o.val_model==='reit'?' En los REITs la ganancia contable subestima el flujo (por las amortizaciones): el P/E sirve solo para comparar contra su propia historia.':''}</p></div>`;
-  }
-  // 3) ventas y margen
-  const qi=F.d.map((d,i)=>i).filter(i=>i%3===(N-1)%3);
-  if(F.rev.some(v=>v>0)){
-    const bars=F.rev.map((v,i)=>qi.includes(i)?v:null),mg=F.rev.map((r,i)=>r>0&&F.ni[i]!=null?F.ni[i]/r:null);
-    const [r0i,r0]=fhFirst(F.rev),rN=fhLast(F.rev),cr=fhCagr(r0,rN,r0i==null?0:(N-1-r0i)/12);
-    const m0=mg.find(v=>v!=null),mN=fhLast(mg);
-    h+=`<div class="fh-card"><div class="fh-t">Ventas y margen neto</div>
-      ${fhChart({W:CW,title:'Ventas y margen',labels:F.lab,bars,barW:2.6,zero:true,series:[{v:mg,c:'#e8890c',w:2,right:true}],yf:v=>mill(v).replace('US$ ',''),ryf:v=>fmt(v*100,1)+'%',
-        legend:[{t:'Ventas de 12 meses (barras, eje derecho)',c:'color-mix(in srgb,var(--accent) 45%,transparent)'},{t:'Margen neto (eje izquierdo)',c:'#e8890c'}]})}
-      <p class="fh-s">Ventas de 12 meses: <b>${mill(rN)}</b>${cr!=null?`, crecieron <b>${pct(cr,1)} anual</b>`:''}. Margen neto ${m0!=null&&mN!=null?`de <b>${fmt(m0*100,1)}%</b> a <b>${fmt(mN*100,1)}%</b> (${mN-m0>0.02?'<span class="up">mejoró</span>':m0-mN>0.02?'<span class="down">empeoró</span>':'estable'})`:'—'}.</p></div>`;
-  }
-  // 4) calidad de ganancias: flujo de caja libre vs ganancia neta
-  if(F.fcf.some(v=>v!=null)&&F.ni.some(v=>v!=null)&&!book){
-    const sF=F.fcf.filter(v=>v!=null).slice(-36),sN=F.ni.filter(v=>v!=null).slice(-36);
-    const ratio=sN.reduce((a,b)=>a+b,0)>0?sF.reduce((a,b)=>a+b,0)/sN.reduce((a,b)=>a+b,0):null;
-    h+=`<div class="fh-card"><div class="fh-t">Calidad de las ganancias: caja vs. ganancia contable</div>
-      ${fhChart({W:CW,title:'Flujo de caja libre vs ganancia neta',labels:F.lab,zero:true,series:[{v:F.ni,c:'var(--accent)',w:2},{v:F.fcf,c:'var(--up)',w:2}],yf:v=>mill(v).replace('US$ ',''),
-        legend:[{t:'Ganancia neta de 12 meses',c:'var(--accent)'},{t:'Flujo de caja libre de 12 meses',c:'var(--up)'}]})}
-      <p class="fh-s">${ratio!=null?`En los últimos 3 años, por cada dólar de ganancia generó <b>US$ ${fmt(ratio,2)}</b> de caja libre: ${ratio>=0.9?'<span class="up">ganancias respaldadas por caja</span>.':ratio>=0.6?'respaldo parcial (invierte buena parte de lo que gana).':'<span class="down">la caja queda bastante por debajo de la ganancia</span>: mirar inversiones, capital de trabajo o ajustes contables.'}`:'Sin datos suficientes.'}</p></div>`;
-  }
-  // 5) acciones en circulación
-  if(F.sh.filter(v=>v>0).length>12){
-    const [s0i,s0]=fhFirst(F.sh),sN=fhLast(F.sh),ch=s0&&sN?sN/s0-1:null;
-    h+=`<div class="fh-card"><div class="fh-t">Acciones en circulación (recompras o emisión)</div>
-      ${fhChart({W:CW,title:'Acciones en circulación',labels:F.lab,h:190,series:[{v:F.sh,c:'var(--accent)',w:2.2}],yf:v=>v>=1000?fmt(v/1000,v>=100000?0:2)+' mil M':fmt(v,0)+' M',legend:[{t:'Acciones (millones, diluidas)',c:'var(--accent)'}]})}
-      <p class="fh-s">${ch!=null?`En el período, la cantidad de acciones ${ch<-0.02?`<b class="up">bajó ${fmt(-ch*100,1)}%</b>: recompra acciones, cada acción es dueña de una parte mayor de la empresa.`:ch>0.02?`<b class="down">subió ${fmt(ch*100,1)}%</b>: emitió acciones (dilución), cada acción vale una parte menor.`:'se mantuvo estable.'}`:''}</p></div>`;
-  }
-  box.innerHTML=h;
-  box.querySelectorAll('[data-fhy]').forEach(b=>b.onclick=()=>{S.fhy=+b.dataset.fhy;store('fhy',S.fhy);renderFH(o)});
-}
-
-/* ---------- Buscador por historia de valuación ---------- */
-const FH_PRE={all:['Todas',()=>true],cheap:['Barata vs. su historia',r=>r.pc!=null&&r.pc<=0.3],dear:['Cara vs. su historia',r=>r.pc!=null&&r.pc>=0.7],
-  grow:['Ganancias crecen más que el precio',r=>r.eps_c5!=null&&r.px_c5!=null&&r.eps_c5>0&&r.eps_c5-r.px_c5>0.03],
-  fast:['Ganancias +15% anual',r=>r.eps_c5!=null&&r.eps_c5>=0.15],buy:['Recompra acciones',r=>r.sh_5!=null&&r.sh_5<=-0.05],
-  mg:['Margen en suba',r=>r.mg!=null&&r.mg5!=null&&r.mg-r.mg5>0.02],cash:['Ganancias con respaldo de caja',r=>r.fcf_ni!=null&&r.fcf_ni>=0.9],
-  fwd:['P/E esperado bajo su norma',r=>r.fvn!=null&&r.fvn<=-0.1]};
-async function renderFHTab(){
-  const fs=await loadFsum();const el=$('#tb-fh');
-  if(!fs||!fs.rows){$('#fh-meta').textContent='Todavía no se generó la historia de balances (falta correr "Historia de balances PROSPEI" en GitHub Actions).';el.innerHTML='';return}
-  if(!S.scr)return;
-  $('#fh-meta').textContent=`Historia de balances actualizada ${fs.generated} · ${Object.keys(fs.rows).length} empresas · múltiplos con el precio de hoy.`;
-  const q=($('#fh-q').value||'').trim().toUpperCase(),sec=$('#fh-sec').value,pre=FH_PRE[S.fhp||'all'][1];
-  const rows=[];
-  S.scr.rows.forEach(r0=>{const f=fs.rows[r0.t];if(!f)return;const o=enrich(r0);const m=fhMult(o,f);
-    const pc=m?fhQ(m.q,m.now):null;const pfm=f.pf_q?f.pf_q[4]:null;
-    const r={t:o.t,name:o.name,sector:o.sector,verdict:o.verdict,verdict_why:o.verdict_why,verdict_new:o.verdict_new,mlbl:m?m.lbl:'',mnow:m?m.now:null,mmed:m?m.q[4]:null,pc,
-      fpe:o.fpe>0&&o.fpe<200?o.fpe:null,pfm,fvn:o.fpe>0&&pfm&&m&&m.k==='pe'?o.fpe/pfm-1:null,eps_c5:f.eps_c5,rev_c5:f.rev_c5,px_c5:f.px_c5,sh_5:f.sh_5,mg:f.mg,mg5:f.mg5,dmg:f.mg!=null&&f.mg5!=null?f.mg-f.mg5:null,fcf_ni:o.val_model==='book'?null:f.fcf_ni};
-    if(q&&!(r.t.includes(q)||String(r.name||'').toUpperCase().includes(q)))return;if(sec&&r.sector!==sec)return;if(!pre(r))return;rows.push(r)});
-  $('#fh-n').textContent=rows.length+' empresas';
-  const bar=v=>v==null?'—':`<span class="fh-pc"><i style="left:${(v*100).toFixed(0)}%;background:${fhCol(v)}"></i></span> <b style="color:${fhCol(v)}">${fmt(v*100,0)}</b>`;
-  table(el,'fh',[
-    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b> <span class="note">${esc(o.name||'')}</span>`},
-    {k:'sector',h:'Sector',f:o=>`<span class="note">${esc(o.sector||'')}</span>`},
-    {k:'verdict',h:'Monitor',f:vdChip},
-    {k:'mnow',h:'Múltiplo hoy',n:1,f:o=>o.mnow==null?'—':`${fmt(o.mnow,1)}x <span class="note">${o.mlbl}</span>`},
-    {k:'mmed',h:'Mediana 10 años',n:1,f:o=>o.mmed==null?'—':fmt(o.mmed,1)+'x'},
-    {k:'pc',h:'Percentil vs. su historia',n:1,f:o=>bar(o.pc)},
-    {k:'fpe',h:'P/E esperado',n:1,f:o=>o.fpe==null?'—':fmt(o.fpe,1)+'x'},
-    {k:'fvn',h:'vs. P/E pagado por ganancia siguiente',n:1,f:o=>o.fvn==null?'—':`<span class="${o.fvn<-0.1?'up':o.fvn>0.1?'down':''}">${pct(o.fvn,0)}</span>`},
-    {k:'eps_c5',h:'Ganancia 5 años (anual)',n:1,f:o=>`<span class="${cls(o.eps_c5)}">${pct(o.eps_c5,1)}</span>`},
-    {k:'rev_c5',h:'Ventas 5 años (anual)',n:1,f:o=>`<span class="${cls(o.rev_c5)}">${pct(o.rev_c5,1)}</span>`},
-    {k:'px_c5',h:'Precio 5 años (anual)',n:1,f:o=>`<span class="${cls(o.px_c5)}">${pct(o.px_c5,1)}</span>`},
-    {k:'sh_5',h:'Acciones 5 años',n:1,f:o=>o.sh_5==null?'—':`<span class="${o.sh_5<-0.02?'up':o.sh_5>0.02?'down':''}">${pct(o.sh_5,1)}</span>`},
-    {k:'mg',h:'Margen neto (5 años antes)',n:1,f:o=>o.mg==null?'—':`${fmt(o.mg*100,1)}% <span class="note">(${o.mg5==null?'—':fmt(o.mg5*100,1)+'%'})</span>`},
-    {k:'fcf_ni',h:'Caja / ganancia',n:1,f:o=>o.fcf_ni==null?'—':`<span class="${o.fcf_ni>=0.9?'up':o.fcf_ni<0.6?'down':''}">${fmt(o.fcf_ni,2)}</span>`},
-  ],rows,null,S.fhAll?Infinity:150);
-  $('#fh-more').hidden=rows.length<=150||S.fhAll;
-}
-
-function initFHTab(){
-  if(!S.fhInit){S.fhInit=true;S.fhp='all';
-    $('#fh-pre').innerHTML=Object.entries(FH_PRE).map(([k,v])=>`<button class="chip ${k==='all'?'on':''}" data-fhp="${k}">${v[0]}</button>`).join('');
-    $$('[data-fhp]').forEach(b=>b.onclick=()=>{$$('[data-fhp]').forEach(x=>x.classList.toggle('on',x===b));S.fhp=b.dataset.fhp;renderFHTab()});
-    $('#fh-q').oninput=renderFHTab;$('#fh-sec').onchange=renderFHTab;$('#fh-more').onclick=()=>{S.fhAll=true;renderFHTab()};
-  }
-  if(S.scr){const cur=$('#fh-sec').value;const secs=[...new Set(S.scr.rows.map(r=>r.sector).filter(Boolean))].sort();$('#fh-sec').innerHTML='<option value="">Todos los sectores</option>'+secs.map(x=>`<option${x===cur?' selected':''}>${esc(x)}</option>`).join('')}
-  renderFHTab();
-}
+CONFIRM_DAYS = 10      # ruedas consecutivas del mismo lado de la media de 200 para confirmar
+DEF_BAND = 0.02        # +/- 2% alrededor de la media de 200 = zona de definición
+TREND_N = {"Alcista confirmada": 2, "Alcista en formación": 1, "Zona de definición": 0,
+           "Bajista en formación": -1, "Bajista confirmada": -2}
 
 
-/* ---------- Balances ---------- */
-async function loadBal(){if(S.bal!==undefined)return S.bal;try{S.bal=await getJ('balances.json?v='+Date.now())}catch(e){S.bal=null}return S.bal}
-function initBal(){
-  if(!S.balInit){S.balInit=true;S.balf='all';S.bald=7;
-    $$('[data-balf]').forEach(b=>b.onclick=()=>{$$('[data-balf]').forEach(x=>x.classList.toggle('on',x===b));S.balf=b.dataset.balf;renderBal()});
-    $$('[data-bald]').forEach(b=>b.onclick=()=>{$$('[data-bald]').forEach(x=>x.classList.toggle('on',x===b));S.bald=+b.dataset.bald;renderBal()});
-    $('#bal-q').oninput=renderBal}
-  renderBal()}
-const balMoney=v=>v==null?'—':Math.abs(v)>=1e9?'US$ '+fmt(v/1e9,1)+' mil M':'US$ '+fmt(v/1e6,0)+' M';
-const balDay=(d,today)=>{const a=new Date(d+'T12:00:00'),b=new Date(today+'T12:00:00'),n=Math.round((a-b)/864e5);const w=a.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'});return n===0?'Hoy':n===1?'Mañana':n===-1?'Ayer':w.charAt(0).toUpperCase()+w.slice(1)};
-async function renderBal(){
-  const B=await loadBal();
-  if(!B){$('#bal-up').innerHTML='<p class="note">Todavía no hay datos de balances (se generan en la próxima corrida del screener).</p>';$('#bal-rec').innerHTML='';return}
-  $('#bal-meta').textContent='Actualizado '+B.generated+'.';
-  const q=($('#bal-q').value||'').trim().toUpperCase(),mine=new Set((S.pf||[]).map(p=>p.t));
-  const ok=e=>(!q||e.t.includes(q)||String(e.name||'').toUpperCase().includes(q))&&(S.balf!=='pf'||mine.has(e.t))&&(S.balf!=='big'||(e.mcap||0)>=1e11);
-  const vd=e=>{const r=S.scr&&S.scr.rows.find(x=>x.t===e.t);return r?vdChip(r):'—'};
-  // próximos
-  const up=(B.upcoming||[]).filter(ok);
-  if(!up.length)$('#bal-up').innerHTML='<p class="note">Ninguna empresa con este filtro presenta en los próximos 7 días.</p>';
-  else{const g={};up.forEach(e=>(g[e.date]=g[e.date]||[]).push(e));
-    $('#bal-up').innerHTML=Object.entries(g).map(([d,L])=>`<h4 style="margin:12px 0 4px">${esc(balDay(d,B.today))} <span class="note">· ${L.length} empresa${L.length>1?'s':''}</span></h4>
-      <div class="tw"><table><thead><tr><th>Papel</th><th>Sector</th><th>Monitor</th><th class="n">Ganancia por acción esperada</th><th class="n">vs. hace un año</th><th class="n">Ventas esperadas</th><th class="n">vs. hace un año</th><th class="n">P/E esperado</th><th class="n">Tamaño</th></tr></thead><tbody>
-      ${L.map(e=>`<tr data-t="${esc(e.t)}"><td><b>${esc(e.t)}</b> <span class="note">${esc(e.name||'')}</span>${mine.has(e.t)?' <span class="tag">en tu cartera</span>':''}${e.hour?`<div class="note" style="font-size:11px">${esc(e.hour)}</div>`:''}</td><td class="note">${esc(e.sector||'')}</td><td>${vd(e)}</td>
-        <td class="n">${e.eps_est==null?'—':'US$ '+fmt(e.eps_est,2)}${e.eps_n?` <span class="note">(${e.eps_n})</span>`:''}</td><td class="n ${cls(e.eps_est!=null&&e.eps_ya?e.eps_est/Math.abs(e.eps_ya)-1:null)}">${e.eps_est!=null&&e.eps_ya?pct((e.eps_est-e.eps_ya)/Math.abs(e.eps_ya),0):'—'}</td>
-        <td class="n">${balMoney(e.rev_est)}</td><td class="n ${cls(e.rev_est&&e.rev_ya?e.rev_est/e.rev_ya-1:null)}">${e.rev_est&&e.rev_ya?pct(e.rev_est/e.rev_ya-1,0):'—'}</td>
-        <td class="n">${e.fpe>0?fmt(e.fpe,1)+'x':'—'}</td><td class="n note">${balMoney(e.mcap)}</td></tr>`).join('')}</tbody></table></div>`).join('');
-    $('#bal-up').querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t))}
-  // ya presentaron
-  const lim=new Date(B.today+'T12:00:00');lim.setDate(lim.getDate()-S.bald);const limS=lim.toISOString().slice(0,10);
-  const rec=(B.recent||[]).filter(e=>e.date>=limS&&ok(e));
-  const m=(l,v,c)=>`<div><div class="l">${l}</div><b class="${c||''}">${v}</b></div>`;
-  const pts=x=>x==null?'':` <span class="note">(${x>=0?'+':''}${fmt(x*100,1)} pts a/a)</span>`;
-  $('#bal-rec').innerHTML=!rec.length?'<p class="note">Ninguna empresa con este filtro presentó en el período.</p>':rec.map(e=>{
-    const has=e.rev!=null;
-    const chips=[e.react!=null?`<span class="pill ${cls(e.react)}" title="Del cierre previo al balance al cierre del día siguiente">Reacción ${pct(e.react,1)}${e.react_rel!=null?` · vs S&amp;P ${pct(e.react_rel,1)}`:''}</span>`:'',
-      e.surprise!=null?`<span class="pill ${e.surprise>=0.02?'up':e.surprise<=-0.02?'down':''}">Ganancia vs. esperado ${pct(e.surprise,1)}</span>`:''].join(' ');
-    return `<div class="bal-card"><div class="bal-h"><h4><a href="#" data-bt="${esc(e.t)}">${esc(e.t)}</a> <span class="note" style="font-weight:400">${esc(e.name||'')} · ${esc(e.sector||'')}</span></h4>${mine.has(e.t)?'<span class="tag">en tu cartera</span>':''}<span class="note">· presentó ${esc(balDay(e.date,B.today).toLowerCase())}${e.hour?' '+esc(e.hour):''}${e.q_end?' · trimestre al '+new Date(e.q_end+'T12:00:00').toLocaleDateString('es-AR'):''}</span><span style="flex:1"></span>${chips}</div>
-      ${(e.rev_exp!=null||e.eps_exp!=null)?`<div class="tw" style="margin-top:8px"><table style="font-size:13px;min-width:0"><thead><tr><th></th><th class="n">Esperaba el mercado</th><th class="n">Real</th><th class="n">Diferencia</th></tr></thead><tbody>
-        <tr><td>Ventas del trimestre</td><td class="n">${balMoney(e.rev_exp)}</td><td class="n">${(e.rev_real??e.rev)!=null?balMoney(e.rev_real??e.rev):'<span class="note">pendiente</span>'}</td><td class="n ${e.rev_surp==null?'':e.rev_surp>=0.01?'up':e.rev_surp<=-0.01?'down':''}">${e.rev_surp==null?'—':pct(e.rev_surp,1)}</td></tr>
-        <tr><td>Ganancia por acción <span class="note">(ajustada, como la miden los analistas)</span></td><td class="n">${e.eps_exp==null?'—':'US$ '+fmt(e.eps_exp,2)}</td><td class="n">${e.eps_rep==null?'<span class="note">pendiente</span>':'US$ '+fmt(e.eps_rep,2)}</td><td class="n ${e.surprise==null?'':e.surprise>=0.02?'up':e.surprise<=-0.02?'down':''}">${e.surprise==null?'—':pct(e.surprise,1)}</td></tr>
-      </tbody></table></div>`:''}
-      ${has?`<div class="bal-m">${m('Ventas del trimestre',balMoney(e.rev))}${m('Ventas vs. hace un año',pct(e.rev_yoy,0),cls(e.rev_yoy))}${m('Margen bruto',e.gm==null?'—':fmt(e.gm*100,1)+'%'+pts(e.gm_d4))}${m('Margen neto',e.nm==null?'—':fmt(e.nm*100,1)+'%')}${m('Ganancia por acción contable',e.eps==null?'—':'US$ '+fmt(e.eps,2)+(e.eps_yoy!=null?` <span class="note">(${pct(e.eps_yoy,0)} a/a)</span>`:''))}${m('Caja / ganancia',e.ocf_ni==null?'—':fmt(e.ocf_ni,1)+'x',e.ocf_ni==null?'':e.ocf_ni>=0.9?'up':e.ocf_ni<0.6?'down':'')}${e.dso!=null?m('Días de cobranza',fmt(e.dso,0)+(e.dso_prev?` <span class="note">(antes ${fmt(e.dso_prev,0)})</span>`:'')):''}</div>
-      <div class="bal-l"><div><b class="up" style="font-size:13px">Lo positivo</b><ul>${(e.pos||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="note">—</li>'}</ul></div><div><b class="down" style="font-size:13px">A vigilar</b><ul>${(e.neg||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="note">Nada destacable en los números.</li>'}</ul></div></div>`
-      :`${(e.pos||[]).length||(e.neg||[]).length?`<div class="bal-l" style="margin-top:8px"><div><b class="up" style="font-size:13px">Lo positivo</b><ul>${(e.pos||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="note">—</li>'}</ul></div><div><b class="down" style="font-size:13px">A vigilar</b><ul>${(e.neg||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="note">—</li>'}</ul></div></div>`:''}<p class="note" style="margin:8px 0 0">El detalle del trimestre (márgenes, caja, cobranza) todavía no está cargado: se completa en la próxima actualización.</p>`}
-      <p class="note" style="margin:8px 0 0"><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=${encodeURIComponent(e.t)}&amp;type=8-K&amp;dateb=&amp;owner=include&amp;count=10" target="_blank" rel="noopener">Comunicado y guía de la empresa (SEC, 8-K) ↗</a></p></div>`}).join('');
-  $('#bal-rec').querySelectorAll('[data-bt]').forEach(a=>a.onclick=ev=>{ev.preventDefault();openDetail(a.dataset.bt)});
-}
+def trend_state(c, p, s200, s200_up):
+    """Tendencia de largo plazo con confirmación por tiempo (diario) y por cierre semanal."""
+    sma = pd.Series(c).rolling(200).mean().values
+    side = np.sign(c[-60:] - sma[-60:])
+    side = side[np.isfinite(side)]
+    cur = 1 if p > s200 else -1
+    run = 0
+    for x in side[::-1]:
+        if x == cur:
+            run += 1
+        else:
+            break
+    wk = c[::-1][::5][::-1]                       # cierres semanales aproximados (cada 5 ruedas)
+    sma40w = float(wk[-40:].mean()) if len(wk) >= 40 else None
+    sma200w = float(wk[-200:].mean()) if len(wk) >= 200 else None
+    w_above = (wk[-1] > sma40w) if sma40w else (cur > 0)
+    dist = p / s200 - 1
+    if abs(dist) < DEF_BAND and run < CONFIRM_DAYS:
+        st = "Zona de definición"
+    elif cur > 0:
+        st = "Alcista confirmada" if (run >= CONFIRM_DAYS or dist > 0.05) and w_above else "Alcista en formación"
+    else:
+        st = "Bajista confirmada" if (run >= CONFIRM_DAYS or dist < -0.05) and not w_above else "Bajista en formación"
+    # recuperación: cruzó arriba hace poco después de haber estado claramente debajo (>5%) en los últimos 6 meses
+    look = min(126, len(c))
+    was_below = bool(np.nanmin(c[-look:] / sma[-look:] - 1) < -0.05) if np.isfinite(sma[-look:]).any() else False
+    recovery = bool(cur > 0 and run < 40 and was_below)
+    return {"recovery": recovery, "trend": st, "trend_n": TREND_N[st], "run200": int(run * cur), "dist200": float(dist),
+            "sma40w": sma40w, "sma200w": sma200w, "w_above": bool(w_above),
+            "d200w": (float(p / sma200w - 1) if sma200w else None)}
 
-/* ---------- KPIs ---------- */
-const SETUPC={'Giro temprano':'info','Golden Cross':'up','Golden Cross en formación':'info','Corrección con señal de rebote':'up','Ruptura de máximos':'up','Corrección en curso':'warn','Recuperación':'info'};
-const SETUPT={'Corrección con señal de rebote':'Tendencia alcista confirmada, cayó 5-20% desde su último pico y ya muestra rebote (recuperó la media de 20 con MACD o RSI girando al alza)',
- 'Corrección en curso':'Tendencia alcista confirmada, cayó 5-20% desde su último pico pero todavía sin señal de rebote: vigilar',
- 'Recuperación':'Cruzó arriba de la media de 200 hace poco, después de estar claramente debajo: falta confirmar',
- 'Ruptura de máximos':'Tendencia alcista, a menos de 4% del máximo de 52 semanas y con volumen alto',
- 'Golden Cross':'La media de 50 cruzó por encima de la de 200 en las últimas 20 ruedas y el precio está arriba de la de 200',
- 'Giro temprano':'Después de una caída, se cumplen 4 o más de 6 señales anticipadas de giro (mínimo más alto, divergencia del RSI, acumulación, ruptura del último máximo, impulso positivo, fuerza relativa). Llegan antes que el Golden Cross pero fallan más',
- 'Golden Cross en formación':'Fuera de tendencia alcista, pero la media de 50 está a menos de 2% de la de 200 y acercándose: vigilar',
- 'Tendencia alcista':'Tendencia alcista con la media de 50 arriba de la de 200',
- 'Sobrevendida con buenos fundamentos':'Fuera de tendencia alcista, RSI debajo de 35 y fundamentos sólidos',
- 'Giro técnico':'El MACD cruzó al alza en los últimos días','Valor':'Sin señal técnica particular'};
-const setupChip=t=>`<span class="setup ${SETUPC[t]?'s-'+SETUPC[t]:''}" title="${esc(SETUPT[t]||'')}">${esc(t)}</span>`;
-function earlyHtml(o){
-  if(!o.et_ctx||o.et_n==null)return '';
-  const S6=[['et_hl','Mínimo más alto','El último mínimo quedó arriba del anterior'],['et_div','Divergencia alcista del RSI','Precio con mínimo más bajo pero RSI con mínimo más alto'],['et_acc','Acumulación por volumen','En 20 ruedas, el volumen de días de suba supera al de baja en más de 20%'],['et_brk','Rompió el último máximo','Superó el pico del último rebote'],['et_mom','Impulso girando a positivo','MACD sobre cero o RSI cruzando arriba de 50'],['et_rs','Le gana al S&P en el último mes','Fuerza relativa mejorando']];
-  const n=o.et_n,col=n>=4?'up':n>=3?'warn':'';
-  const lv=[];
-  if(o.et_high&&o.p<o.et_high)lv.push(`<div><span>Nivel a superar (último máximo)</span><b>US$ ${fmt(o.et_high)} (${pct(o.et_high/o.p-1,1)})</b></div>`);
-  if(o.et_low)lv.push(`<div><span>Stop sugerido (debajo del último mínimo)</span><b>US$ ${fmt(o.et_low*0.98)} (${pct(o.et_low*0.98/o.p-1,1)})</b></div>`);
-  lv.push(`<div><span>Media de 200 (confirmación)</span><b>US$ ${fmt(o.sma200)} (${pct(o.sma200/o.p-1,1)})</b></div>`);
-  return `<div class="lensbox"><div class="lens-h"><b>Giro temprano</b> <span class="fase" style="${col==='up'?'background:var(--upbg);color:var(--up)':col==='warn'?'background:var(--warnbg);color:var(--warn)':''}">${n} de 6 señales</span></div>
-   <div class="et-g">${S6.map(([k,t,d])=>`<div title="${esc(d)}"><span class="${o[k]?'up':'note'}">${o[k]?'✓':'○'}</span> ${t}</div>`).join('')}</div>
-   <div class="kv" style="margin-top:8px">${lv.join('')}</div>
-   <p class="note" style="margin:8px 0 0">Entrada escalonada sugerida: 1/3 con 4 o más señales y stop debajo del último mínimo; 1/3 al recuperar y sostener la media de 200; 1/3 con Golden Cross y la media de 200 dejando de bajar. Las señales tempranas fallan más que las de confirmación.</p></div>`;
-}
-const VMODEL={pe:'P/E (ganancias)',book:'precio / valor libros',reit:'dividendo y analistas',sales:'precio / ventas',na:'sin método confiable'};
-function valLensHtml(o){
-  const cell=(t,v,detail,thrCheap,thrDear,an)=>{let cls2='',lab='Sin dato';
-    if(v!=null){if(v<thrCheap){cls2='up';lab='Barata'}else if(v>thrDear){cls2='down';lab='Cara'}else{lab='En línea'}}
-    const amt=v==null?'':an?` · potencial ${pct(-v,0)}`:Math.abs(v)<0.005?'':` · ${fmt(Math.abs(v)*100,0)}% ${v<0?'más barata':'más cara'}`;
-    return `<div class="lens"><div class="note">${t}</div><b class="${cls2}">${lab}${amt}</b><div class="note">${detail}</div></div>`};
-  const hd=[];const Mh=o.val_model||'pe';if(Mh==='pe'&&!(o.eps_gap>0.4)&&!o.eps_grow&&o.pe_hist&&o.pe>0)hd.push(`P/E ${fmt(o.pe,1)}x vs ${fmt(o.pe_hist,1)}x`);if((Mh==='pe'||Mh==='sales')&&o.ps&&o.ps_hist)hd.push(`P/V ${fmt(o.ps,1)}x vs ${fmt(o.ps_hist,1)}x`);if(Mh!=='sales'&&o.div>=1&&o.div5)hd.push(`Div. ${fmt(o.div,2)}% vs ${fmt(o.div5,2)}%`);
-  const verdict={Barata:['up','Barata en '+o.val_cheap+' de '+o.val_n+' miradas'],Cara:['down','Cara en la mayoría de las miradas'],Neutral:['','Sin consenso: valuación neutral'],'Pico de ciclo':['down','Pico de ciclo: el P/E bajo no es señal de barata']}[o.val_verdict]||['',''];
-  const M=o.val_model||'pe';
-  const peerDet=M==='book'?(o.pb&&o.peer_pb?`P/VL ${fmt(o.pb,2)}x vs ${fmt(o.peer_pb,2)}x`:''):
-    (M==='sales'||(M==='pe'&&o.eps_gap>0.4&&!o.eps_grow))?(o.ps&&o.peer_ps?`P/V ${fmt(o.ps,1)}x vs ${fmt(o.peer_ps,1)}x`:''):
-    M==='reit'?'No aplica en REITs: la depreciación distorsiona la ganancia':M==='na'?'Datos no comparables':
-    (o.fpe>0&&o.sec_fpe?`P/E esp. ${fmt(o.fpe,1)}x vs ${fmt(o.sec_fpe,1)}x`:'');
-  if(M==='book'&&o.pb&&o.pb_hist)hd.unshift(`P/VL ${fmt(o.pb,2)}x vs ${fmt(o.pb_hist,2)}x`);
-  return `<div class="lensbox"><div class="lens-h"><b>Valuación: tres miradas</b> <span class="note">· método: ${esc(VMODEL[M]||M)}</span> <span class="fase" style="${verdict[0]==='up'?'background:var(--upbg);color:var(--up)':verdict[0]==='down'?'background:var(--downbg);color:var(--down)':''}">${esc(verdict[1])}</span></div>
-    <div class="lens-g">${cell('vs '+esc((o.peer_lbl||'su sector')+(o.cty_lbl||'')),o.v_peer,peerDet,-0.15,0.15)}
-    ${cell('vs su propia historia',o.v_hist,hd.join(' · ')||'Sin historial disponible',-0.10,0.10)}
-    ${cell('vs analistas',o.v_an,o.n_an>=3&&o.target?`Objetivo US$ ${fmt(o.target)} (${o.n_an} analistas${o.n_an<5?', peso reducido':''})`:'Menos de 3 analistas',-0.20,0,1)}</div>
-    ${o.audit&&o.audit.length?`<details style="margin-top:8px"><summary class="note" style="cursor:pointer">🔎 Cómo se valuó y particularidades de los datos (${o.audit.length})</summary><ul class="note" style="margin:6px 0 0;padding-left:18px">${o.audit.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`:''}</div>`;
-}
-const LIGHTN={cal:'Calidad',val:'Valuación',tec:'Técnico',evt:'Evento'};
-const lightTxt={cal:['Débil o caja negativa','Aceptable','Sólida'],val:['Cara o pico de ciclo','Neutral','Barata vs sector'],tec:['Débil','Neutral','Sano'],evt:['Balance en ≤7 días','Balance en ≤3 semanas','Sin balance cercano']};
-const lightsHtml=L=>L?`<span class="lights">${['cal','val','tec','evt'].map(k=>`<i class="l${L[k]==null?'null':L[k]}" title="${LIGHTN[k]}: ${L[k]==null?'sin dato':lightTxt[k][L[k]]}"></i>`).join('')}</span>`:'';
-function alertTags(o){const t=[];
-  if(o.earn_days!=null&&o.earn_days>=0&&o.earn_days<=14)t.push(`⚠️ Balance en ${o.earn_days===0?'hoy':o.earn_days===1?'1 día':o.earn_days+' días'}`);
-  if(o.cyc)t.push('⚠️ Pico de ciclo');
-  if(o.one_off)t.push('⚠️ Ganancia no recurrente');
-  if(o.vm_doubt)t.push('⚠️ Valuación dudosa');
-  if(o.val_model==='na')t.push('⚠️ Sin valuación confiable');
-  if(o.cross==='Death Cross reciente')t.push('⚠️ Death Cross');
-  if(o.fcf!=null&&o.fcf<0&&o.sector!=='Financiero')t.push('⚠️ Caja negativa');
-  return t.map(x=>`<span class="alert-tag">${x}</span>`).join('')}
-function renderKpisUS(){
-  const el=$('#kpis-us');const m=S.scr&&S.scr.macro;if(!m||!Object.keys(m).length){el.innerHTML='';return}
-  const k=[];const tn=m['^TNX'],vx=m['^VIX'],dx=m['DX-Y.NYB'],oil=m['CL=F'],br=m.breadth;
-  if(tn)k.push(['Bono 10 años',fmt(tn.v,2)+'%',`${tn.d1_bp>0?'+':''}${tn.d1_bp??'—'} pb día · ${tn.m1_bp>0?'+':''}${tn.m1_bp??'—'} pb mes`,null]);
-  if(vx)k.push(['VIX',fmt(vx.v,1),vx.v<15?'Calma':vx.v<20?'Normal':vx.v<30?'Tensión':'Pánico',vx.v<20?'up':'down']);
-  if(dx)k.push(['Dólar global',fmt(dx.v,1),`${pct(dx.d1)} día · ${pct(dx.m1,1)} mes`,null]);
-  if(oil)k.push(['Petróleo WTI','US$ '+fmt(oil.v,1),`${pct(oil.d1)} día · ${pct(oil.m1,1)} mes`,null]);
-  if(br)k.push(['Amplitud',fmt(br.v,0)+'%',`arriba de media 200 · ${fmt(br.v50,0)}% sobre media 50`,br.v>=60?'up':br.v<40?'down':null]);
-  const d=new Date(S.scr.generated);
-  el.innerHTML=k.map(x=>`<div class="kpi us" title="Dato al cierre del ${d.toLocaleDateString('es-AR')}"><div class="l">${x[0]}</div><div class="v num ${x[3]||''}" style="text-align:left">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
-}
-const TRC={2:'up',1:'up',0:'',[-1]:'down',[-2]:'down'};
-function riskBox(o){
-  if(!o.risk&&o.beta==null)return '';
-  const RC={Bajo:'#3fb950',Medio:'#d29922',Alto:'#f85149'};
-  const b=o.beta;let bt='';
-  if(b!=null&&isFinite(b)){const d=Math.round(Math.abs(b-1)*100);
-    bt=b<0.15?'casi no sigue al S&P 500':d<10?'se mueve parecido al S&P 500':b>1?`se mueve ${d}% más que el S&P 500`:`se mueve ${d}% menos que el S&P 500`;}
-  const v=o.volat_y||o.volat;
-  const exm=b!=null&&isFinite(b)?` Si el S&P 500 cae 10%, históricamente esta acción tiende a caer ${fmt(Math.max(0,b)*10,0)}%.`:'';
-  return `<div class="cedbox" style="margin:10px 0">${o.risk?`<span class="fase" style="background:${RC[o.risk]}22;color:${RC[o.risk]};font-weight:600">Riesgo ${esc(o.risk.toLowerCase())}</span> `:''}
-    ${b!=null&&isFinite(b)?`Beta <b>${fmt(b,2)}</b> (${bt})`:''}${v?` · volatilidad <b>${fmt(v*100,0)}%</b> anual`:''}${o.mdd3!=null?` · peor caída en 3 años <b class="down">${pct(o.mdd3,0)}</b>`:''}
-    <div class="note" style="margin-top:4px">La beta mide cuánto acompaña los movimientos del mercado (1 = igual que el S&amp;P 500; calculada con 5 años de rendimientos mensuales).${exm} Riesgo bajo: beta menor a 0,8 y volatilidad menor a 25%; alto: beta mayor a 1,3 o volatilidad mayor a 45%.</div></div>`;
-}
-function trendKv(o,kv){if(!o.trend)return '';
-  return kv('Tendencia (media 200)',`<span class="${TRC[o.trend_n]||''}">${esc(o.trend)}</span>`)+kv('Ruedas del mismo lado',o.run200==null?'—':Math.abs(o.run200)+(Math.abs(o.run200)>=60?'+':'')+(o.run200>=0?' arriba':' debajo'))
-   +kv('Pendiente media 200 (20 r.)',o.slope200?`<span class="${o.slope200==='Subiendo'?'up':o.slope200==='Bajando'?'down':''}">${o.slope200} ${pct(o.slope200_pct,1)}</span>`:'—')
-   +kv('Media 50 vs 200',o.gap50==null?'—':pct(o.gap50,1)+(o.cross?` · <b>${esc(o.cross)}</b>${o.cross_days!=null?' (hace '+o.cross_days+' ruedas)':o.cross_eta!=null?' (~'+o.cross_eta+' ruedas)':''}`:''))
-   +kv('vs media 40 semanas',o.sma40w?pct(o.p/o.sma40w-1,1):'—')+kv('vs media 200 semanas',o.d200w==null?'—':pct(o.d200w,1));}
-function renderKpis(){
-  const d=S.data,k=[];
-  const of=d.dolares&&d.dolares.find(x=>x.casa==='oficial'),bl=d.dolares&&d.dolares.find(x=>x.casa==='blue');
-  const mep=S.ref.mep,ccl=S.ref.ccl;
-  if(mep)k.push(['Dólar MEP',`$ ${fmt(mep.v)}`,'Ref. '+mep.src]);
-  if(ccl)k.push(['Dólar CCL',`$ ${fmt(ccl.v)}`,'Ref. '+ccl.src]);
-  if(of)k.push(['Oficial (venta)',`$ ${fmt(of.venta)}`,'BNA']);
-  if(of&&mep)k.push(['Brecha MEP',pct(mep.v/of.venta-1,1),'vs oficial']);
-  if(bl)k.push(['Blue (venta)',`$ ${fmt(bl.venta)}`,'informal']);
-  if(mep&&ccl)k.push(['Canje CCL/MEP',pct(ccl.v/mep.v-1,2),'']);
-  if(d.rp){const f=d.rp.fecha&&/^\d{4}-\d{2}-\d{2}/.test(d.rp.fecha)?d.rp.fecha.slice(0,10):null;
-    let sub='',old=false;
-    if(f){const [y,mo,da]=f.split('-');sub=`${da}/${mo}/${y}`;
-      // último día hábil cerrado: el EMBI de hoy se conoce después del cierre; se tolera hasta el hábil anterior
-      const t=new Date();t.setHours(12,0,0,0);const prev=new Date(t);do{prev.setDate(prev.getDate()-1)}while(prev.getDay()===0||prev.getDay()===6);
-      const fd=new Date(+y,+mo-1,+da,12);old=fd<prev;}
-    k.push(['Riesgo país',fmt(d.rp.valor,0)+' pb',(sub||'')+(d.rp.fuente?' · '+esc(d.rp.fuente):'')+(old?' <span class="pill warn" style="font-size:10.5px;padding:1px 6px">desactualizado</span>':'')]);}
-  $('#kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v num" style="text-align:left">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
-}
 
-/* ---------- carga ---------- */
-let loading=false;
-async function load(){
-  if(loading)return;loading=true;$('#dot').className='dot load';
-  const P=[getJ(API+'arg_bonds'),getJ(API+'arg_stocks'),getJ(API+'arg_cedears'),getJ(API+'usa_stocks'),getJ(API+'usa_adrs'),getJ(API+'ccl'),
-    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo'),getJ('riesgo.json?v='+Date.now())];
-  const [bo,st,ce,us,ad,cc,dl,rp,rj]=await Promise.allSettled(P);
-  const errs=[];
-  if(bo.status==='fulfilled'&&Array.isArray(bo.value)){S.data.bonds=buildBonds(bo.value)}else errs.push('bonos');
-  if(st.status==='fulfilled'&&Array.isArray(st.value))S.data.stocks=st.value;else errs.push('acciones');
-  if(ce.status==='fulfilled'&&Array.isArray(ce.value))S.data.cedears=ce.value;else errs.push('CEDEARs');
-  const usm=S.data.us||{};
-  [us,ad].forEach(x=>{if(x.status==='fulfilled'&&Array.isArray(x.value))x.value.forEach(s=>{if(s&&s.symbol)usm[s.symbol]=s})});
-  if(us.status!=='fulfilled')errs.push('EE.UU.');
-  S.data.us=usm;
-  if(cc.status==='fulfilled'&&Array.isArray(cc.value)){const m={};cc.value.forEach(r=>{const v=ok(r.CCL_mark)?r.CCL_mark:(ok(r.CCL_close)?r.CCL_close:null);if(r.ticker_ar&&v)m[r.ticker_ar]=v});S.data.adrCcl=m}
-  if(dl.status==='fulfilled'&&Array.isArray(dl.value))S.data.dolares=dl.value;
-  {// riesgo país: el dato más reciente entre la consulta en vivo y el que guarda la tarea de GitHub (riesgo.json)
-    const c=[];if(rp.status==='fulfilled'&&rp.value&&rp.value.valor)c.push({valor:rp.value.valor,fecha:String(rp.value.fecha).slice(0,10),fuente:'ArgentinaDatos'});
-    if(rj.status==='fulfilled'&&rj.value&&rj.value.valor)c.push({valor:rj.value.valor,fecha:String(rj.value.fecha).slice(0,10),fuente:rj.value.fuente||''});
-    if(c.length){c.sort((a,b)=>a.fecha<b.fecha?1:a.fecha>b.fecha?-1:0);S.data.rp=c[0]}}
-  if(S.data.bonds){const R=S.data.bonds.rows;S.ref.mep=pickRef(R,'ult',['AL30','GD30']);S.ref.ccl=pickRef(R,'ccl',['AL30','GD30'])}
-  buildCed();
-  renderKpis();renderAcc();renderMep();renderCed();renderTop();renderHeat();renderSecPerf();renderUni();
-  const a=$('#alert');
-  if(errs.length){a.style.display='block';a.textContent='No se pudieron actualizar: '+errs.join(', ')+'. Se reintenta en el próximo refresco.'}else a.style.display='none';
-  $('#dot').className='dot'+(errs.length>=3?' err':'');
-  $('#upd').textContent='Actualizado '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  loading=false;
+def pivots(x, k=7, kind="low"):
+    """Índices de mínimos (o máximos) locales confirmados: el extremo de una ventana de +/- k ruedas."""
+    out = []
+    for i in range(k, len(x) - k):
+        w = x[i - k:i + k + 1]
+        if (kind == "low" and x[i] == w.min()) or (kind == "high" and x[i] == w.max()):
+            if not out or i - out[-1] > k:
+                out.append(i)
+    return out
+
+
+def early_turn(c, v):
+    """Señales tempranas de giro alcista (antes del Golden Cross). Devuelve dict con cada señal."""
+    n = len(c)
+    look = min(140, n)
+    cw, vw = c[-look:], (v[-look:] if v is not None and len(v) >= look else None)
+    ser = pd.Series(c)
+    d = ser.diff()
+    up = d.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+    dn = (-d.clip(upper=0)).ewm(alpha=1 / 14, adjust=False).mean()
+    rsi_s = (100 - 100 / (1 + up / dn.replace(0, np.nan))).values[-look:]
+    lows, highs = pivots(cw, 7, "low"), pivots(cw, 7, "high")
+    p = float(cw[-1])
+    sig = {"et_hl": False, "et_div": False, "et_acc": False, "et_brk": False, "et_mom": False}
+    L1 = L2 = H = None
+    if len(lows) >= 2:
+        i1, i2 = lows[-2], lows[-1]
+        L1, L2 = float(cw[i1]), float(cw[i2])
+        sig["et_hl"] = bool(L2 > L1 * 1.01 and p > L2 and look - 1 - i2 <= 60)
+        sig["et_div"] = bool(L2 < L1 and np.isfinite(rsi_s[i1]) and rsi_s[i2] > rsi_s[i1] + 3 and look - 1 - i2 <= 60)
+    elif len(lows) == 1:
+        L2 = float(cw[lows[-1]])
+    hs = [h for h in highs if h < look - 3 and (not lows or h > lows[-2] if len(lows) >= 2 else True)]
+    if hs:
+        H = float(cw[hs[-1]])
+        sig["et_brk"] = bool(p > H)
+    if vw is not None:
+        dd = np.diff(cw[-21:])
+        vv = vw[-20:]
+        upv, dnv = vv[dd > 0].sum(), vv[dd < 0].sum()
+        sig["et_acc"] = bool(dnv > 0 and upv / dnv > 1.2)
+    macd = ser.ewm(span=12, adjust=False).mean() - ser.ewm(span=26, adjust=False).mean()
+    rs_now, rs_10 = rsi_s[-1], rsi_s[-11]
+    sig["et_mom"] = bool(macd.values[-1] > 0 or (rs_now > 50 and np.isfinite(rs_10) and rs_10 < 50))
+    sig.update(et_low=L2, et_high=H)
+    return sig
+
+
+def cross_state(c):
+    """Cruces de la media de 50 con la de 200 (Golden / Death Cross) y pendiente de la media de 200."""
+    ser = pd.Series(c)
+    m50, m200 = ser.rolling(50).mean().values, ser.rolling(200).mean().values
+    gap = (m50 / m200 - 1)[-80:]
+    gap = gap[np.isfinite(gap)]
+    out = {"cross": None, "cross_days": None, "cross_eta": None, "gap50": None, "slope200": None, "slope200_pct": None}
+    if len(gap) < 25:
+        return out
+    g = float(gap[-1])
+    out["gap50"] = g
+    sl = float(m200[-1] / m200[-21] - 1) if np.isfinite(m200[-21]) else 0.0
+    out["slope200_pct"] = sl
+    out["slope200"] = "Subiendo" if sl > 0.005 else "Bajando" if sl < -0.005 else "Plana"
+    sign = np.sign(gap)
+    days = None
+    for k in range(1, len(sign)):
+        if sign[-k] != sign[-k - 1] and sign[-k - 1] != 0:
+            days = k - 1
+            break
+    if days is not None and days <= 20:
+        out["cross"] = "Golden Cross reciente" if g > 0 else "Death Cross reciente"
+        out["cross_days"] = int(days)
+        return out
+    speed = (g - float(gap[-11])) / 10      # cambio de la distancia por rueda
+    if -0.02 < g < 0 and speed > 0:
+        eta = -g / speed
+        if eta <= 40:
+            out["cross"], out["cross_eta"] = "Golden Cross en formación", int(round(eta))
+    elif 0 < g < 0.02 and speed < 0:
+        eta = g / -speed
+        if eta <= 40:
+            out["cross"], out["cross_eta"] = "Death Cross en formación", int(round(eta))
+    return out
+
+
+def cross_texts(r):
+    pro, con = [], []
+    st = getattr(r, "cross", None)
+    if not st:
+        return pro, con
+    pend = {"Subiendo": "la media de 200 ya está subiendo, lo que le da más fuerza a la señal",
+            "Plana": "la media de 200 está plana",
+            "Bajando": "pero la media de 200 todavía baja: es una señal más débil, conviene confirmar"}.get(r.slope200, "")
+    if st == "Golden Cross reciente":
+        pro.append(f"Golden Cross {'hoy' if r.cross_days == 0 else 'hace ' + str(r.cross_days) + ' ruedas'}: la media de 50 cruzó por encima de la de 200; {pend}.")
+    elif st == "Golden Cross en formación":
+        pro.append(f"Golden Cross en formación (a vigilar): la media de 50 está {fx(abs(r.gap50)*100,1)}% debajo de la de 200 y se acerca; "
+                   f"al ritmo actual cruzaría en unas {r.cross_eta} ruedas. Es una señal tardía: confirma el giro, no lo anticipa.")
+    elif st == "Death Cross reciente":
+        con.append(f"Death Cross {'hoy' if r.cross_days == 0 else 'hace ' + str(r.cross_days) + ' ruedas'}: la media de 50 cruzó por debajo de la de 200.")
+    elif st == "Death Cross en formación":
+        con.append(f"Death Cross en formación: la media de 50 está {fx(r.gap50*100,1)}% arriba de la de 200 y se acerca; "
+                   f"al ritmo actual cruzaría en unas {r.cross_eta} ruedas.")
+    return pro, con
+
+
+def trend_text(r, short=False):
+    """Frase de tendencia para A favor / A vigilar. Devuelve (es_favor, texto)."""
+    n, run, d = r.trend_n, abs(int(r.run200)), r.dist200
+    sem = "el cierre semanal confirma (arriba de la media de 40 semanas)" if r.w_above else "el cierre semanal todavía no confirma (debajo de la media de 40 semanas)"
+    if n == 2:
+        extra = " y la de 50 está por encima de la de 200" if r.sma50 > r.sma200 else ""
+        return True, f"Tendencia alcista confirmada: {run}+ ruedas arriba de su media de 200 ({f_pct(d,1)}){extra}; {sem}."
+    if n == 1:
+        return True, f"Tendencia alcista en formación: hace {run} ruedas que cotiza arriba de su media de 200 ({f_pct(d,1)}); {sem}."
+    if n == 0:
+        lado = "arriba" if d >= 0 else "debajo"
+        return None, f"Zona de definición: cotiza {fx(abs(d)*100,1)}% {lado} de su media de 200, sin confirmar dirección ({run} ruedas de ese lado)."
+    if n == -1:
+        sem2 = "el cierre semanal sigue arriba de la media de 40 semanas" if r.w_above else "el cierre semanal también está debajo de la media de 40 semanas"
+        return False, f"Tendencia bajista en formación: hace {run} ruedas que cotiza debajo de su media de 200 ({f_pct(d,1)}); {sem2}."
+    return False, f"Tendencia bajista confirmada: {run}+ ruedas debajo de su media de 200 ({f_pct(d,1)}) y cierre semanal debajo de la media de 40 semanas."
+
+
+def pct_rank(s, higher_better=True):
+    """Percentil 0..1 dentro de la serie (NaN queda NaN)."""
+    r = s.rank(pct=True, ascending=higher_better)
+    return r
+
+
+def score_tech(df):
+    t = pd.Series(0.0, index=df.index)
+    # Tendencia (30)
+    t += df.trend_n.map({2: 10, 1: 6, 0: 4, -1: 2, -2: 0}).fillna(4)
+    t += np.where(df.sma50 > df.sma200, 10, 0)
+    t += np.where(df.sma200_up, 10, 0)
+    if "et_ctx" in df:
+        t += np.where(df.et_ctx, 1.5 * df.et_n, 0)
+    t += df.cross.map({"Golden Cross reciente": 3, "Golden Cross en formación": 2,
+                       "Death Cross reciente": -3, "Death Cross en formación": -2}).fillna(0)
+    # Momentum relativo 6m sin el ultimo mes (25)
+    mom = (1 + df.r6m) / (1 + df.r1m) - 1
+    t += 25 * pct_rank(mom).fillna(0.3)
+    # Timing: RSI (15) + MACD (10)
+    r = df.rsi
+    t += np.select([(r >= 40) & (r <= 60), (r > 60) & (r <= 70), (r >= 30) & (r < 40), r < 30, r > 70],
+                   [15, 10, 11, 7, 3], 5)
+    t += np.where(df.macd_h > 0, 5, 0) + np.where(df.macd_up, 2, 0) + np.where(df.macd_cross, 3, 0)
+    # Posicion respecto del maximo (20)
+    up = df.trend_n >= 1
+    dd = df.dd
+    t += np.select([up & (dd <= -0.05) & (dd >= -0.20), up & (dd > -0.05), up & (dd < -0.20)],
+                   [20, 15, 10], 4)
+    return t.clip(0, 100)
+
+
+def score_fund(df):
+    """Cada pilar 0..1 por percentil; la valuacion se compara dentro del sector."""
+    v_peer = pct_rank(df.v_peer, False)                                         # vs pares (según el modelo de cada empresa)
+    v_hist = pct_rank(df.v_hist, False)                                         # vs su propia historia
+    v_peg = pct_rank(df.peg.where((df.peg > 0) & (df.peg < 10)), False)
+    parts = pd.concat([v_peer * 0.5, v_hist * 0.3, v_peg * 0.2], axis=1)
+    wts = pd.concat([v_peer.notna() * 0.5, v_hist.notna() * 0.3, v_peg.notna() * 0.2], axis=1).sum(axis=1)
+    val = (parts.sum(axis=1, skipna=True) / wts.replace(0, np.nan)).fillna(0.15)
+    val = val.where(df.v_peer.notna() | df.v_hist.notna(), 0.3)
+    # trampa cíclica: P/E bajo en industria cíclica cerca del pico de ganancias -> techo a la valuación
+    val = val.where(~df.cyc, val.clip(upper=0.3))
+    fin = df.sector == "Financiero"
+    # ganancia no recurrente: se usa el crecimiento de ventas en lugar del de ganancias
+    eps_g_adj = df.eps_g.where(~df.one_off, df.rev_g)
+    gro = pd.concat([pct_rank(df.rev_g), pct_rank(eps_g_adj), pct_rank(df.fwd_eps_g)], axis=1).mean(axis=1).fillna(0.3)
+    fcf_rank = pct_rank(df.fcf_y.where(~fin))
+    qua = pd.concat([pct_rank(df.roe), pct_rank(df.margin), pct_rank(df.op_margin), fcf_rank], axis=1).mean(axis=1).fillna(0.3)
+    qua = qua.where(~((df.fcf < 0) & ~fin), qua.clip(upper=0.35))
+    # deuda/patrimonio: en bancos y financieras la deuda es el negocio -> neutro
+    sol = pct_rank(df.de.where(~fin), False).where(~fin, 0.5).fillna(0.5)
+    has_an = df.n_an >= 3
+    ana = (0.6 * pct_rank(df.upside).fillna(0.3) + 0.4 * pct_rank(df.rec, False).fillna(0.3)).where(has_an, 0.3)
+    df["f_val"], df["f_gro"], df["f_qua"], df["f_sol"], df["f_ana"] = val, gro, qua, sol, ana
+    return (25 * val + 25 * gro + 25 * qua + 10 * sol + 15 * ana).clip(0, 100)
+
+
+def days_to(ts):
+    try:
+        ts = float(ts)
+    except Exception:
+        return None
+    if not ts or not math.isfinite(ts):
+        return None
+    d = dt.datetime.fromtimestamp(ts, dt.timezone.utc) - dt.datetime.now(dt.timezone.utc)
+    return int(math.floor(d.total_seconds() / 86400))
+
+
+def lights(r):
+    """Semáforo: 2 verde, 1 amarillo, 0 rojo, None sin dato."""
+    lv = lambda v, hi, lo: None if v is None or (isinstance(v, float) and not math.isfinite(v)) else (2 if v >= hi else 1 if v >= lo else 0)
+    q = lv(r.f_qua, 0.6, 0.35)
+    if r.sector != "Financiero" and pd.notna(r.fcf) and r.fcf < 0:
+        q = 0
+    v = {"Pico de ciclo": 0, "Cara": 0, "Barata": 2}.get(r.val_verdict, 1)
+    t = lv(r.at, 65, 45)
+    if pd.notna(r.earn_days) and 0 <= r.earn_days <= 7:
+        e = 0
+    elif pd.notna(r.earn_days) and 0 <= r.earn_days <= 21:
+        e = 1
+    elif pd.notna(r.earn_days) and r.earn_days >= 0:
+        e = 2
+    else:
+        e = None
+    return {"cal": q, "val": v, "tec": t, "evt": e}
+
+
+# ---------------------------------------------------------------- textos
+def fx(x, d=1):
+    return f"{x:.{d}f}".replace(".", ",")
+
+
+def f_pct(x, d=0):
+    return f"{x*100:+.{d}f}%".replace(".", ",")
+
+
+def is_correction(r):
+    """Corrección dentro de una suba confirmada: cayó 5-20% desde su pico de los últimos 3 meses."""
+    return bool(r.trend_n == 2 and r.sma50 > r.sma200 and -0.20 <= r.dd3 <= -0.05 and r.dd >= -0.25 and r.rsi < 55)
+
+
+def setup(r):
+    up = r.trend_n >= 1
+    if up and r.dd > -0.04 and r.vol_ratio and r.vol_ratio > 1.15:
+        return "Ruptura de máximos"
+    if r.cross == "Golden Cross reciente" and r.p > r.sma200:
+        return "Golden Cross"
+    if r.recovery:
+        return "Recuperación"
+    if is_correction(r):
+        return "Corrección con señal de rebote" if r.rebound else "Corrección en curso"
+    if up and r.sma50 > r.sma200:
+        return "Tendencia alcista"
+    if not up and r.et_ctx and r.et_n >= 4:
+        return "Giro temprano"
+    if not up and r.cross == "Golden Cross en formación":
+        return "Golden Cross en formación"
+    if not up and r.rsi < 35 and r.af >= 60:
+        return "Sobrevendida con buenos fundamentos"
+    if r.macd_cross:
+        return "Giro técnico"
+    return "Valor"
+
+
+def correction_texts(r):
+    pro, con = [], []
+    if r.recovery:
+        con.append(f"Recuperación: cruzó arriba de su media de 200 hace {abs(int(r.run200))} ruedas después de cotizar claramente por debajo. "
+                   "No es una corrección dentro de una suba: falta confirmar que sostenga la media.")
+    elif is_correction(r):
+        cuando = f"hace {int(r.hi3_age)} ruedas"
+        if r.rebound:
+            pro.append(f"Corrección con señal de rebote: cayó {fx(abs(r.dd3)*100,1)}% desde su último pico ({cuando}) y ya recuperó su media "
+                       "de 20 ruedas con el MACD o el RSI girando al alza: posible punto de entrada.")
+        else:
+            con.append(f"Corrección en curso: cayó {fx(abs(r.dd3)*100,1)}% desde su último pico ({cuando}) y todavía no muestra señal de rebote "
+                       "(debajo de la media de 20 o sin giro de MACD/RSI). Conviene esperar la confirmación.")
+        if r.pb_vol is not None:
+            if r.pb_vol < 0.9:
+                pro.append(f"La caída se dio con volumen bajo ({fx(r.pb_vol,2)} veces el promedio): parece toma de ganancias, no venta fuerte.")
+            elif r.pb_vol > 1.25:
+                con.append(f"La caída se dio con volumen alto ({fx(r.pb_vol,2)} veces el promedio): hay presión vendedora real.")
+        if r.near200:
+            pro.append("Está apoyada en su media de 200 ruedas, el soporte clave de la tendencia.")
+        elif r.near50:
+            pro.append("Está apoyada en su media de 50 ruedas, un soporte habitual en tendencias alcistas.")
+    if r.trend_n >= 1 and -0.20 <= r.dd <= -0.05 and r.hi52_age > 150 and not is_correction(r) and not r.recovery:
+        con.append(f"Su máximo de 52 semanas fue hace {int(r.hi52_age)} ruedas: más que una corrección, viene de un lateral largo.")
+    return pro, con
+
+
+def reasons(r):
+    pro, con, grow = [], [], []
+    # Tecnico
+    fav, txt = trend_text(r)
+    (pro if fav else con).append(txt)
+    if pd.notna(r.d200w) and -0.03 <= r.d200w <= 0.05:
+        pro.append(f"Está cerca de su media de 200 semanas ({f_pct(r.d200w,1)}), un soporte de ciclo largo (unos 4 años).")
+    pro_c, con_c = correction_texts(r)
+    pro += pro_c
+    con += con_c
+    if r.et_ctx and r.et_n >= 3:
+        names = [t for k, t in [("et_hl", "mínimo más alto"), ("et_div", "divergencia alcista del RSI"),
+                                ("et_acc", "acumulación por volumen"), ("et_brk", "rompió el último máximo"),
+                                ("et_mom", "impulso girando a positivo"), ("et_rs", "le gana al S&P en el último mes")] if getattr(r, k)]
+        pro.append(f"Giro temprano: {int(r.et_n)} de 6 señales ({', '.join(names)}). Son señales anticipadas: fallan más que las de confirmación.")
+    pro_x, con_x = cross_texts(r)
+    pro += pro_x
+    con += con_x
+    if r.dd > -0.03 and r.vol_ratio and r.vol_ratio < 0.9:
+        con.append("Está cerca de máximos pero con volumen bajo: la suba muestra poca convicción frente a la resistencia.")
+    elif r.dd > -0.03:
+        pro.append("Opera cerca de máximos de 52 semanas.")
+    if 40 <= r.rsi <= 60:
+        pro.append(f"RSI en {fx(r.rsi,0)}: zona neutral, sin sobrecompra.")
+    elif r.rsi > 70:
+        con.append(f"RSI en {fx(r.rsi,0)}: sobrecomprada en el corto plazo, conviene esperar una pausa.")
+    elif r.rsi < 30:
+        pro.append(f"RSI en {fx(r.rsi,0)}: sobrevendida, posible rebote.")
+    if r.macd_cross:
+        pro.append("El MACD cruzó al alza en los últimos días.")
+    elif r.macd_h < 0:
+        con.append("El MACD está debajo de su señal: el impulso de corto plazo es débil.")
+    if r.vol_ratio and r.vol_ratio > 1.3:
+        pro.append(f"El volumen de las últimas 4 semanas es {fx(r.vol_ratio,1)} veces su promedio: hay interés comprador o vendedor fuerte.")
+    if r.mom_pct >= 0.8:
+        pro.append("Su momentum de 6 meses está entre el 20% más fuerte del universo.")
+    if r.volat and r.volat > 0.55:
+        con.append(f"Volatilidad alta ({fx(r.volat*100,0)}% anual): movimientos bruscos en ambos sentidos.")
+    # Fundamental
+    if r.val_model == "book" and pd.notna(r.pb) and pd.notna(r.peer_pb):
+        if r.pb < r.peer_pb * 0.85:
+            pro.append(f"Cotiza a {fx(r.pb,2)} veces su valor libros contra {fx(r.peer_pb,2)}x de {r.peer_lbl}{r.cty_lbl}: descuento sobre su patrimonio.")
+        elif r.pb > r.peer_pb * 1.4:
+            con.append(f"Cotiza a {fx(r.pb,2)} veces su valor libros, caro frente a {fx(r.peer_pb,2)}x de {r.peer_lbl}{r.cty_lbl}.")
+        if pd.notna(r.pb_hist):
+            dv = r.pb / r.pb_hist - 1
+            if dv < -0.15:
+                pro.append(f"Su P/VL ({fx(r.pb,2)}x) está {fx(abs(dv)*100,0)}% debajo de su promedio histórico ({fx(r.pb_hist,2)}x).")
+            elif dv > 0.25:
+                con.append(f"Su P/VL ({fx(r.pb,2)}x) está {fx(dv*100,0)}% arriba de su promedio histórico ({fx(r.pb_hist,2)}x).")
+    elif r.val_model == "sales" and pd.notna(r.ps) and pd.notna(r.peer_ps):
+        if r.ps < r.peer_ps * 0.85:
+            pro.append(f"Precio/ventas de {fx(r.ps,1)}x contra {fx(r.peer_ps,1)}x de {r.peer_lbl}{r.cty_lbl}: descuento por ventas.")
+        elif r.ps > r.peer_ps * 1.4:
+            con.append(f"Precio/ventas de {fx(r.ps,1)}x, caro frente a {fx(r.peer_ps,1)}x de {r.peer_lbl}{r.cty_lbl}.")
+    if r.val_model == "pe" and not r.eps_gap_flag and pd.notna(r.fpe) and r.fpe > 0:
+        if pd.notna(r.sec_fpe) and r.fpe < r.sec_fpe * 0.85 and not r.cyc:
+            pro.append(f"P/E esperado de {fx(r.fpe,1)}x contra {fx(r.sec_fpe,1)}x de la mediana de {r.peer_lbl}{r.cty_lbl}: cotiza con descuento.")
+        elif pd.notna(r.sec_fpe) and r.fpe > r.sec_fpe * 1.4:
+            con.append(f"P/E esperado de {fx(r.fpe,1)}x, caro frente a {fx(r.sec_fpe,1)}x de {r.peer_lbl}{r.cty_lbl}.")
+    elif pd.notna(r.pe) and r.pe < 0 or (pd.notna(r.eps) and r.eps < 0):
+        con.append("Sin ganancias en los últimos 12 meses.")
+    if pd.notna(r.roe) and r.roe > 0.20:
+        pro.append(f"Alta rentabilidad sobre el patrimonio (ROE {fx(r.roe*100,0)}%).")
+    if pd.notna(r.margin) and r.margin > 0.20:
+        pro.append(f"Margen neto de {fx(r.margin*100,0)}%.")
+    elif pd.notna(r.margin) and r.margin < 0:
+        con.append("Margen neto negativo.")
+    if r.val_model == "pe" and not r.eps_gap_flag and not getattr(r, "eps_grow", False) and pd.notna(r.pe_hist) and pd.notna(r.pe) and r.pe > 0:
+        dv = r.pe / r.pe_hist - 1
+        if dv < -0.15:
+            pro.append(f"Cotiza a P/E {fx(r.pe,1)}x contra su promedio de los últimos {int(r.hist_n or 4)} años ({fx(r.pe_hist,1)}x): {fx(abs(dv)*100,0)}% más barata que su propia norma.")
+        elif dv > 0.25:
+            con.append(f"Cotiza a P/E {fx(r.pe,1)}x contra su promedio de los últimos {int(r.hist_n or 4)} años ({fx(r.pe_hist,1)}x): {fx(dv*100,0)}% más cara que su propia norma.")
+        elif r.v_peer is not None and pd.notna(r.v_peer) and r.v_peer < -0.15:
+            con.append(f"Su P/E es bajo frente a {r.peer_lbl}{r.cty_lbl}, pero similar a su propio promedio histórico ({fx(r.pe_hist,1)}x): el descuento puede ser estructural, no una oportunidad.")
+    if pd.notna(r.div) and pd.notna(r.div5) and r.div > 0 and r.div5 > 0 and r.div > r.div5 * 1.2:
+        pro.append(f"Su dividendo rinde {fx(r.div,2)}%, por encima de su promedio de 5 años ({fx(r.div5,2)}%): el precio está bajo frente a su historia.")
+    if r.cyc:
+        con.append("Posible pico de ciclo: en industrias cíclicas un P/E bajo suele aparecer cerca del techo de ganancias. La valuación del puntaje está limitada.")
+    if r.one_off and r.t in HOLDINGS:
+        con.append("Su ganancia contable incluye la suba o baja de su cartera de inversiones: varía mucho de un trimestre a otro y no refleja el negocio operativo. Por eso se valúa por valor libros.")
+    elif r.one_off:
+        con.append("La ganancia del último trimestre creció mucho más que las ventas: posiblemente inflada por resultados no recurrentes. El crecimiento se mide por ventas.")
+    if r.sector != "Financiero" and pd.notna(r.fcf):
+        if r.fcf < 0:
+            con.append("Flujo de caja libre negativo en los últimos 12 meses: la empresa consume más caja de la que genera.")
+        elif pd.notna(r.fcf_y) and TNX_YIELD and r.fcf_y > TNX_YIELD:
+            pro.append(f"Rendimiento del flujo de caja libre de {fx(r.fcf_y*100,1)}%, por encima del bono del Tesoro a 10 años ({fx(TNX_YIELD*100,2)}%).")
+    if pd.notna(r.earn_days) and 0 <= r.earn_days <= 14:
+        con.append(f"Presenta balance en {int(r.earn_days)} días: el precio puede moverse fuerte en cualquier dirección.")
+    if r.sector != "Financiero" and pd.notna(r.de) and r.de > 200:
+        con.append(f"Endeudamiento elevado (deuda/patrimonio {fx(r.de/100,1)}x).")
+    # Crecimiento
+    if pd.notna(r.rev_g):
+        (grow if r.rev_g >= 0 else con).append(f"Ventas: {f_pct(r.rev_g,1)} interanual en el último trimestre.")
+    if pd.notna(r.eps_g) and not r.one_off:
+        (grow if r.eps_g >= 0 else con).append(f"Ganancias: {f_pct(r.eps_g,1)} interanual en el último trimestre.")
+    if pd.notna(r.fwd_eps_g):
+        grow.append(f"Los analistas esperan que la ganancia por acción pase de {fx(r.eps,2)} a {fx(r.fwd_eps,2)} US$ ({f_pct(r.fwd_eps_g)})."
+                    + (" La de 12 meses incluye resultados extraordinarios, así que la comparación no indica una caída del negocio." if r.eps_gap_flag else ""))
+    if r.n_an >= 3 and pd.notna(r.upside):
+        grow.append(f"Precio objetivo promedio de {int(r.n_an)} analistas: US$ {fx(r.target,2)} ({f_pct(r.upside)} desde el precio actual).")
+        if r.upside < 0:
+            con.append("El precio ya superó el objetivo promedio de los analistas.")
+    if r.n_an >= 3 and pd.notna(r.rec):
+        txt = "compra fuerte" if r.rec <= 1.5 else "compra" if r.rec <= 2.5 else "mantener" if r.rec <= 3.5 else "venta"
+        grow.append(f"Consenso de analistas: {txt} ({fx(r.rec,1)} en escala de 1 = compra fuerte a 5 = venta).")
+    return pro, con, grow
+
+
+# ---------------------------------------------------------------- datos
+def fetch_info(sym):
+    import yfinance as yf
+    for i in range(3):
+        try:
+            return sym, yf.Ticker(sym).info or {}
+        except Exception as e:
+            time.sleep(2 + 3 * i)
+    return sym, {}
+
+
+def fetch_hist(sym, series, model="pe"):
+    """Valuación histórica propia: P/E y precio/ventas al cierre de cada uno de los últimos ~4 ejercicios."""
+    import yfinance as yf
+    ser = series.get(sym)
+    if ser is None or not len(ser):
+        return sym, {}
+    for i in range(3):
+        try:
+            st = yf.Ticker(sym).income_stmt
+            break
+        except Exception:
+            time.sleep(2 + 3 * i)
+    else:
+        return sym, {}
+    if st is None or st.empty:
+        return sym, {}
+    row = lambda *names: next((st.loc[n] for n in names if n in st.index), None)
+    eps, rev, sh = row("Diluted EPS", "Basic EPS"), row("Total Revenue", "Operating Revenue"), row("Diluted Average Shares", "Basic Average Shares")
+    eq = None
+    if model == "book":
+        try:
+            bs = yf.Ticker(sym).balance_sheet
+            if bs is not None and not bs.empty:
+                eq = next((bs.loc[n] for n in ("Common Stock Equity", "Stockholders Equity") if n in bs.index), None)
+                if sh is None:
+                    sh = next((bs.loc[n] for n in ("Ordinary Shares Number", "Share Issued") if n in bs.index), None)
+        except Exception:
+            eq = None
+    idx = ser.index.tz_localize(None) if getattr(ser.index, "tz", None) is not None else ser.index
+    s2 = pd.Series(ser.values, index=idx)
+    pes, pss, pbs = [], [], []
+    cols = list(st.columns) + ([c for c in eq.index if c not in st.columns] if eq is not None else [])
+    for d in cols:
+        d = pd.Timestamp(d)
+        px = s2[:d]
+        if len(px) == 0 or (d - px.index[-1]).days > 10:
+            continue
+        price = float(px.iloc[-1])
+        e = num(eps.get(d)) if eps is not None else None
+        if e and e > 0 and 0 < price / e < 200:
+            pes.append(price / e)
+        rv, n = (num(rev.get(d)) if rev is not None else None), (num(sh.get(d)) if sh is not None else None)
+        if rv and n and rv > 0:
+            pss.append(price * n / rv)
+        if eq is not None and n:
+            e2 = num(eq.get(d))
+            if e2 and e2 > 0 and 0.05 < price * n / e2 < 50:
+                pbs.append(price * n / e2)
+    out = {}
+    if len(pbs) >= 2:
+        out["pb_hist"] = float(np.mean(pbs)); out["pb_hist_n"] = len(pbs)
+    if len(pes) >= 3:
+        out["pe_hist"] = float(np.mean(pes)); out["pe_hist_n"] = len(pes)
+    if len(pss) >= 3:
+        out["ps_hist"] = float(np.mean(pss)); out["ps_hist_n"] = len(pss)
+    return sym, out
+
+
+def num(x):
+    try:
+        x = float(x)
+        return x if math.isfinite(x) else None
+    except Exception:
+        return None
+
+
+def audit_and_model(df):
+    """Corrige datos conocidos como problemáticos, elige el método de valuación y registra las particularidades."""
+    audit = [[] for _ in range(len(df))]
+    df = df.reset_index(drop=True)
+    for i, r in df.iterrows():
+        a = audit[i]
+        # Berkshire: Yahoo a veces publica el valor libros por acción clase A (1 A = 1.500 B)
+        if r.t == "BRK-B" and pd.notna(r.bvps) and r.bvps > r.p * 50:
+            df.at[i, "bvps"] = r.bvps / 1500
+            a.append("Valor libros corregido: Yahoo lo informa por acción clase A (1 A = 1.500 B).")
+        bv = df.at[i, "bvps"]
+        if pd.notna(bv) and bv > 0:
+            pb_calc = r.p / bv
+            if pd.notna(r.pb) and r.pb > 0 and not (0.5 < pb_calc / r.pb < 2):
+                a.append(f"Precio/valor libros de Yahoo ({r.pb:.1f}x) no coincide con el calculado ({pb_calc:.1f}x): se usa el calculado.")
+            df.at[i, "pb"] = pb_calc
+        elif pd.notna(bv) and bv < 0:
+            df.loc[i, [c for c in ["pb", "de", "roe"] if c in df.columns]] = np.nan
+            a.append("Patrimonio negativo (por recompras o pérdidas acumuladas): deuda/patrimonio, ROE y P/VL no aplican.")
+        # ADRs y datos en otra moneda: el P/E calculado no coincide con el informado
+        adr = r.region != "EE.UU."
+        if pd.notna(r.eps) and r.eps > 0 and pd.notna(r.pe) and r.pe > 0 and not (0.5 < (r.p / r.eps) / r.pe < 2):
+            df.loc[i, ["eps", "pe"]] = np.nan
+            a.append("Ganancia por acción en otra moneda o por acción ordinaria (no por ADR): P/E de 12 meses no comparable."
+                     if adr else "La ganancia de 12 meses de Yahoo no coincide con su P/E: se descarta.")
+        if pd.notna(r.fwd_eps) and r.fwd_eps > 0 and pd.notna(r.fpe) and r.fpe > 0 and not (0.5 < (r.p / r.fwd_eps) / r.fpe < 2):
+            df.loc[i, [c for c in ["fwd_eps", "fpe", "peg", "fwd_eps_g"] if c in df.columns]] = np.nan
+            a.append("Ganancia esperada en otra moneda: P/E esperado no comparable." if adr
+                     else "La ganancia esperada de Yahoo no coincide con su P/E esperado: se descarta.")
+        # ADRs con balances en otra moneda (pesos, reales): Yahoo divide la capitalización en dólares por las
+        # ventas en moneda local (precio/ventas de 0,001 en las argentinas) y arma la historia de múltiplos con
+        # el precio del ADR en dólares contra la ganancia por acción en moneda local. Nada de eso es comparable.
+        if adr:
+            fc = getattr(r, "fin_cur", "") or ""
+            if fc and fc != "USD":
+                df.loc[i, ["ps", "pe_hist", "ps_hist", "pb_hist"]] = np.nan
+                a.append(f"Balances en {fc}: su precio/ventas y su historia de múltiplos no son comparables con el "
+                         "precio del ADR en dólares; no se usan.")
+            # P/VL: por identidad contable P/VL = P/E x ROE. Si no se cumple, el valor libros de Yahoo está por acción
+            # ordinaria o en otra moneda (le pasa a algunos bancos argentinos) y el P/VL no sirve.
+            pb_c, pe_c, roe_c = df.at[i, "pb"], df.at[i, "pe"], df.at[i, "roe"]
+            if pd.notna(pb_c) and pb_c > 0 and pd.notna(pe_c) and pe_c > 0 and pd.notna(roe_c) and roe_c > 0:
+                if not (0.5 < pb_c / (pe_c * roe_c) < 2):
+                    df.loc[i, ["pb", "pb_hist", "bvps"]] = np.nan
+                    a.append(f"Precio/valor libros de Yahoo ({fx(pb_c)}x) no cierra con su P/E y su ROE "
+                             f"({fx(pe_c * roe_c)}x): valor libros por acción ordinaria o en otra moneda; no se usa.")
+            # aunque informe en dólares, la historia se descarta si no es comparable con el múltiplo de hoy
+            # (por ejemplo, ganancia por acción ordinaria en vez de por ADR)
+            for cur_c, h_c, lbl in (("pe", "pe_hist", "P/E"), ("ps", "ps_hist", "Precio/ventas"), ("pb", "pb_hist", "P/VL")):
+                cv, hv = df.at[i, cur_c], df.at[i, h_c]
+                if pd.notna(cv) and pd.notna(hv) and cv > 0 and hv > 0 and not (1 / 3 < cv / hv < 3):
+                    df.at[i, h_c] = np.nan
+                    a.append(f"{lbl} histórico ({fx(hv)}x) no comparable con el actual ({fx(cv)}x): "
+                             "moneda o acciones por ADR distintas; no se usa.")
+        # valores atípicos
+        if pd.notna(r.pe) and r.pe > 200:
+            a.append(f"P/E histórico atípico ({r.pe:.0f}x): ganancia de 12 meses muy chica.")
+        if pd.notna(r.margin) and abs(r.margin) > 1:
+            df.at[i, "margin"] = np.nan
+            a.append("Margen neto fuera de rango (>100%): descartado.")
+        if pd.notna(r.roe) and abs(r.roe) > 2:
+            df.at[i, "roe"] = np.nan
+            a.append("ROE fuera de rango (>200%): descartado.")
+        if r.n_an == 0:
+            a.append("Sin cobertura de analistas: no hay precio objetivo de referencia.")
+        elif r.n_an < 3:
+            a.append(f"Solo {int(r.n_an)} analista(s): su precio objetivo no se usa.")
+        elif r.n_an < 5:
+            a.append(f"Solo {int(r.n_an)} analistas: el precio objetivo pesa la mitad.")
+    df["audit"] = audit
+    e, f = df.eps, df.fwd_eps
+    gap = ((f / e - 1).abs()).where((e > 0) & (f > 0))
+    df["eps_gap"] = gap
+    # brecha por crecimiento (NVDA en 2026: ventas +106%, ganancia esperada el doble): el P/E esperado sí es comparable
+    # no aplica en sectores cíclicos o financieros (ahí una ganancia esperada mucho mayor suele ser ciclo, no crecimiento)
+    # ni con crecimientos de ventas extremos (más de 150%: fusiones o picos de ciclo, como la memoria en 2026)
+    grow = ((gap > EPS_GAP) & (f > e) & (df.rev_g >= GROW_GAP_REV) & (df.rev_g <= 1.5) & (f / e <= 4)
+            & ~df.sector.isin(GROW_EXCL))
+    df["eps_grow"] = grow.fillna(False).astype(bool)
+    df["eps_gap_flag"] = (gap > EPS_GAP).fillna(False).astype(bool) & ~df.eps_grow
+    model = []
+    for i, r in df.iterrows():
+        if r.t in HOLDINGS or r.industry in BOOK_INDUSTRIES:
+            mdl = "book" if pd.notna(r.pb) and r.pb > 0 else "na"
+        elif str(r.industry).startswith("REIT"):
+            mdl = "reit"
+        elif not (pd.notna(r.eps) and r.eps > 0) and not (pd.notna(r.fwd_eps) and r.fwd_eps > 0):
+            mdl = "sales" if pd.notna(r.ps) and r.ps > 0 else "na"
+        elif not (pd.notna(r.fpe) and r.fpe > 0) and not (pd.notna(r.pe) and r.pe > 0):
+            mdl = "sales" if pd.notna(r.ps) and r.ps > 0 else "na"
+        else:
+            mdl = "pe"
+        model.append(mdl)
+        if mdl != "pe":
+            df.at[i, "audit"].append(("Sin método de valuación confiable" if mdl == "na" else f"Valuada por {MODEL_TXT[mdl]}") + {
+                "book": ": en bancos, aseguradoras y holdings el P/E no es representativo.",
+                "reit": ": en inmobiliarias la depreciación distorsiona la ganancia.",
+                "sales": ": la empresa no tiene ganancias positivas o utilizables.",
+                "na": ": los datos disponibles no permiten estimar un valor justo."}[mdl])
+        if mdl == "book" and r.eps_gap_flag:
+            df.at[i, "audit"].append(f"La ganancia de 12 meses y la esperada difieren {r.eps_gap*100:.0f}%: el P/E y el PEG no se usan.")
+        if mdl == "pe" and r.eps_gap_flag:
+            df.at[i, "audit"].append(f"Ganancia no comparable: la de 12 meses y la esperada difieren {r.eps_gap*100:.0f}%. "
+                                     "Para pares se usa precio/ventas y el P/E no entra en el valor justo.")
+        if mdl == "pe" and df.at[i, "eps_grow"]:
+            df.at[i, "audit"].append(f"Ganancia en fuerte crecimiento: la esperada es {r.eps_gap*100:.0f}% mayor que la de 12 meses, con ventas "
+                                     f"creciendo {r.rev_g*100:.0f}%. Contra su industria se compara el P/E esperado (precio/ventas castigaría su "
+                                     "margen) y contra su historia el precio/ventas (el P/E histórico de 12 meses exageraría el descuento).")
+    df["val_model"] = model
+    return df
+
+
+def peer_gap(df):
+    """Mirada 'vs pares': cuánto más barata (negativo) o cara cotiza frente al múltiplo de sus pares."""
+    m = df.val_model
+    v_pe = df.fpe / df.sec_fpe - 1
+    v_pe = v_pe.where(~df.eps_gap_flag, df.ps / df.peer_ps - 1)          # ganancia no comparable: se usa P/V
+    v = np.select([m == "pe", m == "book", m == "sales"],
+                  [v_pe, df.pb / df.peer_pb - 1, df.ps / df.peer_ps - 1], np.nan)
+    return pd.Series(v, index=df.index, dtype=float).clip(-0.9, 1.5)
+
+
+CTY_MIN_N = 4             # mínimo de ADRs de un país (por familia de modelo) para medir su descuento estructural
+CTY_RANGE = (0.25, 1.5)   # límites del ajuste por riesgo país
+CTY_K = {}                # ajuste vigente por país y familia (se exporta en data.json)
+
+
+# Empresas que se valúan con el riesgo de otro mercado que el de su clasificación. MercadoLibre figura como
+# argentina, pero cotiza en Nasdaq, reporta en dólares y su negocio más grande es Brasil: el descuento y el
+# optimismo de analistas de los ADRs argentinos (bancos, energía) no le corresponden.
+VAL_REGION = {"MELI": "Brasil"}
+# Empresas que se comparan siempre contra su industria aunque tenga menos de 5 pares (su sector no se le parece)
+FORCE_IND = {"MELI"}
+
+
+def val_region(df):
+    return df.t.map(VAL_REGION).fillna(df.region) if "t" in df else df.region
+
+
+def country_adjust(df):
+    """Riesgo país. Un banco argentino nunca va a cotizar al P/VL de un banco de EE.UU.: ese descuento es
+    estructural (riesgo soberano, moneda, acceso al crédito), no una oportunidad. Por eso cada ADR se compara
+    contra el múltiplo de sus pares de EE.UU. multiplicado por el descuento típico de su mercado: la mediana,
+    entre los ADRs de ese país, de su múltiplo dividido el de sus pares.
+    Así el ADR típico de cada país queda en su valor justo y el monitor elige los mejores DENTRO de ese
+    mercado. Si el país en conjunto está barato frente a su propia historia, lo sigue mostrando la mirada
+    'vs su historia' (cuando su historia en dólares es confiable), que no se ajusta. Se mide por separado
+    para cada múltiplo (P/E esperado, valor libros, precio/ventas); con menos de 4 casos se usa el del P/E."""
+    global CTY_K
+    CTY_K = {}
+    df["cty_k"] = 1.0
+    df["cty_lbl"] = ""
+    # familia = el múltiplo que se compara contra los pares: P/E esperado, P/VL o precio/ventas
+    fam = pd.Series(np.select([df.val_model == "book", (df.val_model == "pe") & ~df.eps_gap_flag],
+                              ["pb", "pe"], "ps"), index=df.index)
+    lbl = {"pe": "P/E", "pb": "valor libros", "ps": "precio/ventas"}
+    ratio = 1 + df.v_peer
+    vr = val_region(df)
+    own = df.region == vr        # el descuento de cada país se mide solo con sus empresas propias
+    for reg in sorted(set(vr) - {"EE.UU."}):
+        m_reg = (df.region == reg) & own & ratio.notna()
+        ks = {f: float(ratio[m_reg & (fam == f)].median()) for f in ("pe", "pb", "ps")
+              if (m_reg & (fam == f)).sum() >= CTY_MIN_N}
+        for f in ("pe", "pb", "ps"):
+            k = ks.get(f, ks.get("pe"))       # familia con pocos casos: se usa el descuento del P/E de ese país
+            if k is None or not math.isfinite(k):
+                continue
+            k = min(max(k, CTY_RANGE[0]), CTY_RANGE[1])
+            rows = (vr == reg) & (fam == f)
+            df.loc[rows, "cty_k"] = k
+            df.loc[rows, "cty_lbl"] = f", ajustado por riesgo {reg}"
+            if rows.any():
+                CTY_K[f"{reg} · {lbl[f]}"] = round(k, 3)
+    for c in ("sec_fpe", "peer_pb", "peer_ps"):
+        df[c] = df[c] * df.cty_k
+    df["v_peer"] = peer_gap(df)
+    for i in df.index[(df.cty_lbl != "") & df.v_peer.notna()]:
+        k = df.at[i, "cty_k"]
+        if df.at[i, "t"] in VAL_REGION:
+            df.at[i, "audit"].append(f"Se valúa como empresa de {VAL_REGION[df.at[i, 't']]}, no de {df.at[i, 'region']}: "
+                                     "cotiza en EE.UU., reporta en dólares y su mercado principal es otro.")
+        df.at[i, "audit"].append(f"Pares de EE.UU. ajustados por riesgo {vr[i]}: las empresas de su mercado cotizan, "
+                                 f"en la mediana, a {fx(k, 2)} veces el múltiplo de sus pares, y ese descuento no se cuenta como oportunidad.")
+    return df
+
+
+def build(universe, prices, infos, hist=None):
+    hist = hist or {}
+    rows = []
+    for sym, name, gics, region in universe:
+        if sym not in prices:
+            continue
+        c, v = prices[sym]
+        t = technical(c, v)
+        if not t:
+            continue
+        inf = infos.get(sym, {})
+        # S&P 500: clasificación oficial GICS (la misma que usan los ETFs sectoriales XLK, XLI, etc.)
+        # ADRs (sin GICS): clasificación de Yahoo Finance
+        if gics:
+            sec = SECTOR_ES.get(gics, gics)
+        else:
+            ys = inf.get("sector") or ""
+            sec = SECTOR_ES.get(ys, ys or "Otros")
+        eps, fwd_eps = num(inf.get("trailingEps")), num(inf.get("forwardEps"))
+        target = num(inf.get("targetMeanPrice"))
+        rows.append(dict(t, t=sym, name=inf.get("shortName") or name, sector=sec, region=region,
+                         mcap=num(inf.get("marketCap")),
+                         pe=num(inf.get("trailingPE")), fpe=num(inf.get("forwardPE")),
+                         peg=num(inf.get("trailingPegRatio") or inf.get("pegRatio")),
+                         pb=num(inf.get("priceToBook")),
+                         rev_g=num(inf.get("revenueGrowth")), eps_g=num(inf.get("earningsGrowth")),
+                         eps=eps, fwd_eps=fwd_eps,
+                         fwd_eps_g=(fwd_eps / eps - 1) if eps and fwd_eps and eps > 0 else None,
+                         roe=num(inf.get("returnOnEquity")), margin=num(inf.get("profitMargins")),
+                         op_margin=num(inf.get("operatingMargins")), de=num(inf.get("debtToEquity")),
+                         div=num(inf.get("dividendYield")), div5=num(inf.get("fiveYearAvgDividendYield")),
+                         ps=num(inf.get("priceToSalesTrailing12Months")), bvps=num(inf.get("bookValue")),
+                         pe_hist=hist.get(sym, {}).get("pe_hist"), ps_hist=hist.get(sym, {}).get("ps_hist"),
+                         pb_hist=hist.get(sym, {}).get("pb_hist"),
+                         hist_n=hist.get(sym, {}).get("pe_hist_n") or hist.get(sym, {}).get("ps_hist_n"),
+                         target=target, upside=(target / t["p"] - 1) if target else None,
+                         rec=num(inf.get("recommendationMean")),
+                         n_an=num(inf.get("numberOfAnalystOpinions")) or 0,
+                         industry=inf.get("industry") or "",
+                         fin_cur=str(inf.get("financialCurrency") or "").upper(),
+                         fcf=num(inf.get("freeCashflow")),
+                         earn_days=days_to(inf.get("earningsTimestampStart") or inf.get("earningsTimestamp")),
+                         closes=c[-450:]))
+    df = pd.DataFrame(rows)
+    num_cols = ["pe", "fpe", "peg", "pb", "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin",
+                "op_margin", "de", "div", "target", "upside", "rec", "mcap", "vol_ratio", "r1m", "r6m", "fcf", "earn_days",
+                "div5", "ps", "pe_hist", "ps_hist", "hist_n", "bvps", "pb_hist"]
+    for col in num_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    df["fcf_y"] = df.fcf / df.mcap
+    df = audit_and_model(df)
+    # ---- giro temprano: 6 señales; solo tiene sentido después de una caída
+    spy = technical(*prices[BENCH]) if BENCH in prices else None
+    df["et_rs"] = ((df.r1m - spy["r1m"]) > 0) if spy and spy.get("r1m") is not None else False
+    et_cols = ["et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs"]
+    df["et_n"] = df[et_cols].fillna(False).astype(bool).sum(axis=1)
+    df["et_ctx"] = (df.trend_n <= 0) & (df.dd <= -0.05)   # viene de una caída y todavía sin tendencia alcista
+    # se calcula ANTES del puntaje fundamental porque lo usa la regla cíclica
+    # P/E de pares: mediana de su industria si tiene al menos 5 empresas comparables; si no, de su sector.
+    # Los pares son solo empresas de EE.UU.: los ADRs no entran en la mediana (bajarían la de su industria por
+    # su riesgo país) y se comparan contra ella con el ajuste de country_adjust().
+    us_peer = df.region == "EE.UU."
+    fpe_pos = df.fpe.where((df.fpe > 0) & us_peer)
+    ind_n = fpe_pos.groupby(df.industry).transform("count")
+    ind_med = fpe_pos.groupby(df.industry).transform("median")
+    sec_med = fpe_pos.groupby(df.sector).transform("median")
+    force = df.t.isin(FORCE_IND) & (df.industry != "")
+    use_ind = ((ind_n >= 5) | (force & (ind_n >= 2))) & (df.industry != "")
+    df["sec_fpe"] = ind_med.where(use_ind, sec_med)
+    # precio/valor libros y precio/ventas de pares (para los modelos "book" y "sales")
+    pb_pos = df.pb.where((df.pb > 0) & (df.val_model == "book") & us_peer)
+    pb_ind_n = pb_pos.groupby(df.industry).transform("count")
+    df["peer_pb"] = pb_pos.groupby(df.industry).transform("median").where(pb_ind_n >= 5, float(pb_pos.median()) if pb_pos.notna().any() else np.nan)
+    ps_pos = df.ps.where((df.ps > 0) & us_peer)
+    ps_ind_n = ps_pos.groupby(df.industry).transform("count")
+    df["peer_ps"] = ps_pos.groupby(df.industry).transform("median").where((ps_ind_n >= 5) | (force & (ps_ind_n >= 2)),
+                                                                          ps_pos.groupby(df.sector).transform("median"))
+    df["peer_lbl"] = np.where(use_ind | (force & (ps_ind_n >= 2)), "su industria", "su sector")
+    df["peer_grp"] = np.where(use_ind, df.industry, df.sector)
+    # ---- tres miradas de valuación (negativo = más barata)
+    m = df.val_model
+    df["v_peer"] = peer_gap(df)
+    pe_now = df.pe.where((df.pe > 0) & (m == "pe") & ~df.eps_gap_flag & ~df.eps_grow)
+    div_rev = (df.div5 / df["div"] - 1).where((df["div"] >= DIV_MIN_HIST) & (df.div5 > 0))
+    vh = pd.concat([pe_now / df.pe_hist - 1,
+                    (df.ps / df.ps_hist - 1).where(m.isin(["pe", "sales"])),
+                    (df.pb / df.pb_hist - 1).where(m == "book"),
+                    div_rev.where(m != "sales")], axis=1).clip(-0.9, 1.5)
+    df["v_hist"] = vh.mean(axis=1, skipna=True).where(vh.notna().any(axis=1))
+    df["v_an"] = (-df.upside).where(df.n_an >= 3)
+    df["peer_lbl"] = np.where(df.val_model == "book", np.where(pb_ind_n >= 5, "su industria", "bancos y aseguradoras"), df.peer_lbl)
+    # riesgo país: los múltiplos de pares de los ADRs se ajustan por el descuento típico de su mercado
+    # (va antes de la regla cíclica y del puntaje, que usan el P/E de pares y la mirada "vs pares")
+    df = country_adjust(df)
+    cyc_ind = df.industry.isin(CYCLICAL)
+    peak_eps = (df.eps_g > 0.5) | ((df.fwd_eps < df.eps) & (df.eps > 0))
+    df["cyc"] = (cyc_ind & peak_eps & (df.fpe > 0) & (df.fpe < 0.6 * df.sec_fpe)).fillna(False).astype(bool)
+    df["one_off"] = ((df.eps_g > 1.0) & (df.rev_g < 0.35)).fillna(False).astype(bool)
+    df["at"] = score_tech(df)
+    df["af"] = score_fund(df)
+    df["score"] = 0.5 * df["at"] + 0.5 * df["af"]
+    cheap = pd.concat([df.v_peer < -0.15, df.v_hist < -0.10, df.v_an < -0.20], axis=1)
+    dear = pd.concat([df.v_peer > 0.15, df.v_hist > 0.10, df.v_an > 0], axis=1)
+    avail = pd.concat([df.v_peer.notna(), df.v_hist.notna(), df.v_an.notna()], axis=1).sum(axis=1)
+    df["val_cheap"], df["val_dear"], df["val_n"] = cheap.sum(axis=1), dear.sum(axis=1), avail
+    df["val_verdict"] = np.select([df.cyc, df.val_cheap >= 2, df.val_dear >= 2],
+                                  ["Pico de ciclo", "Barata", "Cara"], "Neutral")
+    df["mom_pct"] = pct_rank((1 + df.r6m) / (1 + df.r1m) - 1).fillna(0)
+    df = pe5_hist(df)
+    df["setup"] = [setup(r) for r in df.itertuples()]
+    # Elegibles como oportunidad: tendencia sana, o sobreventa con buenos fundamentos
+    elig = (df.trend_n >= 1) | ((df.rsi < 35) & (df.af >= 60))
+    df["elig"] = elig
+    df = df.sort_values("score", ascending=False).reset_index(drop=True)
+    top = df[df.elig].head(TOP_N)
+    df["rank"] = None
+    for i, idx in enumerate(top.index):
+        df.at[idx, "rank"] = i + 1
+    return df
+
+
+def build_macro(series):
+    out = {}
+    for k, name in MACRO.items():
+        ser = series.get(k)
+        if ser is None or len(ser) < 30:
+            continue
+        v = float(ser.iloc[-1])
+        g = lambda n: float(ser.iloc[-1] / ser.iloc[-1 - n] - 1) if len(ser) > n else None
+        d = {"name": name, "v": round(v, 2), "d1": r2(g(1)), "m1": r2(g(21))}
+        if k == "^TNX":  # en puntos básicos
+            d["d1_bp"] = round((v - float(ser.iloc[-2])) * 100) if len(ser) > 1 else None
+            d["m1_bp"] = round((v - float(ser.iloc[-22])) * 100) if len(ser) > 22 else None
+        out[k] = d
+    return out
+
+
+# ---------------------------------------------------------------- rotacion (RRG)
+RRG_WEEKS = 26
+RRG_WEEKS_SEC = 52     # los sectores guardan 12 meses (la página deja elegir 6 o 12)
+
+
+def weekly(ser):
+    return ser.resample("W-FRI").last().dropna()
+
+
+def rrg(ser, bench_w, weeks=RRG_WEEKS):
+    """RS-Ratio (fuerza relativa vs su promedio de 10 semanas) y RS-Momentum (cambio de 4 semanas del RS-Ratio).
+    Ambos centrados en 100. Devuelve (puntos [[x,y],...], fechas) o (None, None)."""
+    if ser is None or bench_w is None:
+        return None, None
+    df = pd.concat([weekly(ser), bench_w], axis=1, join="inner").dropna()
+    if len(df) < weeks + 16:
+        return None, None
+    rs = (df.iloc[:, 0] / df.iloc[:, 1]).ewm(span=3, adjust=False).mean()
+    rsr = 100 * rs / rs.rolling(10).mean()
+    rsm = (100 * rsr / rsr.shift(4)).ewm(span=3, adjust=False).mean()
+    out = pd.concat([rsr, rsm], axis=1).dropna().tail(weeks + 1)
+    return ([[round(float(x), 2), round(float(y), 2)] for x, y in out.values],
+            [d.strftime("%Y-%m-%d") for d in out.index])
+
+
+def quadrant(x, y):
+    if x >= 100:
+        return "Liderando" if y >= 100 else "Perdiendo impulso"
+    return "Mejorando" if y >= 100 else "Rezagado"
+
+
+def heading(pts):
+    """Cuadrante actual y hacia dónde va según las últimas 3 semanas."""
+    x, y = pts[-1]
+    x0, y0 = pts[-4] if len(pts) >= 4 else pts[0]
+    dx, dy = x - x0, y - y0
+    q = quadrant(x, y)
+    if q == "Mejorando":
+        h = "Rumbo a Liderando" if dx > 0 else "Mejorando sin avanzar"
+    elif q == "Rezagado":
+        h = "Girando hacia Mejorando" if dy > 0 else "Sigue rezagándose"
+    elif q == "Liderando":
+        h = "Liderazgo firme" if dy >= 0 else "Empieza a frenarse"
+    else:
+        h = "Retomando impulso" if dy > 0 else "Rumbo a Rezagado"
+    return q, h, round(dx, 2), round(dy, 2)
+
+
+def build_etfs(prices, series=None):
+    """AT de los ETFs sectoriales y fase relativa contra el S&P 500 (SPY)."""
+    if BENCH not in prices:
+        return None, []
+    spy = technical(*prices[BENCH])
+    rows = []
+    for sec, etf in SECTOR_ETF.items():
+        if etf not in prices:
+            continue
+        t = technical(*prices[etf])
+        if not t:
+            continue
+        rows.append(dict(t, sector=sec, etf=etf, closes=prices[etf][0][-450:]))
+    if not rows:
+        return spy, []
+    df = pd.DataFrame(rows)
+    # 60% técnico propio + 40% fuerza relativa contra el S&P 500 (3, 6 y 1 mes)
+    rs_mix = 0.5 * (df.r3m - spy["r3m"]) + 0.3 * (df.r6m - spy["r6m"]) + 0.2 * (df.r1m - spy["r1m"])
+    df["at_own"] = score_tech(df)
+    df["rs_score"] = 100 * pct_rank(rs_mix).fillna(0.5)
+    df["at"] = (0.6 * df.at_own + 0.4 * df.rs_score).clip(0, 100)
+    out = []
+    bw = weekly(series[BENCH]) if series and BENCH in series else None
+    for r in df.itertuples():
+        pts, dates = rrg(series.get(r.etf) if series else None, bw, weeks=RRG_WEEKS_SEC)
+        rs3 = (r.r3m - spy["r3m"]) if r.r3m is not None else None
+        rs1 = (r.r1m - spy["r1m"]) if r.r1m is not None else None
+        rs6 = (r.r6m - spy["r6m"]) if r.r6m is not None else None
+        if rs3 is None or rs1 is None:
+            fase = "—"
+        elif rs3 >= 0 and rs1 >= 0:
+            fase = "Liderando"
+        elif rs3 >= 0:
+            fase = "Perdiendo impulso"
+        elif rs1 >= 0:
+            fase = "Mejorando"
+        else:
+            fase = "Rezagado"
+        head = None
+        if pts:
+            fase, head, _, _ = heading(pts)
+        pro, con = [], []
+        fav, txt = trend_text(r)
+        (pro if fav else con).append(txt)
+        if rs3 is not None:
+            (pro if rs3 >= 0 else con).append(f"En 3 meses rindió {f_pct(rs3,1)} contra el S&P 500.")
+        if rs1 is not None:
+            (pro if rs1 >= 0 else con).append(f"En el último mes rindió {f_pct(rs1,1)} contra el S&P 500.")
+        if r.rsi > 70:
+            con.append(f"RSI en {fx(r.rsi,0)}: sobrecomprado en el corto plazo.")
+        elif r.rsi < 30:
+            pro.append(f"RSI en {fx(r.rsi,0)}: sobrevendido, posible rebote.")
+        else:
+            pro.append(f"RSI en {fx(r.rsi,0)}: sin sobrecompra ni sobreventa.")
+        if r.macd_cross:
+            pro.append("El MACD cruzó al alza en los últimos días.")
+        elif r.macd_h < 0:
+            con.append("El MACD está debajo de su señal: impulso de corto plazo débil.")
+        pc, cc = correction_texts(r)
+        px, cx = cross_texts(r)
+        pro += pc + px
+        con += cc + cx
+        d = {k: r2(getattr(r, k)) for k in ["sector", "etf", "p", "r1d", "r1m", "r3m", "r6m", "r12m", "rsi", "sma50", "sma200",
+                                              "hi52", "lo52", "dd", "volat", "macd_h", "macd_cross", "at", "at_own", "rs_score",
+                                              "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w",
+                                              "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct"]}
+        d.update(rrg=pts, rrg_dates=dates, head=head)
+        d.update(fase=fase, rs1=r2(rs1), rs3=r2(rs3), rs6=r2(rs6), pro=pro, con=con,
+                 closes=[round(float(x), 2) for x in r.closes])
+        out.append(d)
+    spy_out = {k: r2(spy.get(k)) for k in ["p", "r1d", "r1w", "r1m", "r3m", "r6m", "r12m", "rsi", "sma50", "sma200", "dd"]}
+    spy_out["asof"] = ASOF
+    spy_out["above200"] = bool(spy["p"] > spy["sma200"])
+    return spy_out, sorted(out, key=lambda e: -(e["at"] or 0))
+
+
+def r2(x, d=4):
+    if x is None or (isinstance(x, float) and not math.isfinite(x)):
+        return None
+    if isinstance(x, (bool, np.bool_)):
+        return bool(x)
+    if isinstance(x, (int, float, np.floating, np.integer)):
+        return round(float(x), d)
+    return x
+
+
+def add_rotation(df, series):
+    if not series or BENCH not in series:
+        return df
+    bw = weekly(series[BENCH])
+    rr, qq, hh, cand, rs = [], [], [], [], []
+    for r in df.itertuples():
+        pts, _ = rrg(series.get(r.t), bw)
+        if not pts:
+            rr.append(None); qq.append(None); hh.append(None); cand.append(False); rs.append(None)
+            continue
+        q, h, dx, dy = heading(pts)
+        good_val = (r.f_val >= 0.5) and (r.af >= 50)
+        c = bool(good_val and ((q == "Mejorando" and dx > 0) or (q == "Rezagado" and dx > 0 and dy > 0)))
+        rr.append(pts); qq.append(q); hh.append(h); cand.append(c)
+        rs.append(round(0.5 * r.af + 50 * r.f_val, 1))
+    df["rrg"], df["rot_q"], df["rot_h"], df["rot_cand"], df["rot_score"] = rr, qq, hh, cand, rs
+    return df
+
+
+# ---------------------------------------------------------------- valor y momentum
+VM_WEEKS = 26
+
+
+AN_K = 1.0   # sesgo optimista típico de los precios objetivo en EE.UU. (se calcula cada día)
+AN_K_REG = {}   # ídem para cada mercado de ADRs (los analistas de Argentina suelen ser mucho más optimistas)
+AN_K_MIN_N = 8  # mínimo de ADRs de un país con 3+ analistas para calibrarlo aparte; si no, se usa el de EE.UU.
+
+
+def fair_value(r):
+    """Valor justo según el método de cada empresa, promediado con el precio objetivo de los analistas."""
+    vals, w, src = [], [], []
+    def add(v, weight, label):
+        if v and pd.notna(v) and 0.3 < v / r.p < 3:
+            vals.append(v); w.append(weight); src.append(label)
+    m = r.val_model
+    if m == "pe" and not r.eps_gap_flag:
+        if r.cyc:
+            cand = [x for x in [r.eps, r.fwd_eps] if pd.notna(x) and x > 0]
+            base = min(cand) * 0.75 if cand else None
+        else:
+            base = r.fwd_eps if pd.notna(r.fwd_eps) and r.fwd_eps > 0 else None
+        if base and pd.notna(r.sec_fpe) and r.sec_fpe > 0:
+            add(base * r.sec_fpe, 1, f"P/E de {r.peer_lbl}{r.cty_lbl}" + (" con ganancia de ciclo normalizada" if r.cyc else ""))
+        if base and pd.notna(r.pe_hist) and not r.cyc and not getattr(r, "eps_grow", False):
+            add(base * r.pe_hist, 1, "P/E histórico propio")
+        if getattr(r, "eps_grow", False) and pd.notna(r.ps) and r.ps > 0 and pd.notna(r.ps_hist):
+            add(r.p / r.ps * r.ps_hist, 1, "P/V histórico propio")
+    elif m == "book" and pd.notna(r.bvps) and r.bvps > 0:
+        if pd.notna(r.peer_pb):
+            add(r.bvps * r.peer_pb, 1, f"P/VL de {r.peer_lbl}{r.cty_lbl}")
+        if pd.notna(r.pb_hist):
+            add(r.bvps * r.pb_hist, 1, "P/VL histórico propio")
+    if m in ("sales",) or (m == "pe" and r.eps_gap_flag):
+        rps = r.p / r.ps if pd.notna(r.ps) and r.ps > 0 else None
+        if rps and pd.notna(r.peer_ps):
+            add(rps * r.peer_ps, 1, f"P/V de {r.peer_lbl}{r.cty_lbl}")
+        if rps and pd.notna(r.ps_hist):
+            add(rps * r.ps_hist, 1, "P/V histórico propio")
+    if m == "reit":
+        d0, d5 = getattr(r, "div", None), getattr(r, "div5", None)
+        if d0 and d5 and pd.notna(d0) and pd.notna(d5) and d0 > 0 and d5 > 0:
+            add(r.p * d0 / d5, 1, "dividendo vs su promedio de 5 años")
+    if r.n_an >= 3 and pd.notna(r.target):
+        reg = VAL_REGION.get(r.t, r.region)
+        k_reg = AN_K_REG.get(reg)
+        add(r.target / (k_reg or AN_K), 1.0 if r.n_an >= 5 else 0.5,
+            "analistas ajustados por optimismo" + (f" típico de {reg}" if k_reg else "")
+            + ("" if r.n_an >= 5 else ", pocos: peso reducido"))
+    if not vals:
+        return None, None
+    return float(np.average(vals, weights=w)), " + ".join(src)
+
+
+def momentum_index(c):
+    """Índice de momentum de -100 a +100 (serie diaria): medias 50/200, RSI y MACD."""
+    s50, s200 = c.rolling(50).mean(), c.rolling(200).mean()
+    d = c.diff()
+    up = d.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+    dn = (-d.clip(upper=0)).ewm(alpha=1 / 14, adjust=False).mean()
+    rsi_s = 100 - 100 / (1 + up / dn.replace(0, np.nan))
+    macd = c.ewm(span=12, adjust=False).mean() - c.ewm(span=26, adjust=False).mean()
+    hist = macd - macd.ewm(span=9, adjust=False).mean()
+    cl = lambda x: x.clip(-1, 1)
+    m = 100 * (0.35 * cl((c / s50 - 1) / 0.10) + 0.25 * cl((c / s200 - 1) / 0.20)
+               + 0.25 * cl((rsi_s - 50) / 25) + 0.15 * cl(hist / (c * 0.01)))
+    return m, rsi_s
+
+
+def vm_zone(x, y):
+    if x < 0:
+        return "Compra" if y >= 0 else "Vigilar"
+    return "Mantener" if y >= 0 else "Evitar"
+
+
+def vm_status(pts):
+    x, y = pts[-1]
+    z = vm_zone(x, y)
+    zp = vm_zone(*pts[-9]) if len(pts) >= 9 else vm_zone(*pts[0])
+    x3, y3 = pts[-4] if len(pts) >= 4 else pts[0]
+    dx, dy = x - x3, y - y3
+    if z == "Compra":
+        if zp in ("Vigilar", "Evitar"):
+            st = "Recién entró a zona de compra"
+        elif x > -0.05 and dx > 0:
+            st = "Llegando a su valor justo"
+        else:
+            st = "En zona de compra"
+    elif z == "Vigilar":
+        if zp == "Compra":
+            st = "Perdió impulso: volvió de Compra a Vigilar"
+        else:
+            st = "Girando: el momentum mejora" if dy > 8 else "Barata pero sigue débil"
+    elif z == "Mantener":
+        st = "Alcanzó su valor justo" if zp == "Compra" else "Sin margen, tendencia alcista"
+    else:
+        st = "Perdió impulso: pasó de Mantener a Evitar" if zp == "Mantener" else "Cara y perdiendo fuerza"
+    return z, zp, st
+
+
+VM_DOUBT = -0.35   # descuento mayor a esto (ya calibrado) = valuación dudosa
+
+
+def add_value_momentum(df, series):
+    out = {k: [] for k in ["vm", "fair", "fair_raw", "fair_src", "fair_up", "vm_z", "vm_zp", "vm_st", "vm_doubt"]}
+    # calibración: solo el precio objetivo de los analistas, que tiene un sesgo optimista sistemático
+    # (la mediana del S&P suele quedar 8-12% arriba del precio). Los métodos por múltiplos ya son relativos.
+    global AN_K, AN_K_REG
+    us = df[(df.region == "EE.UU.") & (df.n_an >= 5) & df.target.notna()]
+    ratios = (us.target / us.p).clip(0.5, 2)
+    AN_K = float(ratios.median()) if len(ratios) >= 20 else 1.0
+    df.attrs["vm_k"] = AN_K
+    # cada mercado de ADRs con su propio sesgo: en Argentina el precio objetivo típico queda muy arriba del precio
+    AN_K_REG = {}
+    for reg in sorted(set(df.region) - {"EE.UU."}):
+        g = df[(df.region == reg) & (val_region(df) == reg) & (df.n_an >= 3) & df.target.notna() & (df.p > 0)]
+        if len(g) >= AN_K_MIN_N:
+            AN_K_REG[reg] = float((g.target / g.p).clip(0.5, 2).median())
+    raw = [fair_value(r) for r in df.itertuples()]
+    for (fair_r, src), r in zip(raw, df.itertuples()):
+        fair = fair_r
+        ser = series.get(r.t) if series else None
+        pts = None
+        if fair and ser is not None and len(ser) > 260:
+            m, _ = momentum_index(ser)
+            w = pd.DataFrame({"c": ser, "m": m}).resample("W-FRI").last().dropna()
+            w["m"] = w.m.ewm(span=3, adjust=False).mean()
+            w = w.tail(VM_WEEKS + 1)
+            if len(w) >= 8:
+                pts = [[round(float(c / fair - 1), 4), round(float(mm), 1)] for c, mm in zip(w.c, w.m)]
+        xr = (r.p / fair - 1) if fair else None
+        # dudosa: descuento extremo, o el modelo dice "barata" mientras las tres miradas dicen "cara"/pico de ciclo
+        doubt = bool(xr is not None and (xr < VM_DOUBT or (xr < -0.15 and r.val_verdict in ("Cara", "Pico de ciclo"))))
+        if pts:
+            z, zp, st = vm_status(pts)
+            if doubt:
+                st = "Descuento extremo: revisar la valuación" if xr < VM_DOUBT else "Valuación contradictoria: revisar"
+        else:
+            z = zp = st = None
+        out["vm"].append(pts); out["fair"].append(fair); out["fair_raw"].append(fair_r); out["fair_src"].append(src)
+        out["vm_doubt"].append(doubt)
+        out["fair_up"].append((fair / r.p - 1) if fair else None)
+        out["vm_z"].append(z); out["vm_zp"].append(zp); out["vm_st"].append(st)
+    for k, v in out.items():
+        df[k] = v
+    return df
+
+
+# ---------------------------------------------------------------- veredicto
+def no_nan(x):
+    """Reemplaza NaN/infinito por null en todo el JSON (el navegador no acepta NaN)."""
+    if isinstance(x, dict):
+        return {k: no_nan(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [no_nan(v) for v in x]
+    if isinstance(x, float) and not math.isfinite(x):
+        return None
+    if isinstance(x, (np.floating,)):
+        return no_nan(float(x))
+    if isinstance(x, (np.integer,)):
+        return int(x)
+    if isinstance(x, (np.bool_,)):
+        return bool(x)
+    return x
+
+
+def today_ar():
+    return (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=3)).date().isoformat()
+
+
+PREV_DATE = None   # fecha de la rueda contra la que se comparan las novedades
+
+
+def load_prev_verdicts(path="data.json"):
+    """Veredictos del día hábil anterior. Si el screener ya corrió hoy (por ejemplo a mano),
+    se reutiliza la base de esa corrida, así las novedades del día no se pierden al volver a correrlo."""
+    global PREV_DATE
+    try:
+        with open(path, encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("run_date") == today_ar() and isinstance(d.get("verdict_base"), dict):
+            PREV_DATE = d.get("verdict_base_date")
+            return d["verdict_base"]
+        PREV_DATE = d.get("run_date") or str(d.get("generated", ""))[:10] or None
+        return {r["t"]: r.get("verdict") for r in d.get("rows", []) if r.get("verdict")}
+    except Exception:
+        return {}
+
+
+def add_verdicts(df, prev, mkt_up=True):
+    vv = [verdict(r, mkt_up) for r in df.itertuples()]
+    df["verdict"] = [v[0] for v in vv]
+    df["verdict_why"] = [v[1] for v in vv]
+    df["verdict_prev"] = [prev.get(t) for t in df.t]
+    df.attrs["verdict_base"] = {k: v for k, v in prev.items() if isinstance(v, str)}
+    df["verdict_new"] = [(v[0] == "Comprar" and bool(prev) and prev.get(t) != "Comprar") for v, t in zip(vv, df.t)]
+    return df
+
+
+V_AT, V_AF = 65, 60      # umbrales: técnico y fundamental
+# Recorrido mínimo a valor justo según la volatilidad de cada acción: un 10% en una defensiva (volatilidad
+# anual ~18%) es un margen amplio, pero en una tecnológica o un ADR argentino (40-60%) es ruido de pocas
+# semanas. Se exige la mitad de su volatilidad anual, con un piso de 10% y un techo de 30%.
+UP_MIN, UP_MAX, UP_VOL = 0.10, 0.30, 0.5
+
+
+def up_req(r):
+    """Recorrido mínimo exigido a valor justo para esta acción."""
+    v = getattr(r, "volat_y", None)
+    if v is None or not pd.notna(v) or v <= 0:
+        v = getattr(r, "volat", None)
+    if v is None or not pd.notna(v) or v <= 0:
+        return UP_MIN
+    return float(min(UP_MAX, max(UP_MIN, UP_VOL * v)))
+# El Golden Cross no habilita "Comprar": en el track récord (4 años, 100 acciones al azar) llegó tarde y
+# rindió peor que comprar sin señal. Queda como dato informativo en la ficha.
+ENTRY_SETUPS = {"Corrección con señal de rebote", "Ruptura de máximos"}
+
+# ---------------------------------------------------------------- perfiles por sector
+# Surgen del track récord de 10 años (300 acciones al azar del S&P 500 en tres muestras): qué señales de compra
+# rindieron más que comprar cualquier día EN ESE MISMO SECTOR, y en cuántas de las tres muestras se repitió.
+#   entry   : señales de entrada que habilitan "Comprar" en el sector
+#   mom     : exige momentum (estar entre el 30% del S&P 500 que más subió en 6 meses, sin el último mes)
+#   growth  : exige ganancias y ventas creciendo contra el año anterior
+#   val     : peso de la valuación. "full" = exige el recorrido a valor justo completo y sin luz roja de valuación;
+#             "low" = solo pide que no cotice por encima de su valor justo (en estos sectores filtrar por P/E
+#             barato restó rendimiento: dejaba afuera a las que seguían subiendo)
+#   partes  : si el "Comprar en partes" por giro temprano tuvo ventaja en el sector
+#   edge    : False = ninguna señal le ganó a comprar cualquier día: el monitor no da "Comprar" por timing
+CORR, RUPT = "Corrección con señal de rebote", "Ruptura de máximos"
+SECTOR_PROFILE = {
+    "Tecnología": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=False, edge=True,
+                       why="prioriza corrección con momentum y crecimiento de ganancias; el P/E contra su historia pesa poco"),
+    "Comunicaciones": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=False, val="low", partes=False, edge=True,
+                           why="prioriza corrección con momentum; el P/E contra su historia pesa poco"),
+    "Industrial": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=True, edge=True, cheap=True,
+                       why="prioriza corrección con momentum y crecimiento; el giro temprano y comprar barata contra su propia historia también funcionaron"),
+    "Consumo discrecional": dict(fam="Consumo cíclico", entry={CORR, RUPT}, mom=None, growth=False, val="full", partes=True, edge=True, cheap=True,
+                                 why="prioriza fundamentos y valuación: comprar barata contra su historia funcionó en este sector"),
+    "Utilities": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
+                      why="prioriza la corrección dentro de una tendencia alcista; la valuación pesa poco"),
+    "Materiales": dict(fam="Materias primas", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
+                       why="prioriza la corrección dentro de una tendencia alcista; el P/E barato no sirve (suele marcar pico de ciclo)"),
+    "Energía": dict(fam="Materias primas", entry={CORR, RUPT, "Giro temprano"}, mom=None, growth=False, val="low", partes=True, edge=True,
+                    why="sigue el ciclo: además de la corrección, valen la ruptura de máximos y el giro temprano; el P/E barato no sirve"),
+    "Salud": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True, cheap=True,
+                  why="la corrección dentro de una tendencia alcista mostró una ventaja chica; comprar barata contra su propia historia funcionó mejor"),
+    "Financiero": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
+                       why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
+    "Consumo básico": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
+                           why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
+    "Real estate": dict(fam="Sin ventaja", entry=set(), mom=None, growth=False, val="full", partes=False, edge=False,
+                        why="ninguna señal de compra le ganó a comprar cualquier día en 10 años"),
 }
-$('#refresh').onclick=load;
-loadScreener();setInterval(loadScreener,30*60000);
-setInterval(()=>{if($('#auto').checked&&!document.hidden)load()},60000);
-load();
-})();
-</script>
-</body>
-</html>
+PROFILE_DEFAULT = dict(fam="General", entry=set(ENTRY_SETUPS), mom=None, growth=False, val="full", partes=True, edge=True,
+                       why="reglas generales del monitor (sector sin perfil propio)")
+
+
+# Vía "barata contra su historia" (variante Y del backtest): P/E de 12 meses 30%+ debajo de su mediana de 5 años.
+# Se calcula con la historia de la SEC que guarda fundamentos.py (fund/<T>.json), la misma fuente que usa el backtest.
+PE5_CHEAP = 0.70
+
+
+def pe5_hist(df, folder="fund"):
+    """P/E actual contra la mediana de los 60 meses anteriores (P/E solo con ganancia positiva)."""
+    med, ratio = [], []
+    for r in df.itertuples():
+        m = q = np.nan
+        try:
+            with open(os.path.join(folder, f"{r.t}.json"), encoding="utf-8") as f:
+                h = json.load(f)
+            p = np.array([x if x is not None else np.nan for x in h.get("p", [])], dtype=float)
+            e = np.array([x if x is not None else np.nan for x in h.get("eps", [])], dtype=float)
+            if len(p) >= 40 and len(p) == len(e):
+                pe = np.where(e > 0, p / e, np.nan)
+                pe = np.where((pe >= 2) & (pe <= 500), pe, np.nan)     # descarta meses con datos rotos de la SEC
+                win = pe[-61:-1]
+                e_now = e[-1]
+                # la ganancia de la SEC tiene que coincidir con la de Yahoo (si no, el dato de la SEC está roto)
+                ok_now = (np.isfinite(e_now) and e_now > 0 and pd.notna(r.eps) and r.eps > 0 and 0.5 <= e_now / r.eps <= 2)
+                if np.isfinite(win).sum() >= 30 and ok_now:
+                    m = float(np.nanmedian(win))
+                    pe_now = r.p / e_now
+                    if 2 <= pe_now <= 500:
+                        q = pe_now / m
+        except (OSError, ValueError, TypeError):
+            pass
+        med.append(m); ratio.append(q)
+    df["pe5_med"], df["pe5_r"] = med, ratio
+    return df
+
+
+def add_risk(df, series):
+    """Riesgo para el cliente: beta contra el S&P 500 (rendimientos mensuales de 5 años, la medida estándar), peor caída de los
+    últimos 3 años y un nivel simple (bajo, medio, alto) combinando beta y volatilidad."""
+    b_ = series.get(BENCH)
+    beta, mdd3 = [], []
+    bw = b_.resample("ME").last().pct_change() if b_ is not None else None
+    for t in df.t:
+        s_ = series.get(t)
+        bt = md = np.nan
+        if s_ is not None and len(s_) > 300:
+            if bw is not None:
+                w = pd.concat([s_.resample("ME").last().pct_change(), bw], axis=1, join="inner").dropna().tail(60)
+                if len(w) >= 36 and w.iloc[:, 1].var() > 0:
+                    bt = float(w.iloc[:, 0].cov(w.iloc[:, 1]) / w.iloc[:, 1].var())
+            x = s_.tail(756)
+            md = float((x / x.cummax() - 1).min())
+        beta.append(bt); mdd3.append(md)
+    df["beta"], df["mdd3"] = beta, mdd3
+    vol = df.volat_y.where(df.volat_y > 0, df.volat)
+    df["risk"] = np.select([(df.beta > 1.3) | (vol > 0.45), (df.beta < 0.8) & (vol < 0.25)], ["Alto", "Bajo"], "Medio")
+    df.loc[df.beta.isna() & vol.isna(), "risk"] = None
+    return df
+
+
+# Checklists por familia (análisis de variables del backtest, 2007-2026, validados con acciones que no se usaron
+# para elegirlos). CR y CI: comprar castigadas y volátiles en crecimiento y cíclicas (mediana de ~30% a 12 meses
+# contra ~12% de cualquier día, con caídas fuertes en el camino). DF: defensivas firmes (rinden menos, pero mejor
+# que el promedio en años difíciles).
+CK_FAM = {"Tecnología": "Crecimiento", "Comunicaciones": "Crecimiento", "Industrial": "Crecimiento",
+          "Energía": "Cíclicas", "Materiales": "Cíclicas", "Consumo discrecional": "Cíclicas",
+          "Salud": "Defensivas", "Consumo básico": "Defensivas", "Utilities": "Defensivas"}
+
+
+def add_checklists(df):
+    ck, ck_n, ck_m, ck_l = [], [], [], []
+    for r in df.itertuples():
+        f = CK_FAM.get(r.sector)
+        g = lambda a: getattr(r, a, None)
+        ok_ = lambda x: x is not None and pd.notna(x)
+        beta, vol, dd, pe, rsi_, d200 = g("beta"), g("volat"), g("dd"), g("pe"), g("rsi"), g("dist200")
+        if f == "Crecimiento":
+            conds = [(ok_(beta) and beta < 0.8, "beta menor a 0,8"), (ok_(dd) and dd < -0.30, f"{fx(abs(dd)*100,0) if ok_(dd) else ''}% debajo de su máximo de 52 semanas"),
+                     (ok_(vol) and vol > 0.45, "volatilidad mayor a 45%"), (ok_(pe) and pe > 40, "P/E mayor a 40"),
+                     (ok_(rsi_) and rsi_ < 35, "RSI menor a 35 (sobrevendida)")]
+            code, mn = "CR", 3
+        elif f == "Cíclicas":
+            conds = [(ok_(beta) and beta < 0.8, "beta menor a 0,8"), (ok_(vol) and vol > 0.45, "volatilidad mayor a 45%"),
+                     (ok_(d200) and d200 > 0.30, "más de 30% sobre su media de 200"),
+                     (ok_(dd) and dd < -0.30, f"{fx(abs(dd)*100,0) if ok_(dd) else ''}% debajo de su máximo de 52 semanas")]
+            code, mn = "CI", 2
+        elif f == "Defensivas":
+            q5 = g("pe5_r")
+            conds = [(ok_(beta) and beta < 0.8, "beta menor a 0,8"), (ok_(vol) and vol < 0.25, "volatilidad menor a 25%"),
+                     (ok_(dd) and dd > -0.03, "a menos de 3% de su máximo"), (ok_(q5) and q5 >= 1.30, "P/E 30%+ sobre su historia"),
+                     (r.p > r.sma200 and r.sma50 > r.sma200, "tendencia alcista"), (ok_(d200) and 0 <= d200 <= 0.15, "0-15% sobre su media de 200"),
+                     (ok_(rsi_) and rsi_ > 70, "RSI mayor a 70")]
+            code, mn = "DF", 5
+        else:
+            ck.append(None); ck_n.append(None); ck_m.append(None); ck_l.append(None)
+            continue
+        met = [t for c_, t in conds if c_]
+        ck.append(code if len(met) >= mn else None); ck_n.append(len(met)); ck_m.append(len(conds)); ck_l.append(met)
+    df["ck"], df["ck_n"], df["ck_m"], df["ck_list"] = ck, ck_n, ck_m, ck_l
+    return df
+
+
+def profile(r):
+    return SECTOR_PROFILE.get(getattr(r, "sector", None), PROFILE_DEFAULT)
+
+
+def profile_txt(r):
+    P = profile(r)
+    return f"{r.sector}: {P['why']}." if getattr(r, "sector", None) in SECTOR_PROFILE else ""
+
+
+def verdict(r, mkt_up=True):
+    L = lights(r)
+    up = r.fair_up if r.fair_up is not None and pd.notna(r.fair_up) else None
+    req = up_req(r)
+    vol = getattr(r, "volat_y", None)
+    vol = vol if vol is not None and pd.notna(vol) and vol > 0 else r.volat
+    req_txt = f"{req*100:.0f}%" + (f" (por su volatilidad de {vol*100:.0f}% anual)" if req > UP_MIN else "")
+    doubt = bool(getattr(r, "vm_doubt", False))
+    P = profile(r)
+    ent_lbl = " o ".join(x.lower() for x in sorted(P["entry"])) or "—"
+    entry = r.setup in P["entry"] or (r.vm_z == "Compra" and P["fam"] == "General")
+    if P["val"] == "full":
+        val_checks = [
+            (all(L[k] != 0 for k in ("cal", "val", "tec")), "ninguna luz roja en calidad, valuación o técnico"),
+            (up is not None and up >= req and not doubt,
+             "valuación confiable (hoy está marcada como dudosa)" if doubt else
+             f"recorrido a valor justo ≥ {req_txt}" + (f", tiene {up*100:+.0f}%" if up is not None else "")),
+        ]
+    else:   # valuación con peso bajo: solo que no esté por encima de su valor justo
+        val_checks = [
+            (all(L[k] != 0 for k in ("cal", "tec")), "ninguna luz roja en calidad o técnico"),
+            (up is None or up >= 0 or doubt, f"no cotizar por encima de su valor justo (tiene {up*100:+.0f}%)" if up is not None else "valor justo"),
+        ]
+    checks = [
+        (r.at >= V_AT, f"técnico ≥ {V_AT} (tiene {r.at:.0f})"),
+        (r.af >= V_AF, f"fundamental ≥ {V_AF} (tiene {r.af:.0f})"),
+        *val_checks,
+        (entry, f"señal de entrada del sector ({ent_lbl})"),
+    ]
+    if P["mom"] is not None:
+        mp = getattr(r, "mom_pct", None)
+        checks.append((mp is not None and pd.notna(mp) and mp >= P["mom"],
+                       "momentum entre el 30% más fuerte del S&P 500" + (f" (está en el {(1 - mp) * 100:.0f}% superior)" if mp is not None and pd.notna(mp) else "")))
+    if P["growth"]:
+        eg, rg = getattr(r, "eps_g", None), getattr(r, "rev_g", None)
+        checks.append((eg is not None and pd.notna(eg) and eg > 0 and rg is not None and pd.notna(rg) and rg > 0,
+                       "ganancias y ventas creciendo contra el año anterior"))
+    falta = [t for ok, t in checks if not ok]
+    earn_soon = L["evt"] == 0
+    up_txt = f"{up*100:+.0f}%".replace(".", ",") if up is not None else "—"
+    # 1) Comprar
+    if not falta and not P["edge"]:
+        falta = ["sector sin señal de compra con ventaja histórica"]
+    if not falta:
+        if earn_soon:
+            cuando = "hoy" if int(r.earn_days) == 0 else f"en {int(r.earn_days)} días"
+            return "Vigilar", f"Cumple todo, pero presenta balance {cuando}: esperar el resultado antes de entrar."
+        ent = r.setup if r.setup in P["entry"] else "zona Compra"
+        if not mkt_up:
+            # validado en el track récord: con el mercado bajista las señales fallan más (2022)
+            return "Comprar en partes", (f"Cumple los 5 criterios ({ent.lower()}), pero el S&P 500 está debajo de su media de 200 días: "
+                                         "mercado bajista. Entrada escalonada de a tercios, con stop.")
+        return "Comprar", (f"Cumple los criterios de su sector: técnico {r.at:.0f}, fundamental {r.af:.0f}, recorrido {up_txt}, {ent.lower()}"
+                           + (", con momentum" if P["mom"] else "") + (" y ganancias creciendo" if P["growth"] else "") + ".")
+    # 2) Evitar
+    if r.vm_z == "Evitar" or r.cyc or (r.val_verdict == "Cara" and r.trend_n <= 0):
+        why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
+        return "Evitar", f"Evitar por ahora: {why}."
+    # 2a) Castigada y volátil en crecimiento o cíclicas (checklists CR / CI del backtest)
+    ckc = getattr(r, "ck", None)
+    if ckc in ("CR", "CI") and not earn_soon:
+        fam_ = "crecimiento" if ckc == "CR" else "cíclicas"
+        deep = getattr(r, "dd", None) is not None and pd.notna(r.dd) and r.dd < -0.30
+        head = "Castigada y volátil" if (ckc == "CR" or deep) else "Cíclica con impulso"
+        return "Comprar en partes", (f"{head}: cumple {int(r.ck_n)} de {int(r.ck_m)} condiciones del checklist de {fam_} "
+                                     f"({', '.join(r.ck_list)}). En 10 años, comprar así rindió una mediana de ~30% a 12 meses contra ~12% "
+                                     "de cualquier compra, pero con caídas fuertes en el camino: entrada escalonada y solo para perfiles que toleran volatilidad.")
+    # 2b) Barata contra su propia historia (solo en los sectores donde funcionó: variante Y del backtest)
+    q5 = getattr(r, "pe5_r", None)
+    if P.get("cheap") and q5 is not None and pd.notna(q5) and q5 <= PE5_CHEAP and not earn_soon:
+        return "Comprar en partes", (f"Barata contra su propia historia: P/E {fx(q5 * r.pe5_med, 1)}x contra su mediana de 5 años de "
+                                     f"{fx(r.pe5_med, 1)}x ({fx((1 - q5) * 100, 0)}% abajo). En {r.sector}, comprar así rindió más que "
+                                     "cualquier día en 10 años. No espera señal técnica: entrada escalonada y paciencia (paga más a 12 meses que a 6).")
+    # 3) Mantener
+    if r.vm_z == "Mantener" or (up is not None and up < req and r.trend_n >= 1):
+        if up is not None and up < 0:
+            return "Mantener", f"Ya supera su valor justo estimado (recorrido {up_txt}): si ya se tiene, mantener; no sumar."
+        if up is not None and up >= UP_MIN and req > UP_MIN:
+            return "Mantener", (f"Recorrido {up_txt}, menor al {req*100:.0f}% que se exige por su volatilidad: "
+                                "si ya se tiene, mantener; no sumar.")
+        return "Mantener", f"Cerca de su valor justo (recorrido {up_txt}): si ya se tiene, mantener; no sumar."
+    # 4) Comprar en partes
+    early = (getattr(r, "et_ctx", False) and r.et_n >= 4) or r.setup == "Golden Cross en formación"
+    if not P["partes"]:
+        early = False
+        entry = entry and P["edge"]
+    if (r.af >= 55 and L["cal"] != 0 and L["val"] != 0 and up is not None and up >= req and not doubt
+            and (early or entry) and not earn_soon):
+        how = "giro temprano" if early else "señal de entrada"
+        return "Comprar en partes", f"Entrada escalonada por {how}, con stop. Para compra plena falta: {', '.join(falta)}."
+    # 5) Vigilar
+    if not P["edge"]:
+        return "Vigilar", (f"{r.sector}: en 10 años ninguna señal de compra le ganó a comprar cualquier día en este sector. "
+                           "El monitor no marca momento de compra; mirar calidad y valuación.")
+    return "Vigilar", "Para pasar a Comprar falta: " + ", ".join(falta) + "." + (" Presenta balance en ≤7 días." if earn_soon else "")
+
+
+SIGNAL_LOG = "signals.json"
+SIGNAL_GAP_DAYS = 30     # la misma acción con el mismo veredicto cuenta como señal nueva recién después de 30 días
+
+
+def save_signals(df, spy, path=SIGNAL_LOG):
+    """Registro permanente de cada "Comprar" y "Comprar en partes" real, para medirlos más adelante."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            log = json.load(f)
+    except Exception:
+        log = []
+    today = today_ar()
+    log = [e for e in log if e.get("date") != today]          # si se corre dos veces el mismo día, se rehace
+    last = {}
+    for e in log:
+        last[(e["t"], e["verdict"])] = max(last.get((e["t"], e["verdict"]), ""), e["date"])
+    lim = (dt.date.fromisoformat(today) - dt.timedelta(days=SIGNAL_GAP_DAYS)).isoformat()
+    spy_p = spy.get("p") if spy else None
+    added = 0
+    for r in df[df.verdict.isin(["Comprar", "Comprar en partes"])].itertuples():
+        if last.get((r.t, r.verdict), "") > lim:
+            continue
+        log.append({"date": today, "t": r.t, "name": r.name, "sector": r.sector, "verdict": r.verdict,
+                    "setup": r.setup, "p": r2(r.p, 2), "spy": r2(spy_p, 2), "fair": r2(r.fair, 2),
+                    "fair_up": r2(r.fair_up), "up_req": r2(up_req(r), 3), "at": r2(r.at, 0), "af": r2(r.af, 0)})
+        added += 1
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(no_nan(log), f, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    print(f"Registro de señales: {added} nuevas hoy · {len(log)} en total")
+
+
+def save_hist(series, syms, hilo=None, path="hist.json"):
+    """Cierres semanales de 5 años de cada papel: los usa la pestaña "Mi cartera" (precio a la fecha de compra
+    y máximo alcanzado desde la compra)."""
+    cols = {s: series[s] for s in syms if s in series}
+    if not cols:
+        return
+    w = pd.DataFrame(cols).resample("W-FRI").last().dropna(how="all")
+    rnd = lambda arr: [None if not np.isfinite(x) else round(float(x), 2) for x in arr]
+    out = {"dates": [d.strftime("%Y-%m-%d") for d in w.index], "c": {s: rnd(w[s].values) for s in w.columns}, "h": {}, "l": {}}
+    hilo = hilo or {}
+    for s in w.columns:
+        if s in hilo:
+            h_, l_ = hilo[s]
+            out["h"][s] = rnd(h_.resample("W-FRI").max().reindex(w.index).values)
+            out["l"][s] = rnd(l_.resample("W-FRI").min().reindex(w.index).values)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(out, f, separators=(",", ":"))
+    print("Historial semanal:", len(out["c"]), "papeles,", len(out["dates"]), "semanas")
+
+
+def audit_summary(df):
+    cats = {"Valuada por precio / valor libros": "Bancos, aseguradoras y holdings (valor libros)",
+            "Valuada por dividendo y analistas": "REITs (dividendo y analistas)",
+            "Valuada por precio / ventas": "Sin ganancias (precio/ventas)",
+            "Sin método de valuación": "Sin método de valuación confiable",
+            "no coincide con su P/E": "Datos inconsistentes de Yahoo",
+            "Patrimonio negativo": "Patrimonio negativo",
+            "en otra moneda": "Datos en otra moneda (ADRs)",
+            "Ganancia no comparable": "Ganancia no comparable",
+            "P/E histórico atípico": "P/E atípico (>200x)",
+            "analista": "Pocos o ningún analista",
+            "corregido": "Datos corregidos",
+            "no coincide": "Datos inconsistentes de Yahoo",
+            "fuera de rango": "Valores fuera de rango"}
+    out = {}
+    for r in df.itertuples():
+        for msg in (r.audit or []):
+            for k, lbl in cats.items():
+                if k in msg:
+                    out.setdefault(lbl, []).append(r.t)
+                    break
+    return {k: sorted(set(v)) for k, v in out.items()}
+
+
+ASOF = None     # fecha de la última rueda con precios (se muestra en la página)
+
+
+def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
+    out_rows = []
+    keep = ["t", "name", "sector", "region", "p", "mcap", "r1d", "r1m", "r3m", "r6m", "r12m", "rsi", "sma20", "sma50",
+            "sma200", "hi52", "lo52", "dd", "volat", "vol_ratio", "macd_h", "macd_cross", "pe", "fpe", "peg", "pb",
+            "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
+            "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
+            "setup", "elig", "rank", "val_model", "eps_gap", "eps_grow", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
+            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk", "ck", "ck_n", "ck_m", "ck_list"]
+    for r in df.itertuples():
+        d = {k: r2(getattr(r, k)) for k in keep}
+        d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
+        d["lights"] = lights(r)
+        P_ = profile(r)
+        d["perfil"] = {"fam": P_["fam"], "txt": profile_txt(r), "edge": P_["edge"]}
+        d["audit"] = list(r.audit) if isinstance(r.audit, list) else []
+        if getattr(r, "verdict", None):
+            vp = r.verdict_prev if isinstance(r.verdict_prev, str) else None
+            d["verdict"], d["verdict_why"], d["verdict_prev"], d["verdict_new"] = r.verdict, r.verdict_why, vp, bool(r.verdict_new)
+        d["earn_days"] = int(r.earn_days) if pd.notna(r.earn_days) else None
+        d["up_req"] = r2(up_req(r), 3)
+        d["pro"], d["con"], d["grow"] = reasons(r)
+        if getattr(r, "vm", None):
+            d.update(vm=r.vm, fair=r2(r.fair, 2), fair_raw=r2(r.fair_raw, 2), vm_doubt=bool(r.vm_doubt), fair_src=r.fair_src, fair_up=r2(r.fair_up), vm_z=r.vm_z,
+                     vm_zp=r.vm_zp, vm_st=r.vm_st)
+        if r.rank is not None:
+            d["closes"] = [round(float(x), 2) for x in r.closes]
+        out_rows.append(d)
+    heat = []
+    for sec, g in df.groupby("sector"):
+        heat.append({"sector": sec, "n": int(len(g)), "score": r2(g.score.mean(), 1),
+                     "r1d": r2(g.r1d.median()), "r1m": r2(g.r1m.median())})
+    return {"generated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"),
+            "run_date": today_ar(), "verdict_base": df.attrs.get("verdict_base", {}), "verdict_base_date": PREV_DATE,
+            "universe": n_universe, "analyzed": int(len(df)), "top_n": TOP_N,
+            "method": "AT 50% (tendencia, momentum, RSI/MACD, posición vs máximo) + AF 50% (valuación vs sector, crecimiento, calidad, solidez, analistas).",
+            "sectors": sorted(heat, key=lambda h: -h["score"]), "spy": spy, "etfs": etfs or [],
+            "rrg_dates": next((e["rrg_dates"] for e in (etfs or []) if e.get("rrg_dates")), []),
+            "vm_dates": vm_dates or [],
+            "audit_summary": audit_summary(df),
+            "market": df.attrs.get("market", {"up": True}),
+            "macro": macro or {}, "vm_k": r2(df.attrs.get("vm_k", 1.0), 3),
+            "vm_k_reg": {k: r2(v, 3) for k, v in AN_K_REG.items()}, "cty_k": CTY_K,
+            "up_rule": {"min": UP_MIN, "max": UP_MAX, "vol": UP_VOL},
+            "rows": out_rows}
+
+
+def main():
+    import yfinance as yf
+    # segunda clase de acciones de la misma empresa: queda solo una
+    DUP = {"GOOG", "FOX", "NWS"}
+    uni = [(s, n, g, "EE.UU.") for s, n, g in sp500() if s not in DUP]
+    seen = {u[0] for u in uni}
+    uni += [(s, s, "", "Argentina") for s in ADR_AR if s not in seen]
+    uni += [(s, s, "", "Brasil") for s in ADR_BR if s not in seen]
+    syms = [u[0] for u in uni]
+    print("Universo:", len(syms))
+
+    prices, series, hilo = {}, {}, {}
+    dl = syms + [BENCH] + list(SECTOR_ETF.values()) + list(MACRO)
+    for i in range(0, len(dl), 100):
+        chunk = dl[i:i + 100]
+        data = yf.download(chunk, period="5y", interval="1d", auto_adjust=True, group_by="ticker",
+                           threads=True, progress=False)
+        for s in chunk:
+            try:
+                sub = data[s] if len(chunk) > 1 else data
+                c = sub["Close"].values.astype(float)
+                v = sub["Volume"].values.astype(float)
+                if np.isfinite(c).sum() >= 210:
+                    prices[s] = (c[np.isfinite(c)], v[np.isfinite(c)])
+                    series[s] = sub["Close"].dropna()
+                    if "High" in sub and "Low" in sub:
+                        hilo[s] = (sub["High"], sub["Low"])
+            except Exception:
+                pass
+        time.sleep(1)
+    # Yahoo a veces entrega la serie de 5 años sin la rueda de hoy (la carga más tarde que la de corto plazo):
+    # se completa con una descarga de 1 mes, que sí la trae, para que "Día" refleje la última rueda.
+    added = 0
+    for i in range(0, len(dl), 100):
+        chunk = [x for x in dl[i:i + 100] if x in series]
+        if not chunk:
+            continue
+        try:
+            rec = yf.download(chunk, period="1mo", interval="1d", auto_adjust=True, group_by="ticker",
+                              threads=True, progress=False)
+        except Exception as e:
+            print("  sin descarga de corto plazo:", e)
+            continue
+        for x in chunk:
+            try:
+                sub = rec[x] if len(chunk) > 1 else rec
+                cl = sub["Close"].dropna()
+                old = series[x]
+                new_idx = cl.index[cl.index > old.index[-1]]
+                if not len(new_idx):
+                    continue
+                series[x] = pd.concat([old, cl.loc[new_idx]])
+                c, v = prices[x]
+                prices[x] = (np.concatenate([c, cl.loc[new_idx].values.astype(float)]),
+                             np.concatenate([v, sub["Volume"].reindex(new_idx).fillna(0).values.astype(float)]))
+                if x in hilo:
+                    h_, l_ = hilo[x]
+                    hilo[x] = (pd.concat([h_, sub["High"].reindex(new_idx)]), pd.concat([l_, sub["Low"].reindex(new_idx)]))
+                added += 1
+            except Exception:
+                pass
+        time.sleep(1)
+    if added:
+        print(f"Rueda más reciente agregada en {added} papeles")
+    global ASOF
+    try:
+        ASOF = pd.Timestamp(series[BENCH].index[-1]).strftime("%Y-%m-%d")
+        print("Última rueda:", ASOF)
+    except Exception:
+        pass
+    print("Con precios:", len(prices))
+    if len(prices) < 100:
+        raise SystemExit("Yahoo Finance devolvió muy pocos precios; no se actualiza data.json. Reintentá más tarde.")
+
+    infos = {}
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        for sym, inf in ex.map(fetch_info, [s for s in prices if s in set(syms)]):
+            infos[sym] = inf
+    print("Con fundamentales:", sum(1 for v in infos.values() if v))
+
+    global TNX_YIELD
+    macro = build_macro(series)
+    if macro.get("^TNX"):
+        TNX_YIELD = macro["^TNX"]["v"] / 100
+    df = build(uni, prices, infos)
+    # ---- segunda etapa: valuación histórica propia solo para las candidatas (no duplica la carga sobre Yahoo)
+    cand = set(df.sort_values("score", ascending=False).head(150).t)
+    cand |= set(df[(df.v_peer < -0.10) | (df.v_an < -0.15)].sort_values("af", ascending=False).head(150).t)
+    cand |= set(df[df.val_model.isin(["book", "sales"]) | df.eps_gap_flag | df.one_off | (df.v_peer.abs() > 0.5)].t)
+    models = dict(zip(df.t, df.val_model))
+    hist = {}
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        for sym, h in ex.map(lambda t: fetch_hist(t, series, models.get(t, "pe")), sorted(cand)):
+            if h:
+                hist[sym] = h
+    print("Valuación histórica:", len(hist), "de", len(cand), "candidatas")
+    df = build(uni, prices, infos, hist)
+    us = df[df.region == "EE.UU."]
+    if len(us):
+        macro["breadth"] = {"name": "Amplitud S&P 500", "v": round(float((us.p > us.sma200).mean()) * 100, 1),
+                            "v50": round(float((us.p > us.sma50).mean()) * 100, 1)}
+    df = add_value_momentum(df, series)
+    df = add_risk(df, series)
+    df = add_checklists(df)
+    # filtro de mercado: con el S&P 500 debajo de su media de 200 días no hay "Comprar" pleno
+    st = technical(*prices[BENCH]) if BENCH in prices else None
+    mkt = {"up": bool(st["p"] > st["sma200"]), "p": r2(st["p"], 2), "sma200": r2(st["sma200"], 2),
+           "dist": r2(st["p"] / st["sma200"] - 1)} if st else {"up": True}
+    df.attrs["market"] = mkt
+    print("Filtro de mercado:", "S&P arriba de su media de 200" if mkt["up"] else "S&P DEBAJO de su media de 200 (mercado bajista)")
+    df = add_verdicts(df, load_prev_verdicts(), mkt["up"])
+    print("Veredictos:", df.verdict.value_counts().to_dict(), "· nuevas Comprar:", list(df[df.verdict_new].t))
+    spy, etfs = build_etfs(prices, series)
+    vm_dates = [d.strftime("%Y-%m-%d") for d in series[BENCH].resample("W-FRI").last().dropna().tail(VM_WEEKS + 1).index] if BENCH in series else []
+    print("Zonas valor/momentum:", df.vm_z.value_counts().to_dict())
+    print("ETFs sectoriales:", [(e["etf"], round(e["at"]), e["fase"]) for e in etfs])
+    print("Modelos de valuación:", df.val_model.value_counts().to_dict())
+    print("== Auditoría de datos ==")
+    for k, v in audit_summary(df).items():
+        print(f"  {k} ({len(v)}): {', '.join(v[:40])}")
+    with open("data.json", "w", encoding="utf-8") as f:
+        json.dump(no_nan(to_json(df, len(syms), spy, etfs, vm_dates, macro)), f, ensure_ascii=False,
+                  separators=(",", ":"), allow_nan=False)
+    print("OK data.json:", len(df), "papeles. Top:", list(df[df["rank"].notna()].t))
+    save_signals(df, spy)
+    save_hist(series, list(df.t), hilo)
+    save_fwd(df)
+
+
+def save_fwd(df, path="fwd_hist.json"):
+    """Guarda una vez por semana el P/E esperado (forward) y la ganancia esperada de cada papel: no hay historia
+    gratuita de estos datos, así que se va armando desde ahora para compararlos contra su propio pasado."""
+    try:
+        old = json.load(open(path, encoding="utf-8"))
+    except Exception:
+        old = {"dates": [], "f": {}, "e": {}}
+    today = dt.date.today()
+    tag = today.strftime("%Y-%m-%d")
+    dates = old.get("dates", [])
+    same_week = bool(dates) and dt.date.fromisoformat(dates[-1]).isocalendar()[:2] == today.isocalendar()[:2]
+    if not same_week:
+        dates.append(tag)
+    else:
+        dates[-1] = tag
+    n = len(dates)
+    F, E = old.get("f", {}), old.get("e", {})
+    for r in df.itertuples():
+        f_ = round(float(r.fpe), 2) if pd.notna(r.fpe) and r.fpe > 0 else None
+        e_ = round(float(r.fwd_eps), 3) if pd.notna(r.fwd_eps) else None
+        for D, v in ((F, f_), (E, e_)):
+            a_ = (D.get(r.t, []) + [None] * n)[:n - 1]      # semanas anteriores (rellena si el papel es nuevo)
+            D[r.t] = a_ + [v]
+    for D in (F, E):
+        for k in D:
+            D[k] = (D[k] + [None] * n)[:n]
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump({"dates": dates, "f": F, "e": E}, f, separators=(",", ":"))
+    print("P/E esperado guardado:", tag, "·", len(dates), "semanas")
+
+
+if __name__ == "__main__":
+    main()
