@@ -23,6 +23,9 @@ BOOK_INDUSTRIES = {"Banks - Diversified", "Banks - Regional", "Insurance - Diver
                    "Insurance - Property & Casualty", "Insurance - Life", "Insurance - Reinsurance",
                    "Insurance - Specialty", "Mortgage Finance"}
 EPS_GAP = 0.40      # si la ganancia de 12 meses y la esperada difieren más de esto, el P/E no es confiable
+GROW_GAP_REV = 0.25 # ...salvo que la brecha venga de crecimiento real: ventas creciendo 25%+ y ganancia esperada mayor
+GROW_EXCL = {"Energía", "Materiales", "Financiero", "Real estate", "Utilities"}
+DIV_MIN_HIST = 1.0  # el dividendo solo entra en "vs su historia" si rinde al menos 1% (si no, la comparación es ruido)
 MODEL_TXT = {"pe": "P/E (ganancias)", "book": "precio / valor libros", "reit": "dividendo y analistas (REIT)",
              "sales": "precio / ventas (sin ganancias)", "na": "sin método confiable"}
 TNX_YIELD = None  # se completa en main() con el bono a 10 años
@@ -510,7 +513,7 @@ def reasons(r):
         pro.append(f"Margen neto de {fx(r.margin*100,0)}%.")
     elif pd.notna(r.margin) and r.margin < 0:
         con.append("Margen neto negativo.")
-    if r.val_model == "pe" and not r.eps_gap_flag and pd.notna(r.pe_hist) and pd.notna(r.pe) and r.pe > 0:
+    if r.val_model == "pe" and not r.eps_gap_flag and not getattr(r, "eps_grow", False) and pd.notna(r.pe_hist) and pd.notna(r.pe) and r.pe > 0:
         dv = r.pe / r.pe_hist - 1
         if dv < -0.15:
             pro.append(f"Cotiza a P/E {fx(r.pe,1)}x contra su promedio de los últimos {int(r.hist_n or 4)} años ({fx(r.pe_hist,1)}x): {fx(abs(dv)*100,0)}% más barata que su propia norma.")
@@ -703,7 +706,13 @@ def audit_and_model(df):
     e, f = df.eps, df.fwd_eps
     gap = ((f / e - 1).abs()).where((e > 0) & (f > 0))
     df["eps_gap"] = gap
-    df["eps_gap_flag"] = (gap > EPS_GAP).fillna(False).astype(bool)
+    # brecha por crecimiento (NVDA en 2026: ventas +106%, ganancia esperada el doble): el P/E esperado sí es comparable
+    # no aplica en sectores cíclicos o financieros (ahí una ganancia esperada mucho mayor suele ser ciclo, no crecimiento)
+    # ni con crecimientos de ventas extremos (más de 150%: fusiones o picos de ciclo, como la memoria en 2026)
+    grow = ((gap > EPS_GAP) & (f > e) & (df.rev_g >= GROW_GAP_REV) & (df.rev_g <= 1.5) & (f / e <= 4)
+            & ~df.sector.isin(GROW_EXCL))
+    df["eps_grow"] = grow.fillna(False).astype(bool)
+    df["eps_gap_flag"] = (gap > EPS_GAP).fillna(False).astype(bool) & ~df.eps_grow
     model = []
     for i, r in df.iterrows():
         if r.t in HOLDINGS or r.industry in BOOK_INDUSTRIES:
@@ -728,6 +737,10 @@ def audit_and_model(df):
         if mdl == "pe" and r.eps_gap_flag:
             df.at[i, "audit"].append(f"Ganancia no comparable: la de 12 meses y la esperada difieren {r.eps_gap*100:.0f}%. "
                                      "Para pares se usa precio/ventas y el P/E no entra en el valor justo.")
+        if mdl == "pe" and df.at[i, "eps_grow"]:
+            df.at[i, "audit"].append(f"Ganancia en fuerte crecimiento: la esperada es {r.eps_gap*100:.0f}% mayor que la de 12 meses, con ventas "
+                                     f"creciendo {r.rev_g*100:.0f}%. Contra su industria se compara el P/E esperado (precio/ventas castigaría su "
+                                     "margen) y contra su historia el precio/ventas (el P/E histórico de 12 meses exageraría el descuento).")
     df["val_model"] = model
     return df
 
@@ -888,8 +901,8 @@ def build(universe, prices, infos, hist=None):
     # ---- tres miradas de valuación (negativo = más barata)
     m = df.val_model
     df["v_peer"] = peer_gap(df)
-    pe_now = df.pe.where((df.pe > 0) & (m == "pe") & ~df.eps_gap_flag)
-    div_rev = (df.div5 / df["div"] - 1).where((df["div"] > 0) & (df.div5 > 0))
+    pe_now = df.pe.where((df.pe > 0) & (m == "pe") & ~df.eps_gap_flag & ~df.eps_grow)
+    div_rev = (df.div5 / df["div"] - 1).where((df["div"] >= DIV_MIN_HIST) & (df.div5 > 0))
     vh = pd.concat([pe_now / df.pe_hist - 1,
                     (df.ps / df.ps_hist - 1).where(m.isin(["pe", "sales"])),
                     (df.pb / df.pb_hist - 1).where(m == "book"),
@@ -1120,8 +1133,10 @@ def fair_value(r):
             base = r.fwd_eps if pd.notna(r.fwd_eps) and r.fwd_eps > 0 else None
         if base and pd.notna(r.sec_fpe) and r.sec_fpe > 0:
             add(base * r.sec_fpe, 1, f"P/E de {r.peer_lbl}{r.cty_lbl}" + (" con ganancia de ciclo normalizada" if r.cyc else ""))
-        if base and pd.notna(r.pe_hist) and not r.cyc:
+        if base and pd.notna(r.pe_hist) and not r.cyc and not getattr(r, "eps_grow", False):
             add(base * r.pe_hist, 1, "P/E histórico propio")
+        if getattr(r, "eps_grow", False) and pd.notna(r.ps) and r.ps > 0 and pd.notna(r.ps_hist):
+            add(r.p / r.ps * r.ps_hist, 1, "P/V histórico propio")
     elif m == "book" and pd.notna(r.bvps) and r.bvps > 0:
         if pd.notna(r.peer_pb):
             add(r.bvps * r.peer_pb, 1, f"P/VL de {r.peer_lbl}{r.cty_lbl}")
@@ -1591,7 +1606,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "sma200", "hi52", "lo52", "dd", "volat", "vol_ratio", "macd_h", "macd_cross", "pe", "fpe", "peg", "pb",
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
-            "setup", "elig", "rank", "val_model", "eps_gap", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
+            "setup", "elig", "rank", "val_model", "eps_gap", "eps_grow", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
             "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
