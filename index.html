@@ -357,6 +357,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <h2>Rotación sectorial</h2>
       <p class="sub">Dónde está hoy cada sector frente al S&amp;P 500. Horizontal: si le gana o le pierde. Vertical: si viene acelerando o frenándose. Los sectores suelen girar en sentido horario: Mejorando → Liderando → Perdiendo impulso → Rezagado. <b>Tocá un sector</b> para ver su recorrido, o mirá <b>todos moviéndose a la vez</b>.</p>
       <div class="bar" style="margin:4px 0 8px;gap:6px;flex-wrap:wrap;align-items:center"><span class="note">Recorrido:</span><button class="chip" data-rrgp="26">6 meses</button><button class="chip" data-rrgp="52">12 meses</button><span style="flex:1"></span><button class="chip on" id="rrg-all">▶ Ver todos moviéndose</button></div>
+      <div id="rrg-ref"></div>
       <div id="rrg-note" class="note" style="margin-bottom:6px"></div>
       <div class="mm-wrap"><div id="rrg-sec" class="mm-chart"></div><div id="rrg-sec-panel" class="mm-side"></div></div>
       <div id="rrg-sec-list" class="secgrid" style="margin-top:10px"></div>
@@ -1193,6 +1194,15 @@ const fmtWeek=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-AR',{day:'nume
 S.mmSec=null;S.rrgP=+(store('rrgP')||26)===52?52:26;
 function renderRotSec(){
   const el=$('#rrg-sec');if(!el)return;
+  {// aviso de refugio: S&P 500 debajo de su media de 200 días (prueba 2003-2026 en control.html → Rotación)
+    const M=S.scr&&S.scr.market,box=$('#rrg-ref');
+    if(box){
+      if(!M||M.dist==null){box.innerHTML=''}
+      else if(!M.up){box.innerHTML=`<div class="cedbox" style="margin:4px 0 10px;border-color:#d29922;background:color-mix(in srgb,#d29922 10%,var(--bg))"><b style="color:#d29922">🛡 Momento de refugio</b> · el S&amp;P 500 está ${pct(Math.abs(M.dist),1).replace('+','')} debajo de su media de 200 días.
+        <div style="margin-top:4px;font-size:13px">Para perfiles conservadores: considerar pasar parte de la cartera a <b>Salud (XLV)</b> y <b>Consumo básico (XLP)</b>, y volver al S&amp;P 500 cuando este aviso se apague.</div>
+        <div class="note" style="margin-top:4px">En 2003-2026, hacerlo bajó la peor caída de −55% a −37% (2008) y de −32% a −25% en los últimos 10 años, a un costo de cerca de 1 punto de rendimiento por año. Es un seguro contra caídas grandes, no una forma de ganar más: en las recuperaciones rápidas queda atrás.</div></div>`}
+      else{box.innerHTML=`<div class="note" style="margin:2px 0 8px">🛡 Sin señal de refugio: el S&amp;P 500 está ${pct(M.dist,1).replace('+','')} arriba de su media de 200 días.</div>`}
+    }}
   const P_=S.rrgP||26;
   $$('[data-rrgp]').forEach(b=>{b.classList.toggle('on',+b.dataset.rrgp===P_);b.onclick=()=>{S.rrgP=+b.dataset.rrgp;store('rrgP',S.rrgP);renderRotSec()}});
   const E=(S.scr&&S.scr.etfs||[]).filter(e=>e.rrg&&e.rrg.length).map(e=>({...e,rrg:e.rrg.slice(-(P_+1))}));
