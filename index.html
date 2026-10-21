@@ -1813,11 +1813,11 @@ function valLensHtml(o){
     if(v!=null){if(v<thrCheap){cls2='up';lab='Barata'}else if(v>thrDear){cls2='down';lab='Cara'}else{lab='En línea'}}
     const amt=v==null?'':an?` · potencial ${pct(-v,0)}`:Math.abs(v)<0.005?'':` · ${fmt(Math.abs(v)*100,0)}% ${v<0?'más barata':'más cara'}`;
     return `<div class="lens"><div class="note">${t}</div><b class="${cls2}">${lab}${amt}</b><div class="note">${detail}</div></div>`};
-  const hd=[];const Mh=o.val_model||'pe';if(Mh==='pe'&&!(o.eps_gap>0.4)&&o.pe_hist&&o.pe>0)hd.push(`P/E ${fmt(o.pe,1)}x vs ${fmt(o.pe_hist,1)}x`);if((Mh==='pe'||Mh==='sales')&&o.ps&&o.ps_hist)hd.push(`P/V ${fmt(o.ps,1)}x vs ${fmt(o.ps_hist,1)}x`);if(Mh!=='sales'&&o.div>0&&o.div5)hd.push(`Div. ${fmt(o.div,2)}% vs ${fmt(o.div5,2)}%`);
+  const hd=[];const Mh=o.val_model||'pe';if(Mh==='pe'&&!(o.eps_gap>0.4)&&!o.eps_grow&&o.pe_hist&&o.pe>0)hd.push(`P/E ${fmt(o.pe,1)}x vs ${fmt(o.pe_hist,1)}x`);if((Mh==='pe'||Mh==='sales')&&o.ps&&o.ps_hist)hd.push(`P/V ${fmt(o.ps,1)}x vs ${fmt(o.ps_hist,1)}x`);if(Mh!=='sales'&&o.div>=1&&o.div5)hd.push(`Div. ${fmt(o.div,2)}% vs ${fmt(o.div5,2)}%`);
   const verdict={Barata:['up','Barata en '+o.val_cheap+' de '+o.val_n+' miradas'],Cara:['down','Cara en la mayoría de las miradas'],Neutral:['','Sin consenso: valuación neutral'],'Pico de ciclo':['down','Pico de ciclo: el P/E bajo no es señal de barata']}[o.val_verdict]||['',''];
   const M=o.val_model||'pe';
   const peerDet=M==='book'?(o.pb&&o.peer_pb?`P/VL ${fmt(o.pb,2)}x vs ${fmt(o.peer_pb,2)}x`:''):
-    (M==='sales'||(M==='pe'&&o.eps_gap>0.4))?(o.ps&&o.peer_ps?`P/V ${fmt(o.ps,1)}x vs ${fmt(o.peer_ps,1)}x`:''):
+    (M==='sales'||(M==='pe'&&o.eps_gap>0.4&&!o.eps_grow))?(o.ps&&o.peer_ps?`P/V ${fmt(o.ps,1)}x vs ${fmt(o.peer_ps,1)}x`:''):
     M==='reit'?'No aplica en REITs: la depreciación distorsiona la ganancia':M==='na'?'Datos no comparables':
     (o.fpe>0&&o.sec_fpe?`P/E esp. ${fmt(o.fpe,1)}x vs ${fmt(o.sec_fpe,1)}x`:'');
   if(M==='book'&&o.pb&&o.pb_hist)hd.unshift(`P/VL ${fmt(o.pb,2)}x vs ${fmt(o.pb_hist,2)}x`);
