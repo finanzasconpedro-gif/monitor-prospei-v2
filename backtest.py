@@ -71,10 +71,20 @@ VARIANTS = {
     "CR": "Checklist de crecimiento (tecnología, comunicaciones, industrial): 3 o más de 5: beta < 0,8, 30%+ debajo del máximo, volatilidad > 45%, P/E > 40, RSI < 35",
     "CI": "Checklist de cíclicas (energía, materiales, consumo discrecional): 2 o más de 4: beta < 0,8, volatilidad > 45%, 30%+ sobre la media de 200, 30%+ debajo del máximo",
     "ZX": "Motor completo propuesto: Z (motor por sector + vía barata) o cualquiera de los tres checklists por familia",
+    "T2": "Comprar endurecido: señal del perfil del sector (T) en las últimas 4 semanas y además, ese día, cumple el checklist de su familia o está barata contra su historia (P/E 30%+ debajo de su mediana de 5 años)",
+    "T4": "Comprar solo en los sectores fuertes: T en tecnología, industrial, consumo discrecional y energía",
+    "CK50": "Checklist con tendencia a favor: cumple el checklist de crecimiento o cíclicas y además el precio ya está arriba de su media de 50 días (rebote en marcha)",
+    "CK20": "Checklist con rebote corto: cumple el checklist de crecimiento o cíclicas y además el precio está arriba de su media de 20 días",
+    "NT": "Motor sin Comprar pleno: todos los caminos de producción menos T (barata contra su historia, checklists y giro temprano)",
+    "NTQ": "Motor solo con los caminos fuertes: barata contra su historia (Y) y checklists de crecimiento y cíclicas (CR, CI)",
+    "PR2": "Motor de producción con el Comprar endurecido: T2 en lugar de T, más Y, CR, CI y giro temprano (Q)",
     "PRD": "Motor de producción (screener de hoy): Comprar o Comprar en partes por cualquiera de sus caminos: perfil del sector (T), vía barata en consumo discrecional, industrial y salud (Y), crecimiento y cíclicas castigadas (CR, CI) y giro temprano con fundamentos en industrial, energía y consumo discrecional (Q)",
 }
 VARIANTS.pop("_", None)
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX", "PRD")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX", "PRD",
+        "T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2")
+NEW_K = ("T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2")   # variantes para revisar el Comprar pleno
+T4_SECT = {"Tecnología", "Industrial", "Consumo discrecional", "Energía"}
 PART_SECT = {"Industrial", "Energía", "Consumo discrecional"}   # sectores donde el motor permite "en partes" por giro temprano
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
 PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}
@@ -92,7 +102,9 @@ PF_KEYS = {"PRD": ("Motor de producción (PRD) · 12 meses", 252, _PRD),
            "CC6": ("Solo CR + CI · 6 meses", 126, [{"keys": ["CR", "CI"], "slots": 30}]),
            "ZX": ("Motor + checklists sin repartir (ZX) · 12 meses", 252, [{"keys": ["ZX"], "slots": 30}]),
            "Z": ("Motor actual (Z) · 12 meses", 252, [{"keys": ["Z"], "slots": 30}]),
-           "Z6": ("Motor actual (Z) · 6 meses", 126, [{"keys": ["Z"], "slots": 30}])}
+           "Z6": ("Motor actual (Z) · 6 meses", 126, [{"keys": ["Z"], "slots": 30}]),
+           "NT": ("Motor sin Comprar pleno (NT) · 12 meses", 252, [{"keys": ["NT"], "slots": 30}]),
+           "PR2": ("Motor con Comprar endurecido (PR2) · 12 meses", 252, [{"keys": ["PR2"], "slots": 30}])}
 # Checklists por familia (elegidos por el análisis de variables con las acciones de diseño): familia, condiciones, mínimo
 CK = {"DF": ("Defensivas", ["beta_lo", "lowvol", "at_high", "pe_rich", "trend", "near200", "rsi_hi"], 5),
       "CR": ("Crecimiento", ["beta_lo", "dd_deep", "highvol", "pe_gt40", "rsi_lo"], 3),
@@ -1356,6 +1368,70 @@ def main():
                         res[t]["eps"][k].append(e)
                     last = i
         # ---- motor de producción: unión de los caminos de compra del screener de hoy
+        def emit(j, t, on_days, setup):
+            """Episodios de compra a partir de los días con señal (misma mecánica: compra al cierre siguiente,
+            una señal cada 20 ruedas por acción)."""
+            c_ = Cv[:, j]
+            out_ = []
+            last = -999
+            for i in on_days:
+                if i + 1 >= n_ or not np.isfinite(c_[i + 1]) or i - last <= GAP:
+                    if i - last <= GAP:
+                        last = i
+                    continue
+                p0 = c_[i + 1]
+                e = {"date": str(idx[i].date()), "setup": setup, "at": 0, "p": round(float(p0), 2), "year": str(idx[i].year)}
+                for h, hn in H.items():
+                    if i + 1 + hn < n_ and np.isfinite(c_[i + 1 + hn]):
+                        e[h] = float(c_[i + 1 + hn] / p0 - 1)
+                        e["spy_" + h] = float(spv[i + 1 + hn] / spv[i + 1] - 1)
+                path = c_[i + 2:i + 2 + TS_DAYS] / p0 - 1
+                ht = int(np.argmax(path >= TARGET)) if (path >= TARGET).any() else None
+                hs = int(np.argmax(path <= STOP)) if (path <= STOP).any() else None
+                if ht is not None and (hs is None or ht < hs):
+                    e["ts"] = "objetivo"
+                elif hs is not None:
+                    e["ts"] = "stop"
+                elif len(path) >= TS_DAYS:
+                    e["ts"] = "abierta"
+                out_.append(e)
+                last = i
+            return out_
+
+        def ep_days(t, srcs):
+            return sorted({pos.get(e["date"]) for k in srcs for e in res[t]["eps"].get(k, []) if pos.get(e["date"]) is not None})
+
+        # ---- variantes para revisar el Comprar pleno (T)
+        try:
+            Cdf = close[us_t]
+            ab50 = (Cdf > Cdf.rolling(50).mean()).values
+            ab20 = (Cdf > Cdf.rolling(20).mean()).values
+            cheap = Kc["pe_cheap"]
+            cheap = np.asarray(cheap.values if hasattr(cheap, "values") else cheap, dtype=bool)
+            fam_ck = {fname: k for k, (fname, _, _) in CK.items()}
+            dset_ = set(days)
+            for j, t in enumerate(us_t):
+                sec_t = meta[t][1] or ""
+                fk = fam_ck.get(famj[t])
+                ck_hit = (cnt[fk][:, j] >= CK[fk][2]) if fk else np.zeros(n_, dtype=bool)
+                cc_hit = ck_hit if fk in ("CR", "CI") else np.zeros(n_, dtype=bool)
+                # T reciente: hubo señal del perfil del sector en las últimas 20 ruedas
+                t_rec = np.zeros(n_, dtype=bool)
+                for i0 in ep_days(t, ["T"]):
+                    t_rec[i0:i0 + GAP + 1] = True
+                t2 = sorted(i for i in days if t_rec[i] and (ck_hit[i] or cheap[i, j]))
+                res[t]["eps"]["T2"] = emit(j, t, t2, "Comprar endurecido")
+                res[t]["eps"]["T4"] = [dict(e) for e in res[t]["eps"].get("T", [])] if sec_t in T4_SECT else []
+                res[t]["eps"]["CK50"] = emit(j, t, [i for i in days if cc_hit[i] and ab50[i, j]], "Checklist + media de 50")
+                res[t]["eps"]["CK20"] = emit(j, t, [i for i in days if cc_hit[i] and ab20[i, j]], "Checklist + media de 20")
+                q_ = ["Q"] if sec_t in PART_SECT else []
+                res[t]["eps"]["NT"] = emit(j, t, ep_days(t, ["Y", "CR", "CI"] + q_), "Motor sin Comprar pleno")
+                res[t]["eps"]["NTQ"] = emit(j, t, ep_days(t, ["Y", "CR", "CI"]), "Caminos fuertes")
+                res[t]["eps"]["PR2"] = emit(j, t, ep_days(t, ["T2", "Y", "CR", "CI"] + q_), "Motor con Comprar endurecido")
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
         for j, t in enumerate(us_t):
             c_ = Cv[:, j]
             srcs = ["T", "Y", "CR", "CI"] + (["Q"] if (meta[t][1] or "") in PART_SECT else [])
@@ -1384,7 +1460,7 @@ def main():
                     e["ts"] = "abierta"
                 res[t]["eps"]["PRD"].append(e)
                 last = i
-        print("Checklists y producción:", {k: sum(len(res[t]["eps"][k]) for t in us_t) for k in list(CK) + ["ZX", "PRD"]})
+        print("Checklists y producción:", {k: sum(len(res[t]["eps"].get(k, [])) for t in us_t) for k in list(CK) + ["ZX", "PRD"] + list(NEW_K)})
     except Exception as e_:
         import traceback
         traceback.print_exc()
