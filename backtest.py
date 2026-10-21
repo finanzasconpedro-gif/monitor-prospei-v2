@@ -71,9 +71,11 @@ VARIANTS = {
     "CR": "Checklist de crecimiento (tecnología, comunicaciones, industrial): 3 o más de 5: beta < 0,8, 30%+ debajo del máximo, volatilidad > 45%, P/E > 40, RSI < 35",
     "CI": "Checklist de cíclicas (energía, materiales, consumo discrecional): 2 o más de 4: beta < 0,8, volatilidad > 45%, 30%+ sobre la media de 200, 30%+ debajo del máximo",
     "ZX": "Motor completo propuesto: Z (motor por sector + vía barata) o cualquiera de los tres checklists por familia",
+    "PRD": "Motor de producción (screener de hoy): Comprar o Comprar en partes por cualquiera de sus caminos: perfil del sector (T), vía barata en consumo discrecional, industrial y salud (Y), crecimiento y cíclicas castigadas (CR, CI) y giro temprano con fundamentos en industrial, energía y consumo discrecional (Q)",
 }
 VARIANTS.pop("_", None)
-KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX")
+KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX", "PRD")
+PART_SECT = {"Industrial", "Energía", "Consumo discrecional"}   # sectores donde el motor permite "en partes" por giro temprano
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
 PE_SECT = {"Consumo discrecional", "Industrial", "Salud"}
 # ---- cartera simulada: sigue las señales con posiciones iguales; la plata sin usar queda en el S&P 500
@@ -81,7 +83,10 @@ PF_SLOTS = 30          # hasta 30 posiciones de 1/30 del capital cada una
 # cartera: nombre -> (etiqueta, meses que mantiene, señales). Las señales son una lista de "cupos": cada cupo tiene
 # sus variantes (en orden de prioridad) y cuántos de los 30 lugares puede ocupar.
 _MIX = [{"keys": ["CR", "CI", "Z"], "slots": 21}, {"keys": ["DF"], "slots": 9}]
-PF_KEYS = {"MIX": ("Repartida: 70% crecimiento/cíclicas castigadas + motor, 30% defensivas firmes · 12 meses", 252, _MIX),
+_PRD = [{"keys": ["PRD"], "slots": 30}]
+PF_KEYS = {"PRD": ("Motor de producción (PRD) · 12 meses", 252, _PRD),
+           "PRD6": ("Motor de producción (PRD) · 6 meses", 126, _PRD),
+           "MIX": ("Repartida: 70% crecimiento/cíclicas castigadas + motor, 30% defensivas firmes · 12 meses", 252, _MIX),
            "MIX6": ("Repartida 70/30 · 6 meses", 126, _MIX),
            "CC": ("Solo crecimiento y cíclicas castigadas (CR + CI) · 12 meses", 252, [{"keys": ["CR", "CI"], "slots": 30}]),
            "CC6": ("Solo CR + CI · 6 meses", 126, [{"keys": ["CR", "CI"], "slots": 30}]),
@@ -1350,7 +1355,36 @@ def main():
                             e["ts"] = "abierta"
                         res[t]["eps"][k].append(e)
                     last = i
-        print("Checklists:", {k: sum(len(res[t]["eps"][k]) for t in us_t) for k in list(CK) + ["ZX"]})
+        # ---- motor de producción: unión de los caminos de compra del screener de hoy
+        for j, t in enumerate(us_t):
+            c_ = Cv[:, j]
+            srcs = ["T", "Y", "CR", "CI"] + (["Q"] if (meta[t][1] or "") in PART_SECT else [])
+            on_days = sorted({pos.get(e["date"]) for k in srcs for e in res[t]["eps"].get(k, []) if pos.get(e["date"]) is not None})
+            res[t]["eps"]["PRD"] = []
+            last = -999
+            for i in on_days:
+                if i + 1 >= n_ or not np.isfinite(c_[i + 1]) or i - last <= GAP:
+                    if i - last <= GAP:
+                        last = i
+                    continue
+                p0 = c_[i + 1]
+                e = {"date": str(idx[i].date()), "setup": "Motor de producción", "at": 0, "p": round(float(p0), 2), "year": str(idx[i].year)}
+                for h, hn in H.items():
+                    if i + 1 + hn < n_ and np.isfinite(c_[i + 1 + hn]):
+                        e[h] = float(c_[i + 1 + hn] / p0 - 1)
+                        e["spy_" + h] = float(spv[i + 1 + hn] / spv[i + 1] - 1)
+                path = c_[i + 2:i + 2 + TS_DAYS] / p0 - 1
+                ht = int(np.argmax(path >= TARGET)) if (path >= TARGET).any() else None
+                hs = int(np.argmax(path <= STOP)) if (path <= STOP).any() else None
+                if ht is not None and (hs is None or ht < hs):
+                    e["ts"] = "objetivo"
+                elif hs is not None:
+                    e["ts"] = "stop"
+                elif len(path) >= TS_DAYS:
+                    e["ts"] = "abierta"
+                res[t]["eps"]["PRD"].append(e)
+                last = i
+        print("Checklists y producción:", {k: sum(len(res[t]["eps"][k]) for t in us_t) for k in list(CK) + ["ZX", "PRD"]})
     except Exception as e_:
         import traceback
         traceback.print_exc()
