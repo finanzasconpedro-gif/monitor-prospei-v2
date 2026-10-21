@@ -233,6 +233,108 @@ def yearly(r):
     return {str(k): float(v) for k, v in g.items()}
 
 
+# ======================================================================== refugio en defensivas
+# ¿Pasar a Salud y Consumo básico (XLV + XLP) cuando aparecen señales de risk-off protege la cartera?
+# Se prueba desde 2004 (incluye 2008, 2011, 2015-16, 2018, 2020 y 2022) con datos semanales: la decisión se toma
+# al cierre de cada semana y se aplica la semana siguiente.
+REF_SECT = ["XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY"]     # los 9 sectores con historia desde 1998
+REF_BASKET = ["XLV", "XLP"]
+REF_SIG = {
+    "ma": "S&P 500 debajo de su media de 40 semanas (~200 días)",
+    "vix": "VIX 25% o más arriba de su mediana de 1 año (miedo en aumento, antes del pánico)",
+    "vix25": "VIX mayor a 25 (pánico)",
+    "br": "Amplitud débil: menos de 4 de los 9 sectores arriba de su media de 40 semanas",
+    "rrg": "Salud y Consumo básico ya le ganan al S&P 500 (fuerza relativa > 100) mientras el S&P cae en 3 meses (tardía)",
+    "rrg_m": "Salud y Consumo básico ganan impulso (impulso > 100 y subiendo en 3 semanas) mientras el S&P cae en 3 meses (temprana)",
+    "two": "Dos o más de las cuatro señales tempranas (media de 40, VIX en aumento, amplitud, defensivas ganando impulso)",
+}
+
+
+def refuge_study(yf):
+    tick = sorted(set(REF_SECT + REF_BASKET + [BENCH, "^VIX"]))
+    d = yf.download(tick, period="25y", interval="1d", auto_adjust=True, group_by="ticker", progress=False, threads=True)
+    lv = set(d.columns.get_level_values(0))
+    close = pd.DataFrame({t: d[t]["Close"] for t in tick if t in lv})
+    close.index = close.index.tz_localize(None) if close.index.tz is not None else close.index
+    wk = close.resample("W-FRI").last().dropna(subset=[BENCH])
+    if wk.index[-1] > close.index[-1]:
+        wk.index = wk.index[:-1].append(pd.DatetimeIndex([close.index[-1]]))
+    spy = wk[BENCH]
+    vix = wk["^VIX"] if "^VIX" in wk else pd.Series(np.nan, index=wk.index)
+    sect = [c for c in REF_SECT if c in wk]
+    br = (wk[sect] > wk[sect].rolling(40).mean()).sum(axis=1) / wk[sect].rolling(40).mean().notna().sum(axis=1).replace(0, np.nan)
+    xs, ys = {}, {}
+    for c in REF_BASKET:
+        xs[c], ys[c] = rrg_series(wk[c], spy)
+    sig = pd.DataFrame(index=wk.index)
+    sig["ma"] = spy < spy.rolling(40).mean()
+    sig["vix"] = vix > 1.25 * vix.rolling(52, min_periods=26).median()
+    sig["vix25"] = vix > 25
+    sig["br"] = br < 4 / 9
+    sig["rrg"] = (pd.concat([xs[c] > 100 for c in REF_BASKET], axis=1).all(axis=1)) & (spy.pct_change(13) < 0)
+    sig["rrg_m"] = (pd.concat([(ys[c] > 100) & (ys[c] > ys[c].shift(3)) for c in REF_BASKET], axis=1).all(axis=1)) & (spy.pct_change(13) < 0)
+    sig["two"] = sig[["ma", "vix", "br", "rrg_m"]].sum(axis=1) >= 2
+    start = wk.index[0] + pd.DateOffset(weeks=60)
+    idx = wk.index[wk.index >= start]
+    spy_r = spy.pct_change()
+    ref_r = wk[REF_BASKET].pct_change().mean(axis=1)
+    out = {"period": {"from": str(idx[0].date()), "to": str(idx[-1].date())}, "basket": REF_BASKET, "signals": {}, "strategies": {}}
+    # ---- qué pasó después de que se encendió cada señal (refugio contra S&P)
+    for k in REF_SIG:
+        s_ = sig[k].fillna(False).astype(bool)
+        on = s_ & ~s_.shift(1).fillna(False).astype(bool)
+        on = on[on.index.isin(idx)]
+        ev = {}
+        for hn, hw in (("4s", 4), ("13s", 13), ("26s", 26)):
+            fr = wk[REF_BASKET].shift(-hw).div(wk[REF_BASKET]).sub(1).mean(axis=1)
+            fs = spy.shift(-hw) / spy - 1
+            L = [(float(fr[t]), float(fs[t])) for t in on[on].index if np.isfinite(fr[t]) and np.isfinite(fs[t])]
+            if L:
+                a = np.array(L)
+                ev[hn] = {"n": len(L), "beat": float((a[:, 0] > a[:, 1]).mean()), "rel": float((a[:, 0] - a[:, 1]).mean()),
+                          "ref": float(a[:, 0].mean()), "spy": float(a[:, 1].mean()), "spy_down": float((a[:, 1] < 0).mean())}
+        on_w = s_.reindex(idx)
+        ev["time_on"] = float(on_w.mean())
+        ev["episodes"] = int(on.sum())
+        ev["now"] = bool(s_.iloc[-1])
+        ev["label"] = REF_SIG[k]
+        out["signals"][k] = ev
+    # ---- estrategias: S&P 500 siempre, o pasar la mitad / todo al refugio mientras la señal está encendida
+    def run(w_ref):
+        w_ref = w_ref.reindex(wk.index).fillna(0.0)
+        r_ = (1 - w_ref.shift(1)) * spy_r + w_ref.shift(1) * ref_r
+        turn = w_ref.diff().abs().fillna(0) * 2
+        r_ = (r_ - turn.shift(1).fillna(0) * COST).reindex(idx).fillna(0.0)
+        return r_, turn
+    curves = {}
+    base_r = spy_r.reindex(idx).fillna(0.0)
+    out["strategies"]["spy"] = {"label": "Siempre en el S&P 500", "all": metrics(base_r), "last10": metrics(base_r[base_r.index >= idx[-1] - pd.DateOffset(years=10)]),
+                                "years": yearly(base_r), "time_on": 0.0}
+    curves["spy"] = [round(float(v), 4) for v in (1 + base_r).cumprod().values]
+    r_ref = ref_r.reindex(idx).fillna(0.0)
+    out["strategies"]["ref"] = {"label": "Siempre en Salud + Consumo básico (XLV + XLP)", "all": metrics(r_ref),
+                                "last10": metrics(r_ref[r_ref.index >= idx[-1] - pd.DateOffset(years=10)]), "years": yearly(r_ref), "time_on": 1.0}
+    curves["ref"] = [round(float(v), 4) for v in (1 + r_ref).cumprod().values]
+    for k in ("ma", "vix", "br", "rrg_m", "rrg", "two", "vix25"):
+        s_ = sig[k].fillna(False).astype(float)
+        for part, lbl in ((0.5, "la mitad"), (1.0, "todo")):
+            r_, turn = run(s_ * part)
+            key = f"{k}_{'50' if part < 1 else '100'}"
+            out["strategies"][key] = {"label": f"Pasar {lbl} a XLV + XLP · {REF_SIG[k]}", "sig": k, "part": part,
+                                      "all": metrics(r_, turn), "last10": metrics(r_[r_.index >= idx[-1] - pd.DateOffset(years=10)]),
+                                      "years": yearly(r_), "time_on": float(sig[k].reindex(idx).fillna(False).mean())}
+            curves[key] = [round(float(v), 4) for v in (1 + r_).cumprod().values]
+    out["dates"] = [d_.strftime("%Y-%m-%d") for d_ in idx]
+    out["curves"] = curves
+    out["now"] = {"date": str(wk.index[-1].date()), "vix": float(vix.iloc[-1]) if np.isfinite(vix.iloc[-1]) else None,
+                  "vix_med": float(vix.rolling(52, min_periods=26).median().iloc[-1]), "breadth": float(br.iloc[-1]),
+                  "spy_ma": float(spy.iloc[-1] / spy.rolling(40).mean().iloc[-1] - 1),
+                  "on": [k for k in ("ma", "vix", "br", "rrg_m", "rrg") if bool(sig[k].iloc[-1])]}
+    print("Refugio:", out["period"], {k: (round(v["all"].get("cagr", 0) * 100, 1), round(v["all"].get("mdd", 0) * 100, 1))
+                                       for k, v in out["strategies"].items()})
+    return out
+
+
 def main():
     import yfinance as yf
     tick = list(ETF.values()) + [BENCH]
@@ -331,7 +433,13 @@ def main():
         sec = next(s for s, e in ETF.items() if e == c)
         now.append({"etf": c, "sector": sec, "q": QN.get(q), "x": round(float(X[c].iloc[-1]), 2), "y": round(float(Y[c].iloc[-1]), 2),
                     "top3m6": bool(c in [k_ for k_ in rs26.iloc[-1].dropna().sort_values(ascending=False).index[:3]])})
-    res = {"generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    try:
+        refugio = refuge_study(yf)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        refugio = {"error": str(e)}
+    res = {"generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "refugio": refugio,
            "period": {"from": str(idx[0].date()), "to": str(idx[-1].date())}, "split": SPLIT, "cost": COST,
            "dates": [d_.strftime("%Y-%m-%d") for d_ in idx], "strategies": out_s, "curves": curves, "diag": diag_out, "now": now}
 
