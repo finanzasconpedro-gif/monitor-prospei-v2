@@ -602,6 +602,31 @@ function rotChart(R,keys){
   yr.filter((_,j)=>j%2===0).forEach(i=>s+=`<text x="${x(i)}" y="${H-6}" font-size="11" style="fill:var(--muted)">${R.dates[i].slice(0,4)}</text>`);
   s+='</svg><div class="note" style="display:flex;gap:14px;flex-wrap:wrap">'+keys.map((k,i)=>`<span><i style="display:inline-block;width:14px;height:3px;background:${cols[i%cols.length]};vertical-align:middle;margin-right:5px"></i>${esc(k==='spy'?'S&P 500':k)}</span>`).join('')+'</div>';
   return s}
+function refHtml(R){
+  const F=R.refugio;if(!F)return '';
+  if(F.error)return `<h3 style="margin:22px 0 4px">Refugio en defensivas</h3><div class="cedbox">No se pudo calcular: ${esc(F.error)}</div>`;
+  const sg=(x,d=1)=>x==null?'—':(x>=0?'+':'')+fmt(x*100,d);
+  const SG=F.signals||{},ST=F.strategies||{},spy=ST.spy||{};
+  const ev=(o)=>o?`<td class="n">${P0(o.beat)}</td><td class="n ${cls(o.rel)}">${sg(o.rel)}</td>`:'<td class="n">—</td><td class="n">—</td>';
+  const sk=['ma','vix','br','rrg_m','rrg','two','vix25'].filter(k=>SG[k]);
+  const N=F.now||{};
+  const on=(N.on||[]);
+  const srow=k=>{const v=ST[k];if(!v||!v.all)return '';const a=v.all,b=v.last10||{},ref=spy.all||{},rb=spy.last10||{};
+    const c=(x,y,inv)=>x==null?'—':`<span class="${y==null?'':(inv?x>y+0.002:x>y+0.002)?'up':x<y-0.002?'down':''}">${pct(x,1)}</span>`;
+    return `<tr${k==='spy'?' style="font-weight:600"':''}><td style="min-width:260px">${esc(v.label)}</td><td class="n">${c(a.cagr,k==='spy'?null:ref.cagr)}</td><td class="n">${c(a.mdd,k==='spy'?null:ref.mdd,1)}</td><td class="n">${pct(a.vol,1)}</td><td class="n">${a.sharpe==null?'—':fmt(a.sharpe,2)}</td><td class="n">${P0(v.time_on)}</td><td class="n">${c(b.cagr,k==='spy'?null:rb.cagr)}</td><td class="n">${c(b.mdd,k==='spy'?null:rb.mdd,1)}</td></tr>`};
+  const order=['spy','ref',...sk.flatMap(k=>[k+'_50',k+'_100'])];
+  return `<h3 style="margin:26px 0 4px">Refugio en Salud y Consumo básico (XLV + XLP) cuando el mercado se pone feo</h3>
+    <p class="sub">¿Pasar a defensivas cuando aparecen señales de risk-off protege la cartera? Datos semanales de ${esc(F.period.from)} a ${esc(F.period.to)} (incluye 2008, 2011, 2018, 2020 y 2022). La decisión se toma al cierre de cada semana y se aplica la semana siguiente, con 0,10% de costo por operación.</p>
+    <div class="cedbox" style="margin:8px 0"><b>Hoy (${esc(N.date||'')})</b>: VIX ${N.vix==null?'—':fmt(N.vix,1)} (mediana de 1 año ${N.vix_med==null?'—':fmt(N.vix_med,1)}) · ${N.breadth==null?'—':Math.round(N.breadth*9)} de 9 sectores sobre su media de 40 semanas · S&amp;P 500 ${N.spy_ma==null?'—':sg(N.spy_ma)+'%'} contra su media de 40 semanas.<br>${on.length?`<b class="down">Señales de risk-off encendidas: ${on.map(k=>esc((SG[k]||{}).label||k)).join(' · ')}</b>`:'<b class="up">Ninguna señal de risk-off encendida.</b>'}</div>
+    <h4 style="margin:14px 0 6px">Cuando se encendió cada señal: ¿las defensivas le ganaron al S&amp;P 500?</h4>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Señal</th><th class="n">Veces</th><th class="n">% del tiempo encendida</th><th class="n">4 sem.: le ganó</th><th class="n">diferencia</th><th class="n">13 sem.: le ganó</th><th class="n">diferencia</th><th class="n">26 sem.: le ganó</th><th class="n">diferencia</th><th class="n">El S&amp;P cayó a 13 sem.</th></tr></thead>
+    <tbody>${sk.map(k=>{const o=SG[k];return `<tr><td style="min-width:240px">${esc(o.label)}${o.now?' <span class="pill warn" style="font-size:10.5px;padding:1px 6px">hoy</span>':''}</td><td class="n">${o.episodes}</td><td class="n">${P0(o.time_on)}</td>${ev(o['4s'])}${ev(o['13s'])}${ev(o['26s'])}<td class="n">${o['13s']?P0(o['13s'].spy_down):'—'}</td></tr>`}).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px">"Diferencia" = rendimiento de XLV + XLP menos el del S&amp;P 500 en ese plazo, promedio de todas las veces que se encendió la señal. Una buena señal de refugio le gana al S&amp;P más de la mitad de las veces, sobre todo cuando el S&amp;P termina cayendo.</p>
+    <h4 style="margin:14px 0 6px">Como estrategia: ¿cuánto protege y cuánto cuesta?</h4>
+    <div class="tw"><table style="font-size:13px"><thead><tr><th>Estrategia</th><th class="n">Rendimiento anual</th><th class="n">Peor caída</th><th class="n">Volatilidad</th><th class="n">Rinde / riesgo</th><th class="n">Tiempo en refugio</th><th class="n">Anual últimos 10 años</th><th class="n">Peor caída 10 años</th></tr></thead>
+    <tbody>${order.map(srow).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:6px">En verde: mejor que quedarse siempre en el S&amp;P 500 (más rendimiento, o una caída máxima más chica). Lo que se busca es bajar la peor caída resignando poco rendimiento: "rinde / riesgo" (rendimiento anual dividido la volatilidad) mide ese equilibrio.</p>`;
+}
 function renderRot(){
   const R=S.rot;if(!R)return;const st=R.strategies,spy=st.spy.all;
   const ks=Object.keys(st).filter(k=>k!=='spy'&&k!=='spy_f'&&(S.rotF?k.endsWith('_f'):!k.endsWith('_f'))).sort((a,b)=>(st[b].all.cagr||-9)-(st[a].all.cagr||-9));
@@ -629,6 +654,7 @@ function renderRot(){
     <tbody>${dk.map(k=>`<tr${k.includes(' · ')?'':' style="font-weight:600;background:var(--bg)"'}><td>${k.includes(' · ')?'&nbsp;&nbsp;↳ '+esc(k.split(' · ')[1]):esc(k)}</td><td class="n">${D[k]['13s']?.n||'—'}</td>${dc(D[k]['4s'])}${dc(D[k]['13s'])}${dc(D[k]['26s'])}</tr>`).join('')}</tbody></table></div>
     <h3 style="margin:22px 0 4px">Dónde está cada sector hoy</h3>
     <div class="tw"><table style="font-size:13px;min-width:0"><thead><tr><th>Sector</th><th>Cuadrante</th><th class="n">Fuerza (X)</th><th class="n">Impulso (Y)</th><th>Entre los 3 que más le ganaron al S&amp;P en 6 meses</th></tr></thead><tbody>${(R.now||[]).map(n=>`<tr><td><b>${esc(n.etf)}</b> ${esc(n.sector)}</td><td>${esc(n.q||'—')}</td><td class="n">${fmt(n.x,1)}</td><td class="n">${fmt(n.y,1)}</td><td>${n.top3m6?'✔':''}</td></tr>`).join('')}</tbody></table></div>
+    ${refHtml(R)}
     <p class="note" style="margin-top:8px">Con muchas estrategias probadas, alguna va a salir bien por casualidad: lo importante es que le gane al S&amp;P en los dos tramos (hasta 2021 y desde 2022) y en la mayoría de los años, no solo en el total.</p>`;
   $$('[data-rf]').forEach(b=>b.onclick=()=>{S.rotF=b.dataset.rf==='1';S.rotSel=null;renderRot()});
   $$('[data-rs]').forEach(b=>b.onchange=()=>{const k=b.dataset.rs;if(b.checked){S.rotSel.push(k);if(S.rotSel.length>4)S.rotSel.shift()}else S.rotSel=S.rotSel.filter(x=>x!==k);renderRot()});
