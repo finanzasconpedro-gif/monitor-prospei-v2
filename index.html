@@ -1489,6 +1489,7 @@ function openDetail(t){
       <div class="gro"><h4>Perspectiva de crecimiento</h4><ul>${li(o.grow)}</ul></div>
       <div class="con"><h4>A vigilar</h4><ul>${li(o.con)}</ul></div>
     </div>
+    ${o.ck==='DF'?`<div class="cedbox" style="margin:10px 0;border-color:#3fb950"><b style="color:#3fb950">🛡 Defensiva sólida</b> · cumple ${o.ck_n} de ${o.ck_m} condiciones (${esc((o.ck_list||[]).join(', '))}).<div class="note" style="margin-top:4px">En 10 años, las defensivas así rindieron menos que el promedio en años de euforia, pero mejor en los años difíciles y con pocas caídas fuertes. Opción para perfiles conservadores.</div></div>`:''}
     ${riskBox(o)}
     <div class="grid2">
       <div><h4 style="margin:0 0 6px">Análisis técnico</h4><div class="kv">
