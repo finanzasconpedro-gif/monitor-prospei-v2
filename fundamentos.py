@@ -29,7 +29,8 @@ T0 = time.time()
 SEC_FAILS = [0]
 BRK_RATIO = {"BRK-B": 1500}   # la SEC informa la ganancia por acción de la clase A
 # diagnóstico: para estas empresas se guardan los datos crudos de la SEC (fund_debug/) para revisar diferencias
-DEBUG_T = ["MNST", "KO", "COST", "V", "HAL", "GOOGL", "XOM", "PEP", "DD", "BRK-B", "AZO", "HSY", "MLM", "VRSN", "GD", "KR"]
+DEBUG_T = ["MNST", "KO", "COST", "V", "HAL", "GOOGL", "XOM", "PEP", "DD", "BRK-B", "AZO", "HSY", "MLM", "VRSN", "GD", "KR",
+           "MCD", "TSCO", "DLR", "WAT", "EOG", "GRMN", "CLX", "COP", "EG", "UDR"]
 DEBUG_DIR = "fund_debug"
 # empresas que cambiaron de número de registro en la SEC: se suma la historia del registro anterior
 FORMER_CIK = {"XOM": [34088]}
@@ -206,6 +207,136 @@ def ttm(qs):
     return out
 
 
+def _first_filed(facts, tags, unit, adj=None):
+    """{(inicio, fin): (valor, presentado)} con la primera publicación de cada período; entre etiquetas gana
+    la de mayor prioridad (la primera de la lista)."""
+    merged = {}
+    for pri, tag in enumerate(tags):
+        node = _node(facts, tag, unit)
+        if not node:
+            continue
+        for e in node:
+            if "start" not in e or e.get("form", "")[:4] not in ("10-Q", "10-K"):
+                continue
+            s, en, f = pd.Timestamp(e["start"]), pd.Timestamp(e["end"]), pd.Timestamp(e["filed"])
+            k = (s, en)
+            cur = merged.get(k)
+            if cur is None or (pri, f) < (cur[2], cur[1]):
+                v_ = float(e["val"])
+                merged[k] = (adj(v_, f) if adj else v_, f, pri)
+    return merged
+
+
+def flow_ttm(facts, tags, unit, adj=None, total=False):
+    """12 meses directo de los balances, sin sumar trimestres sueltos:
+       - al cierre del año fiscal: el dato anual del 10-K;
+       - en los otros trimestres: anual anterior + acumulado del año - acumulado del mismo período del año anterior.
+    Es lo que hacen los proveedores de datos y evita los errores de armar el 4º trimestre por diferencia
+    (trimestres de 16 semanas, etiquetas que cambian entre el 10-Q y el 10-K, datos repetidos).
+    Cada cuenta se arma con una sola etiqueta (no se mezclan, porque algunas son solo una parte del total);
+    en cada fecha se usa la etiqueta de mayor prioridad que tenga el dato. Con total=True (ventas), si esa
+    etiqueta da mucho menos que otra en la misma fecha, es una parte de las ventas y no el total: se usa la mayor."""
+    cand = {}
+    for pri, tag in enumerate(tags):
+        for en, f, v in _flow_one(facts, tag, unit, adj):
+            cand.setdefault(en, []).append((f, v))
+    best = {}
+    for en, L in cand.items():
+        f, v = L[0]
+        if total:
+            mx = max(L, key=lambda x: x[1])
+            if v < 0.6 * mx[1]:
+                f, v = mx
+        best[en] = (f, v)
+    out = []
+    for en in sorted(best):
+        if out and abs((en - out[-1][0]).days) <= 20:
+            continue
+        out.append((en, best[en][0], best[en][1]))
+    return out
+
+
+def _flow_one(facts, tag, unit, adj=None):
+    m = _first_filed(facts, [tag], unit, adj)
+    ann, ytd = {}, []
+    for (s, en), (v, f, pri) in m.items():
+        d_ = (en - s).days
+        if 350 <= d_ <= 380:
+            if en not in ann or f < ann[en][2]:
+                ann[en] = (s, v, f)
+        elif QMIN <= d_ < 350:
+            ytd.append((s, en, v, f))
+    by_ytd = {}
+    for s, en, v, f in ytd:
+        by_ytd.setdefault(s, []).append((en, v, f))
+    out = {en: (v, f) for en, (s, v, f) in ann.items()}
+    ann_l = sorted((en, s, v, f) for en, (s, v, f) in ann.items())
+    near = lambda a, b, tol=10: abs((a - b).days) <= tol
+    for s, en, v, f in ytd:
+        if any(near(en, k, 20) for k in out):
+            continue
+        # el año fiscal anterior tiene que terminar justo antes de que empiece este acumulado
+        A = next(((ae, as_, av, af) for ae, as_, av, af in ann_l if near(ae, s - pd.Timedelta(days=1))), None)
+        if A is None:
+            continue
+        ae, as_, av, af = A
+        dur = (en - s).days
+        P = None
+        for ps in by_ytd:
+            if not near(ps, as_):
+                continue
+            for pe, pv, pf in by_ytd[ps]:
+                if near(pe, en - pd.Timedelta(days=365), 12) and abs((pe - ps).days - dur) <= 10:
+                    P = (pv, pf)
+                    break
+            if P:
+                break
+        if P is None:
+            continue
+        out[en] = (av + v - P[0], max(f, af, P[1]))
+    return sorted((en, f, v) for en, (v, f) in out.items())
+
+
+def merge_ttm(primary, fallback, tol=20):
+    """Usa los 12 meses armados con anual + acumulados; donde no se pueda, la suma de trimestres."""
+    ends = [x[0] for x in primary]
+    extra = [x for x in fallback if not any(abs((x[0] - e).days) <= tol for e in ends)]
+    return sorted(primary + extra)
+
+
+def fix_scale(series, implied=None, sh_now=None):
+    """Corrige acciones informadas en otra escala (en miles o en millones en vez de unidades, error común de
+    etiquetado en la SEC): si un dato es ~1.000 o ~1.000.000 de veces distinto de la referencia, se reescala.
+    La referencia es la mediana de tres estimaciones independientes (así un dato mal cargado en una de ellas no
+    arrastra a las otras): acciones que surgen de ganancia neta / ganancia por acción de ese trimestre, acciones
+    de hoy y mediana de los trimestres vecinos."""
+    if not series:
+        return series, 0
+    implied = implied or {}
+    out, fixed = [], 0
+    vals = [v for _, _, v in series]
+    for i, (en, f, v) in enumerate(series):
+        nb = [x for x in vals[max(0, i - 6):i] + vals[i + 1:i + 7] if x > 0]
+        cand = [x for x in (implied.get(en), sh_now, float(np.median(nb)) if nb else None) if x and x > 0]
+        if v <= 0 or not cand:
+            out.append((en, f, v))
+            continue
+        ref = float(np.exp(np.median(np.log(cand)))) if len(cand) != 2 else None
+        if ref is None:          # con dos referencias, solo si coinciden entre sí
+            a_, b_ = cand
+            ref = a_ if 1 / 3 <= a_ / b_ <= 3 else None
+        if not ref:
+            out.append((en, f, v))
+            continue
+        r = v / ref
+        k = round(np.log10(r) / 3) if r > 0 else 0
+        if k != 0 and 1 / 3 <= r / 10 ** (3 * k) <= 3:
+            v = v / 10 ** (3 * k)
+            fixed += 1
+        out.append((en, f, v))
+    return out, fixed
+
+
 def known_at(series, dates):
     """Último valor ya presentado en cada fecha (lo que se sabía ese día)."""
     out = []
@@ -270,7 +401,13 @@ def build(sym, facts, px, splits, sh_now=None):
     eq_i = iseries(facts, EQ_T, "USD")
     if len(eps_q) < 4 and len(rev_q) < 4 and len(ni_q) < 4:
         return None
-    rev_t, ni_t = ttm(rev_q), ttm(ni_q)
+    # acciones: corrige datos en otra escala antes de usarlas para nada
+    epd0 = {en: v for en, f, v in eps_q}
+    implied = {en: abs(v / epd0[en]) for en, f, v in ni_q
+               if en in epd0 and abs(epd0[en]) >= 0.05 and abs(v) > 0 and v * epd0[en] > 0}
+    sh_q, sh_fixed = fix_scale(sh_q, implied, sh_now)
+    rev_t = merge_ttm(flow_ttm(facts, REV_T, "USD", total=True), ttm(rev_q))
+    ni_t = merge_ttm(flow_ttm(facts, NI_T, "USD"), ttm(ni_q))
     cap_by = {en: v for en, f, v in cap_q}
     fcf_qs = [(en, f, v - cap_by.get(en, 0.0)) for en, f, v in ocf_q]
     fcf_t = ttm(fcf_qs)
@@ -303,7 +440,21 @@ def build(sym, facts, px, splits, sh_now=None):
         if last_s is None or (ni_q[-1][0] - last_s).days > 200:
             sh_q = sh_q + [(en, f, sh_now) for en, f, v in ni_q if last_s is None or en > last_s]
         approx = True
-    eps_t = ttm(eps_q)
+    # 12 meses de ganancia por acción: anual + acumulados, controlado contra ganancia neta de 12 meses / acciones
+    eps_f = flow_ttm(facts, EPS_T, "USD/shares", eps_adj)
+    if ni_t and sh_q:
+        nid = {en: v for en, f, v in ni_t}
+        shd = {en: v for en, f, v in sh_q}
+        chk = []
+        for en, f, v in eps_f:
+            n_, s_ = nid.get(en), shd.get(en)
+            if n_ is not None and s_:
+                alt = n_ / s_
+                if abs(alt) > 1e-3 and abs(v / alt - 1) > 0.4:
+                    v = alt
+            chk.append((en, f, v))
+        eps_f = chk
+    eps_t = merge_ttm(eps_f, ttm(eps_q))
     row = {
         "eps": known_at(eps_t, dates),
         "fe": forward_real(eps_t, dates),
@@ -313,6 +464,7 @@ def build(sym, facts, px, splits, sh_now=None):
         "sh": known_at(sh_q, dates) / M,
         "bv": known_at(eq_i, dates) / M,
         "approx": approx,
+        "sh_fixed": sh_fixed,
     }
     return row
 
@@ -462,6 +614,8 @@ def main():
         summ[s] = summarize(pa, row, dates)
         if row.get("approx"):
             summ[s]["approx"] = True
+        if row.get("sh_fixed"):
+            print(f"  {s}: {row['sh_fixed']} trimestres con acciones en otra escala (corregidos)")
         out = {"t": s, "d": [d.strftime("%Y-%m") for d in dates], "p": rnd(pa, 2),
                "eps": rnd(row["eps"], 3), "fe": rnd(row["fe"], 3), "rev": rnd(row["rev"], 1), "ni": rnd(row["ni"], 1),
                "fcf": rnd(row["fcf"], 1), "sh": rnd(row["sh"], 2), "bv": rnd(row["bv"], 1), "approx": bool(row.get("approx"))}
