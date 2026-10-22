@@ -1315,10 +1315,14 @@ def main():
     # ---- checklists por familia como señales de compra (misma mecánica que las variantes: compra al cierre
     # siguiente, una señal cada 20 ruedas por acción) + ZX = Z o cualquier checklist
     try:
-        KF = va_frames(close, fund, meta, us_t, mkx)
-        Kc, sec_c, fam_c = KF[0], KF[1], KF[2]
-        famj = {t: f_ for t, f_ in zip(us_t, fam_c)}
-        Cv = close[us_t].values
+        # señales del motor para TODAS las acciones (también ADRs argentinos y brasileños, para el detalle por acción);
+        # las estadísticas por muestra solo usan las del S&P 500, así que no cambian
+        mt = [t for t in tick if res.get(t) and t in close.columns]
+        KF = va_frames(close, fund, meta, us_t, mkx)          # para el análisis de variables (solo EE.UU.)
+        KFm = va_frames(close, fund, meta, mt, mkx)
+        Kc, sec_c, fam_c = KFm[0], KFm[1], KFm[2]
+        famj = {t: f_ for t, f_ in zip(mt, fam_c)}
+        Cv = close[mt].values
         spv = close["SPY"].values
         cnt = {k: np.zeros(Cv.shape) for k in CK}
         for k, (fname, conds, _) in CK.items():
@@ -1328,7 +1332,7 @@ def main():
                 cnt[k] += np.asarray(v, dtype=float)
         dset = set(days)
         n_ = len(idx)
-        for j, t in enumerate(us_t):
+        for j, t in enumerate(mt):
             c_ = Cv[:, j]
             sig_days = {}
             for k, (fname, conds, mn) in CK.items():
@@ -1406,14 +1410,14 @@ def main():
 
         # ---- variantes para revisar el Comprar pleno (T)
         try:
-            Cdf = close[us_t]
+            Cdf = close[mt]
             ab50 = (Cdf > Cdf.rolling(50).mean()).values
             ab20 = (Cdf > Cdf.rolling(20).mean()).values
             cheap = Kc["pe_cheap"]
             cheap = np.asarray(cheap.values if hasattr(cheap, "values") else cheap, dtype=bool)
             fam_ck = {fname: k for k, (fname, _, _) in CK.items()}
             dset_ = set(days)
-            for j, t in enumerate(us_t):
+            for j, t in enumerate(mt):
                 sec_t = meta[t][1] or ""
                 fk = fam_ck.get(famj[t])
                 ck_hit = (cnt[fk][:, j] >= CK[fk][2]) if fk else np.zeros(n_, dtype=bool)
@@ -1436,7 +1440,7 @@ def main():
             import traceback
             traceback.print_exc()
 
-        for j, t in enumerate(us_t):
+        for j, t in enumerate(mt):
             c_ = Cv[:, j]
             srcs = ["T", "Y", "CR", "CI"] + (["Q"] if (meta[t][1] or "") in PART_SECT else [])
             on_days = sorted({pos.get(e["date"]) for k in srcs for e in res[t]["eps"].get(k, []) if pos.get(e["date"]) is not None})
@@ -1464,7 +1468,7 @@ def main():
                     e["ts"] = "abierta"
                 res[t]["eps"]["PRD"].append(e)
                 last = i
-        print("Checklists y producción:", {k: sum(len(res[t]["eps"].get(k, [])) for t in us_t) for k in list(CK) + ["ZX", "PRD"] + list(NEW_K)})
+        print("Checklists y producción:", {k: sum(len(res[t]["eps"].get(k, [])) for t in mt) for k in list(CK) + ["ZX", "PRD"] + list(NEW_K)})
     except Exception as e_:
         import traceback
         traceback.print_exc()
@@ -1794,9 +1798,23 @@ def main():
         if not r:
             continue
         sig = [{k: (r4(v) if isinstance(v, float) else v) for k, v in e.items() if k != "year"} for e in r["eps"]["A"]]
+        # motor nuevo (PR3) con el camino que dio la señal: Comprar (T2) o Comprar en partes (checklist o barata)
+        via_d = {}
+        for k_, lbl_ in (("Y", "Barata contra su historia"), ("CR", "Checklist crecimiento"), ("CI", "Checklist cíclicas"), ("T2", "Comprar")):
+            for e in r["eps"].get(k_, []):
+                via_d[e["date"]] = lbl_          # si coinciden, gana el último de la lista (Comprar)
+        pos_d = sorted(via_d)
+        mot = []
+        for e in r["eps"].get("PR3", []):
+            # el camino: el de ese día, o el más reciente de las 20 ruedas previas
+            v_ = via_d.get(e["date"])
+            if v_ is None:
+                prev_ = [d_ for d_ in pos_d if d_ <= e["date"]]
+                v_ = via_d[prev_[-1]] if prev_ else "Motor"
+            mot.append({"date": e["date"], "via": v_, "p": e.get("p"), **{h: r4(e.get(h)) for h in ("6m", "12m", "spy_6m", "spy_12m") if e.get(h) is not None}})
         per[t] = {"n": meta[t][0], "s": meta[t][1], "f": fund[t] is not None,
                   "w": [r4(x) for x in close[t].values[wk]],
-                  "sig": sig,
+                  "sig": sig, "mot": mot,
                   "base": {h: stats(r["base"], h) for h in ("6m", "12m")}}
     with open("backtest_tickers.json", "w", encoding="utf-8") as f:
         json.dump(S.no_nan({"dates": [str(idx[i].date()) for i in wk], "spy": [r4(x) for x in spy[wk]], "tickers": per}),
