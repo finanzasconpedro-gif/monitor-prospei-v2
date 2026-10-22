@@ -78,12 +78,13 @@ VARIANTS = {
     "NT": "Motor sin Comprar pleno: todos los caminos de producción menos T (barata contra su historia, checklists y giro temprano)",
     "NTQ": "Motor solo con los caminos fuertes: barata contra su historia (Y) y checklists de crecimiento y cíclicas (CR, CI)",
     "PR2": "Motor de producción con el Comprar endurecido: T2 en lugar de T, más Y, CR, CI y giro temprano (Q)",
-    "PRD": "Motor de producción (screener de hoy): Comprar o Comprar en partes por cualquiera de sus caminos: perfil del sector (T), vía barata en consumo discrecional, industrial y salud (Y), crecimiento y cíclicas castigadas (CR, CI) y giro temprano con fundamentos en industrial, energía y consumo discrecional (Q)",
+    "PR3": "Motor nuevo propuesto (octubre 2026): Comprar endurecido (T2) más Comprar en partes por barata contra su historia (Y) y checklists de crecimiento y cíclicas (CR, CI), sin giro temprano",
+    "PRD": "Motor anterior (hasta octubre de 2026): Comprar o Comprar en partes por cualquiera de sus caminos: perfil del sector (T), vía barata en consumo discrecional, industrial y salud (Y), crecimiento y cíclicas castigadas (CR, CI) y giro temprano con fundamentos en industrial, energía y consumo discrecional (Q)",
 }
 VARIANTS.pop("_", None)
 KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX", "PRD",
-        "T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2")
-NEW_K = ("T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2")   # variantes para revisar el Comprar pleno
+        "T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2", "PR3")
+NEW_K = ("T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2", "PR3")   # variantes para revisar el Comprar pleno
 T4_SECT = {"Tecnología", "Industrial", "Consumo discrecional", "Energía"}
 PART_SECT = {"Industrial", "Energía", "Consumo discrecional"}   # sectores donde el motor permite "en partes" por giro temprano
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
@@ -104,7 +105,9 @@ PF_KEYS = {"PRD": ("Motor de producción (PRD) · 12 meses", 252, _PRD),
            "Z": ("Motor actual (Z) · 12 meses", 252, [{"keys": ["Z"], "slots": 30}]),
            "Z6": ("Motor actual (Z) · 6 meses", 126, [{"keys": ["Z"], "slots": 30}]),
            "NT": ("Motor sin Comprar pleno (NT) · 12 meses", 252, [{"keys": ["NT"], "slots": 30}]),
-           "PR2": ("Motor con Comprar endurecido (PR2) · 12 meses", 252, [{"keys": ["PR2"], "slots": 30}])}
+           "PR2": ("Motor con Comprar endurecido (PR2) · 12 meses", 252, [{"keys": ["PR2"], "slots": 30}]),
+           "PR3": ("Motor nuevo propuesto (PR3) · 12 meses", 252, [{"keys": ["PR3"], "slots": 30}]),
+           "PR36": ("Motor nuevo propuesto (PR3) · 6 meses", 126, [{"keys": ["PR3"], "slots": 30}])}
 # Checklists por familia (elegidos por el análisis de variables con las acciones de diseño): familia, condiciones, mínimo
 CK = {"DF": ("Defensivas", ["beta_lo", "lowvol", "at_high", "pe_rich", "trend", "near200", "rsi_hi"], 5),
       "CR": ("Crecimiento", ["beta_lo", "dd_deep", "highvol", "pe_gt40", "rsi_lo"], 3),
@@ -1428,6 +1431,7 @@ def main():
                 res[t]["eps"]["NT"] = emit(j, t, ep_days(t, ["Y", "CR", "CI"] + q_), "Motor sin Comprar pleno")
                 res[t]["eps"]["NTQ"] = emit(j, t, ep_days(t, ["Y", "CR", "CI"]), "Caminos fuertes")
                 res[t]["eps"]["PR2"] = emit(j, t, ep_days(t, ["T2", "Y", "CR", "CI"] + q_), "Motor con Comprar endurecido")
+                res[t]["eps"]["PR3"] = emit(j, t, ep_days(t, ["T2", "Y", "CR", "CI"]), "Motor nuevo")
         except Exception:
             import traceback
             traceback.print_exc()
