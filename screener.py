@@ -1077,6 +1077,10 @@ def build_etfs(prices, series=None):
     spy_out = {k: r2(spy.get(k)) for k in ["p", "r1d", "r1w", "r1m", "r3m", "r6m", "r12m", "rsi", "sma50", "sma200", "dd"]}
     spy_out["asof"] = ASOF
     spy_out["above200"] = bool(spy["p"] > spy["sma200"])
+    try:   # cierres del S&P 500 para que la página sume la rueda de hoy en vivo (semana, mes, etc.)
+        spy_out["closes"] = [round(float(x), 2) for x in prices[BENCH][0][-300:]]
+    except Exception:
+        pass
     return spy_out, sorted(out, key=lambda e: -(e["at"] or 0))
 
 
@@ -1273,6 +1277,19 @@ def no_nan(x):
     if isinstance(x, (np.bool_,)):
         return bool(x)
     return x
+
+
+def expected_session():
+    """Última rueda que ya debería estar cerrada: hoy si es día hábil y pasaron las 17:30 de Argentina
+    (cierre de Nueva York + 30 minutos), si no el día hábil anterior. No contempla feriados de EE.UU.
+    (en un feriado solo se pierden unos minutos en reintentos)."""
+    now = dt.datetime.now(dt.timezone(dt.timedelta(hours=-3)))
+    d = now.date()
+    if not (d.weekday() < 5 and (now.hour, now.minute) >= (17, 30)):
+        d -= dt.timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= dt.timedelta(days=1)
+    return d
 
 
 def today_ar():
@@ -1761,6 +1778,50 @@ def main():
         time.sleep(1)
     if added:
         print(f"Rueda más reciente agregada en {added} papeles")
+    # Control: la última rueda tiene que ser la de hoy (si ya cerró el mercado) o la del día hábil anterior.
+    # A veces Yahoo tarda en publicar la rueda del día y las dos descargas vienen sin ella (pasó el 21/10/2026:
+    # la corrida de la noche quedó con la rueda del 20). Se reintenta con descargas cortas hasta 3 veces.
+    exp = expected_session()
+    for intento in range(3):
+        try:
+            last = pd.Timestamp(series[BENCH].index[-1]).date()
+        except Exception:
+            break
+        if last >= exp:
+            break
+        print(f"  Falta la rueda del {exp} (la última es del {last}): reintento {intento + 1} de 3")
+        time.sleep(45)
+        added2 = 0
+        for i in range(0, len(dl), 100):
+            chunk = [x for x in dl[i:i + 100] if x in series]
+            if not chunk:
+                continue
+            try:
+                rec = yf.download(chunk, period="5d", interval="1d", auto_adjust=True, group_by="ticker",
+                                  threads=True, progress=False)
+            except Exception as e:
+                print("  sin descarga de 5 días:", e)
+                continue
+            for x in chunk:
+                try:
+                    sub = rec[x] if len(chunk) > 1 else rec
+                    cl = sub["Close"].dropna()
+                    old = series[x]
+                    new_idx = cl.index[cl.index > old.index[-1]]
+                    if not len(new_idx):
+                        continue
+                    series[x] = pd.concat([old, cl.loc[new_idx]])
+                    c, v = prices[x]
+                    prices[x] = (np.concatenate([c, cl.loc[new_idx].values.astype(float)]),
+                                 np.concatenate([v, sub["Volume"].reindex(new_idx).fillna(0).values.astype(float)]))
+                    if x in hilo:
+                        h_, l_ = hilo[x]
+                        hilo[x] = (pd.concat([h_, sub["High"].reindex(new_idx)]), pd.concat([l_, sub["Low"].reindex(new_idx)]))
+                    added2 += 1
+                except Exception:
+                    pass
+            time.sleep(1)
+        print(f"  Reintento {intento + 1}: rueda agregada en {added2} papeles")
     global ASOF
     try:
         ASOF = pd.Timestamp(series[BENCH].index[-1]).strftime("%Y-%m-%d")
