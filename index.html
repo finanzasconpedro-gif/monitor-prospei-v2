@@ -1359,22 +1359,53 @@ S.hm='r1d';S.hu='us';
 /* ---------- rendimiento por sector (barras) ---------- */
 S.sp=5;
 const SPK={1:'r1d',5:'r1w',21:'r1m',63:'r3m',126:'r6m',252:'r12m'},SPL={1:'del día',5:'de la semana',21:'del último mes',63:'de los últimos 3 meses',126:'de los últimos 6 meses',252:'de los últimos 12 meses'};
+/* Rueda de hoy en vivo: hay mercado (día hábil, desde las 10:30 de Argentina) y el análisis diario todavía no la tiene. */
+function sessionLive(){
+  const a=new Date(Date.now()-3*3600e3),wd=a.getUTCDay();if(wd===0||wd===6)return false;
+  if(a.getUTCHours()*60+a.getUTCMinutes()<10*60+30)return false;
+  const today=a.toISOString().slice(0,10),asof=S.scr&&S.scr.spy&&S.scr.spy.asof;
+  return !asof||asof<today;
+}
+/* Variación de hoy: el ETF en vivo si la fuente lo publica; si no, estimada con las acciones del sector que cotizan
+   en vivo, ponderadas por capitalización (como arma el ETF su cartera). Hace falta cubrir la mitad del sector. */
+function liveDay(etf,sector){
+  const lv=liveOf(etf);if(lv&&lv.pct_change!=null&&isFinite(lv.pct_change))return {v:lv.pct_change/100,est:false};
+  const R=(S.scr.rows||[]).filter(r=>r.region==='EE.UU.'&&r.mcap>0&&(sector==null||r.sector===sector));
+  let tot=0,cov=0,acc=0;
+  R.forEach(r=>{tot+=r.mcap;const x=liveOf(r.t);if(x&&x.pct_change!=null&&isFinite(x.pct_change)){cov+=r.mcap;acc+=r.mcap*x.pct_change/100}});
+  return tot>0&&cov/tot>=0.5?{v:acc/cov,est:true,cov:cov/tot}:null;
+}
+function spLiveMap(){
+  if(!sessionLive())return null;
+  const m={};(S.scr.etfs||[]).forEach(e=>{const d=liveDay(e.etf,e.sector);if(d)m[e.etf]=d});
+  const sp=liveDay('SPY',null);if(sp)m.SPY=sp;
+  return Object.keys(m).length?m:null;
+}
+/* n ruedas: con la rueda de hoy en vivo, son las n-1 cerradas más la de hoy (como Finviz) */
+function retN(c,n,d){
+  if(d){if(n===1)return d.v;if(c&&c.length>=n&&c[c.length-n]>0)return c[c.length-1]/c[c.length-n]*(1+d.v)-1;return null}
+  if(c&&c.length>n&&c[c.length-1-n]>0)return c[c.length-1]/c[c.length-1-n]-1;
+  return undefined;
+}
 function etfRet(e,n){
-  if(n===1){const lv=liveOf(e.etf);if(lv&&lv.pct_change!=null)return lv.pct_change/100}
-  const c=e.closes;if(c&&c.length>n&&c[c.length-1-n]>0)return c[c.length-1]/c[c.length-1-n]-1;
+  const d=S.spLive&&S.spLive[e.etf];
+  const r=retN(e.closes,n,d);if(r!==undefined)return r;
   const v=e[SPK[n]];return v==null?null:v}
 function renderSecPerf(){
   const el=$('#secperf');if(!el)return;const E=S.scr&&S.scr.etfs;if(!E||!E.length){el.innerHTML='<p class="note">Cargando…</p>';return}
-  const n=S.sp,rows=E.map(e=>({e,v:etfRet(e,n)})).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
-  let spy=S.scr.spy&&S.scr.spy[SPK[n]];if(n===1){const lv=liveOf('SPY');if(lv&&lv.pct_change!=null)spy=lv.pct_change/100}
+  S.spLive=spLiveMap();const L=S.spLive;
+  const n=S.sp,rows=E.map(e=>({e,v:etfRet(e,n),est:!!(L&&L[e.etf]&&L[e.etf].est)})).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
+  let spy=S.scr.spy&&S.scr.spy[SPK[n]];
+  if(L&&L.SPY){const r=retN(S.scr.spy.closes,n,L.SPY);if(r!=null)spy=r}
+  const nEst=rows.filter(x=>x.est).length;
   const mx=Math.max(0.005,...rows.map(x=>Math.abs(x.v)),spy!=null?Math.abs(spy):0);
   const cen=S.spMode!=='left',W=v=>Math.abs(v)/mx*(cen?50:100);
   const col=v=>{const a=Math.min(1,Math.abs(v)/mx);return v>=0?`hsl(140 ${40+25*a}% ${52-12*a}%)`:`hsl(4 ${50+25*a}% ${58-10*a}%)`};
   el.innerHTML=`<div class="sp-chart">${rows.map(x=>{const v=x.v,lead=spy!=null&&v>spy;return `<div class="sp-row" data-etf="${esc(x.e.etf)}" title="${esc(x.e.sector)} (${esc(x.e.etf)}): ${pct(v,2)} ${SPL[n]}${spy!=null?' · S&P 500 '+pct(spy,2):''}">
       <div class="sp-lbl">${esc(x.e.sector)} <span class="note">${esc(x.e.etf)}</span></div>
       <div class="sp-track">${cen?'<i class="sp-zero"></i>':''}${spy!=null?`<i class="sp-ref" style="left:${cen?50+(spy>=0?1:-1)*W(spy):W(spy)}%;border-color:${spy>=0?'var(--muted)':'var(--down)'}"></i>`:''}<b style="${cen?(v>=0?'left:50%':'right:50%'):'left:0'};width:${W(v)}%;background:${col(v)}"></b></div>
-      <div class="sp-val ${cls(v)}">${pct(v,2)}${lead?' <span class="note">▲</span>':''}</div></div>`}).join('')}</div>
-    <p class="note" style="margin:8px 0 0">${spy!=null?`S&amp;P 500 ${SPL[n]}: <b class="${cls(spy)}">${pct(spy,2)}</b> (línea punteada${spy<0?', en rojo porque el índice bajó':''}). ▲ = le ganó al índice. ${cen?'Vista centrada: lo que queda a la derecha de la línea le ganó al S&amp;P. ':'Vista alineada: el largo es cuánto se movió; la línea sirve para comparar las verdes. '}`:''}${n===1?'Con precios en vivo cuando el mercado está abierto; si no, con el cierre del último análisis diario':'Con el cierre del último análisis diario'}${S.scr.spy&&S.scr.spy.asof?` (rueda del ${new Date(S.scr.spy.asof+'T12:00:00').toLocaleDateString('es-AR')})`:''}.</p>`;
+      <div class="sp-val ${cls(v)}">${x.est?'<span class="note" title="Estimado con las acciones del sector que cotizan en vivo">≈</span>':''}${pct(v,2)}${lead?' <span class="note">▲</span>':''}</div></div>`}).join('')}</div>
+    <p class="note" style="margin:8px 0 0">${spy!=null?`S&amp;P 500 ${SPL[n]}: <b class="${cls(spy)}">${pct(spy,2)}</b> (línea punteada${spy<0?', en rojo porque el índice bajó':''}). ▲ = le ganó al índice. ${cen?'Vista centrada: lo que queda a la derecha de la línea le ganó al S&amp;P. ':'Vista alineada: el largo es cuánto se movió; la línea sirve para comparar las verdes. '}`:''}${L?`Incluye la rueda de hoy en vivo (se actualiza cada 60 segundos${n>1?'; el período son las últimas ruedas cerradas más la de hoy':''})${nEst?'. ≈ = estimado con las acciones del sector que cotizan en vivo, ponderadas por capitalización, porque la fuente en vivo no publica ese ETF':''}${L.SPY&&L.SPY.est?'. El S&amp;P 500 también es estimado así':''}`:`Con el cierre del último análisis diario${S.scr.spy&&S.scr.spy.asof?` (rueda del ${new Date(S.scr.spy.asof+'T12:00:00').toLocaleDateString('es-AR')})`:''}${sessionLive()?'; los precios en vivo no están disponibles en este momento':''}`}.</p>`;
   el.querySelectorAll('[data-etf]').forEach(r=>r.onclick=()=>openEtf(r.dataset.etf));
 }
 S.spMode=store('spMode')||'center';$('#sp-mode').value=S.spMode;$('#sp-mode').onchange=e=>{S.spMode=e.target.value;store('spMode',S.spMode);renderSecPerf()};
