@@ -1359,12 +1359,21 @@ S.hm='r1d';S.hu='us';
 /* ---------- rendimiento por sector (barras) ---------- */
 S.sp=5;
 const SPK={1:'r1d',5:'r1w',21:'r1m',63:'r3m',126:'r6m',252:'r12m'},SPL={1:'del día',5:'de la semana',21:'del último mes',63:'de los últimos 3 meses',126:'de los últimos 6 meses',252:'de los últimos 12 meses'};
-/* Rueda de hoy en vivo: hay mercado (día hábil, desde las 10:30 de Argentina) y el análisis diario todavía no la tiene. */
+/* Hora de Nueva York (el mercado abre 9:30 y cierra 16:00; así no importa el cambio de horario de EE.UU.) */
+function nyNow(){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,weekday:'short'})
+  .formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return {day:`${p.year}-${p.month}-${p.day}`,min:(+p.hour%24)*60+(+p.minute),wd:p.weekday}}
+function nyOf(iso){const n=new Date(iso);if(isNaN(n))return null;const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
+  .formatToParts(n).forEach(x=>p[x.type]=x.value);return {day:`${p.year}-${p.month}-${p.day}`,min:(+p.hour%24)*60+(+p.minute)}}
+/* Rueda de hoy en vivo: ya abrió Nueva York y el análisis diario no tiene la rueda de hoy cerrada (no corrió todavía,
+   o corrió con el mercado abierto y guardó una foto de la mitad de la rueda: en ese caso se descarta esa foto). */
 function sessionLive(){
-  const a=new Date(Date.now()-3*3600e3),wd=a.getUTCDay();if(wd===0||wd===6)return false;
-  if(a.getUTCHours()*60+a.getUTCMinutes()<10*60+30)return false;
-  const today=a.toISOString().slice(0,10),asof=S.scr&&S.scr.spy&&S.scr.spy.asof;
-  return !asof||asof<today;
+  S.spPartial=false;
+  const ny=nyNow();if(ny.wd==='Sat'||ny.wd==='Sun'||ny.min<9*60+30)return false;
+  const asof=S.scr&&S.scr.spy&&S.scr.spy.asof;
+  if(!asof||asof<ny.day)return true;
+  const g=nyOf(S.scr.generated||'');
+  if(asof===ny.day&&g&&g.day===ny.day&&g.min<16*60+10){S.spPartial=true;return true}
+  return false;
 }
 /* Variación de hoy: el ETF en vivo si la fuente lo publica; si no, estimada con las acciones del sector que cotizan
    en vivo, ponderadas por capitalización (como arma el ETF su cartera). Hace falta cubrir la mitad del sector. */
@@ -1383,6 +1392,7 @@ function spLiveMap(){
 }
 /* n ruedas: con la rueda de hoy en vivo, son las n-1 cerradas más la de hoy (como Finviz) */
 function retN(c,n,d){
+  if(d&&S.spPartial&&c)c=c.slice(0,-1);   // la última "cierre" guardado es la foto de la mitad de la rueda de hoy
   if(d){if(n===1)return d.v;if(c&&c.length>=n&&c[c.length-n]>0)return c[c.length-1]/c[c.length-n]*(1+d.v)-1;return null}
   if(c&&c.length>n&&c[c.length-1-n]>0)return c[c.length-1]/c[c.length-1-n]-1;
   return undefined;
