@@ -307,6 +307,8 @@ function initOne(){
   q.onkeydown=e=>{if(e.key==='Enter')go()};$('#one-go').onclick=go;
 }
 const KIND=e=>e.setup==='Golden Cross'?['gc','Golden Cross (ya no habilita compra)','#9aa3b2']:e.b?['d','Técnica + fundamentos (regla actual)','#1f9d55']:['c','Solo técnica: no pasaba fundamentos','#2f6fdf'];
+const MOTC={'Comprar':'#1f9d55','Checklist crecimiento':'#6d4fe0','Checklist cíclicas':'#6d4fe0','Barata contra su historia':'#c27c0e','Motor':'#6d4fe0'};
+const MOTL=v=>v==='Comprar'?'Comprar':v==='Barata contra su historia'?'Comprar en partes · barata contra su historia':'Comprar en partes · '+v.toLowerCase();
 async function showOne(t){
   const el=$('#one-body');if(!t)return;el.innerHTML='<p class="note">Cargando…</p>';
   let D;try{D=await oneData()}catch(e){el.innerHTML='<p class="note">Todavía no hay detalle por acción: corré el track récord (Actions → Track record PROSPEI → Run workflow).</p>';return}
@@ -315,26 +317,30 @@ async function showOne(t){
   const X=i=>P+(W-2*P)*i/(n-1),Y=v=>Hh-24-(Hh-48)*(v-mn)/((mx-mn)||1);
   const path=w.map((v,i)=>v==null?'':`${i&&w[i-1]!=null?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
   const wi=d=>{let i=D.dates.findIndex(x=>x>=d);return i<0?n-1:i};
-  const marks=o.sig.map(e=>{const i=wi(e.date),k=KIND(e);return `<circle cx="${X(i).toFixed(1)}" cy="${Y(w[i]??e.p).toFixed(1)}" r="6" fill="${k[2]}" stroke="var(--card)" stroke-width="2"><title>${esc(e.date)} · ${esc(e.setup)} · ${k[1]} · 6 meses: ${pct(e['6m'],1)}</title></circle>`}).join('');
+  const M=o.mot||[];
   const yl=[mn,(mn+mx)/2,mx].map(v=>`<text x="4" y="${Y(v)+4}" font-size="11" fill="var(--muted)">${fmt(v,0)}</text>`).join('');
   const xl=[0,Math.floor(n/2),n-1].map(i=>`<text x="${X(i)}" y="${Hh-4}" font-size="11" fill="var(--muted)" text-anchor="middle">${esc(D.dates[i].split('-').reverse().join('/'))}</text>`).join('');
-  const all=o.sig,cur=all.filter(e=>KIND(e)[0]==='d'),m=x=>{const v=x.filter(e=>e['6m']!=null);return v.length?{n:v.length,win:v.filter(e=>e['6m']>0).length/v.length,avg:v.reduce((a,e)=>a+e['6m'],0)/v.length}:null};
-  const mc=m(cur),ma=m(all),b=o.base['6m'];
-  const leg=[['d','Técnica + fundamentos (regla actual)','#1f9d55'],['c','Solo técnica: no pasaba fundamentos','#2f6fdf'],['gc','Golden Cross (ya no habilita compra)','#9aa3b2']].map(k=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px"><i style="width:10px;height:10px;border-radius:50%;background:${k[2]};display:inline-block"></i>${k[1]}</span>`).join('');
+  // señales técnicas sueltas (sin el motor) en gris chico, de fondo
+  const tech=o.sig.map(e=>{const i=wi(e.date);return `<circle cx="${X(i).toFixed(1)}" cy="${Y(w[i]??e.p).toFixed(1)}" r="3.5" fill="#b8bfcc"><title>${esc(e.date)} · señal técnica sola (${esc(e.setup)}): el motor no la toma</title></circle>`}).join('');
+  const marks=M.map(e=>{const i=wi(e.date),c=MOTC[e.via]||'#6d4fe0';return `<circle cx="${X(i).toFixed(1)}" cy="${Y(w[i]??e.p).toFixed(1)}" r="${e.via==='Comprar'?7:6}" fill="${c}" stroke="var(--card)" stroke-width="2"><title>${esc(e.date)} · ${esc(MOTL(e.via))} · 12 meses: ${pct(e['12m'],1)}</title></circle>`}).join('');
+  const st=(x,h)=>{const v=x.filter(e=>e[h]!=null);if(!v.length)return null;const a=v.map(e=>e[h]).sort((p,q)=>p-q);
+    const b_=v.filter(e=>e['spy_'+h]!=null);return {n:v.length,win:v.filter(e=>e[h]>0).length/v.length,med:a[Math.floor(a.length/2)],beat:b_.length?b_.filter(e=>e[h]>e['spy_'+h]).length/b_.length:null}};
+  const m12=st(M,'12m'),nB=M.filter(e=>e.via==='Comprar').length,b=o.base['12m'];
+  const leg=[['Comprar','#1f9d55'],['Comprar en partes · checklist','#6d4fe0'],['Comprar en partes · barata contra su historia','#c27c0e'],['Señal técnica sola (el motor no la toma)','#b8bfcc']].map(k=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px"><i style="width:10px;height:10px;border-radius:50%;background:${k[1]};display:inline-block"></i>${k[0]}</span>`).join('');
   const kp=(l,v,s2)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s2}</div></div>`;
-  el.innerHTML=`<h3 style="margin:14px 0 4px">${esc(t)} <span class="note">${esc(o.n)} · ${esc(o.s)}</span></h3>
+  const nota=o.mot?'':'<p class="note">⚠️ Este detalle es de un backtest anterior al motor nuevo: corré el track récord para ver las señales del motor.</p>';
+  el.innerHTML=`<h3 style="margin:14px 0 4px">${esc(t)} <span class="note">${esc(o.n)} · ${esc(o.s)}</span></h3>${nota}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0">
-      ${kp('Señales con la regla actual',cur.length,`de ${all.length} señales técnicas en el período`)}
-      ${kp('Positivas a 6 meses (regla actual)',mc?P0(mc.win):'—',mc?`${mc.n} con resultado · promedio ${pct(mc.avg,1)}`:'sin señales con 6 meses cumplidos')}
-      ${kp('Todas las señales técnicas',ma?P0(ma.win):'—',ma?`positivas a 6 meses · promedio ${pct(ma.avg,1)}`:'—')}
-      ${kp('Comprando cualquier día',b&&b.n?P0(b.win):'—',b&&b.n?`positivas a 6 meses · promedio ${pct(b.avg,1)}`:'—')}
+      ${kp('Señales del motor',M.length,`en 10 años · ${nB} Comprar y ${M.length-nB} Comprar en partes`)}
+      ${kp('Positivas a 12 meses (motor)',m12?P0(m12.win):'—',m12?`${m12.n} con resultado · mediana ${pct(m12.med,1)}`:'sin señales con 12 meses cumplidos')}
+      ${kp('Le ganaron al S&amp;P 500 (12 meses)',m12&&m12.beat!=null?P0(m12.beat):'—',m12?'comprado el mismo día':'—')}
+      ${kp('Comprando cualquier día',b&&b.n?P0(b.win):'—',b&&b.n?`positivas a 12 meses · mediana ${pct(b.med,1)}`:'—')}
     </div>
-    ${o.f?'':'<p class="note">⚠️ Sin balances de la SEC para esta empresa (por ejemplo, un ADR): no se pudo aplicar el filtro de fundamentos, así que todas sus señales figuran como "solo técnica".</p>'}
-    <svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block;margin:6px 0">${yl}${xl}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>${marks}</svg>
+    <svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block;margin:6px 0">${yl}${xl}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>${tech}${marks}</svg>
     <div class="note" style="margin-bottom:10px">${leg} · pasá el mouse por un punto para ver el detalle.</div>
-    ${all.length?`<div class="tw"><table><thead><tr><th>Fecha</th><th>Señal</th><th>Tipo</th><th class="n">Técnico</th><th class="n">Precio</th><th class="n">3 meses</th><th class="n">6 meses</th><th class="n">12 meses</th><th class="n">vs S&amp;P 6m</th><th>Objetivo / stop</th></tr></thead><tbody>
-    ${all.slice().reverse().map(e=>{const k=KIND(e),r=v=>`<span class="${cls(v)}">${pct(v,1)}</span>`;return `<tr><td>${esc(e.date.split('-').reverse().join('/'))}</td><td>${setupChip(e.setup)}</td><td><span style="color:${k[2]};font-weight:600">●</span> <span class="note">${k[1]}</span></td><td class="n">${e.at}</td><td class="n">US$ ${fmt(e.p)}</td><td class="n">${r(e['3m'])}</td><td class="n">${r(e['6m'])}</td><td class="n">${r(e['12m'])}</td><td class="n">${e['6m']!=null&&e.spy_6m!=null?r(e['6m']-e.spy_6m):'—'}</td><td>${e.ts==='objetivo'?'<span class="up">✓ objetivo</span>':e.ts==='stop'?'<span class="down">✗ stop</span>':e.ts==='abierta'?'<span class="note">sin tocar</span>':'<span class="note">en curso</span>'}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">En el período analizado esta acción no dio ninguna señal de compra técnica.</p>'}
-    <p class="note" style="margin-top:8px">La regla actual del monitor además exige valor justo y analistas, que no tienen historia: lo verde es lo más parecido que se puede reconstruir.</p>`;
+    ${M.length?`<div class="tw"><table><thead><tr><th>Fecha</th><th>Veredicto del motor</th><th class="n">Precio</th><th class="n">6 meses</th><th class="n">12 meses</th><th class="n">S&amp;P 12 meses</th><th class="n">Diferencia</th></tr></thead><tbody>
+    ${M.slice().reverse().map(e=>{const r=v=>`<span class="${cls(v)}">${pct(v,1)}</span>`,c=MOTC[e.via]||'#6d4fe0';return `<tr><td>${esc(e.date.split('-').reverse().join('/'))}</td><td><span style="color:${c};font-weight:600">●</span> ${esc(MOTL(e.via))}</td><td class="n">US$ ${fmt(e.p)}</td><td class="n">${e['6m']!=null?r(e['6m']):'<span class="note">en curso</span>'}</td><td class="n">${e['12m']!=null?r(e['12m']):'<span class="note">en curso</span>'}</td><td class="n">${e.spy_12m!=null?pct(e.spy_12m,1):'—'}</td><td class="n">${e['12m']!=null&&e.spy_12m!=null?r(e['12m']-e.spy_12m):'—'}</td></tr>`}).join('')}</tbody></table></div>`:`<p class="note">En los 10 años analizados el motor no dio ninguna señal de compra en ${esc(t)}${o.sig.length?` (hubo ${o.sig.length} señales técnicas sueltas, en gris, que el motor no toma)`:''}.</p>`}
+    <p class="note" style="margin-top:8px">Señales del motor actual (Comprar confirmado y Comprar en partes por checklist o por barata contra su historia), reconstruidas día por día con los datos que se conocían en cada fecha. No incluye valor justo ni analistas, que no tienen historia.</p>`;
 }
 S.btu='broad';
 const VSHORT={A:'técnica',B:'técnica + fundamentos',C:'sin Golden Cross',D:'sin Golden Cross + fundamentos',E:'D + filtro de mercado',F:'crecimiento + filtro de mercado',G:'solo corrección con rebote',H:'corrección + momentum',J:'H + crecimiento',P:'en partes: giro temprano',Q:'en partes: giro + fundamentos',R:'en partes: mercado bajista',S:'estrategia por sector',T:'motor por sector',U:'P/E 30% bajo su historia',V:'P/E 50% bajo su historia',W:'P/E bajo + crecimiento',X:'P/E bajo + rebote',Y:'vía barata (3 sectores)',Z:'motor + vía barata',DF:'checklist defensivas',CR:'checklist crecimiento',CI:'checklist cíclicas',ZX:'motor + checklists',PRD:'motor de producción'};
