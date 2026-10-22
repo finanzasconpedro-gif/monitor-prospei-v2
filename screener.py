@@ -1362,7 +1362,7 @@ SECTOR_PROFILE = {
     "Comunicaciones": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=False, val="low", partes=False, edge=True,
                            why="prioriza corrección con momentum; el P/E contra su historia pesa poco"),
     "Industrial": dict(fam="Crecimiento", entry={CORR}, mom=0.70, growth=True, val="low", partes=True, edge=True, cheap=True,
-                       why="prioriza corrección con momentum y crecimiento; el giro temprano y comprar barata contra su propia historia también funcionaron"),
+                       why="prioriza corrección con momentum y crecimiento; comprar barata contra su propia historia también funcionó"),
     "Consumo discrecional": dict(fam="Consumo cíclico", entry={CORR, RUPT}, mom=None, growth=False, val="full", partes=True, edge=True, cheap=True,
                                  why="prioriza fundamentos y valuación: comprar barata contra su historia funcionó en este sector"),
     "Utilities": dict(fam="Defensiva", entry={CORR}, mom=None, growth=False, val="low", partes=False, edge=True,
@@ -1451,6 +1451,9 @@ CK_FAM = {"Tecnología": "Crecimiento", "Comunicaciones": "Crecimiento", "Indust
           "Salud": "Defensivas", "Consumo básico": "Defensivas", "Utilities": "Defensivas"}
 
 
+CK_NAME = {"CR": "crecimiento", "CI": "cíclicas", "DF": "defensivas"}
+
+
 def add_checklists(df):
     ck, ck_n, ck_m, ck_l = [], [], [], []
     for r in df.itertuples():
@@ -1530,6 +1533,24 @@ def verdict(r, mkt_up=True):
         eg, rg = getattr(r, "eps_g", None), getattr(r, "rev_g", None)
         checks.append((eg is not None and pd.notna(eg) and eg > 0 and rg is not None and pd.notna(rg) and rg > 0,
                        "ganancias y ventas creciendo contra el año anterior"))
+    # Confirmación (backtest, variante T2): el perfil del sector solo no le ganó a comprar cualquier día en 10 años
+    # (mediana 10,7% a 12 meses contra 12,2%). Con el checklist de su familia o barata contra su propia historia rindió
+    # 14,1%, con 72% de aciertos y la menor proporción de caídas de 20%+ (8%) de todas las variantes.
+    ckc0 = getattr(r, "ck", None)
+    q50 = getattr(r, "pe5_r", None)
+    cheap0 = q50 is not None and pd.notna(q50) and q50 <= PE5_CHEAP
+    if ckc0:
+        conf_txt = f"checklist de {CK_NAME.get(ckc0, 'su familia')}"
+    elif cheap0:
+        conf_txt = f"P/E {fx((1 - q50) * 100, 0)}% debajo de su mediana de 5 años"
+    else:
+        conf_txt = None
+    fam_ck = CK_FAM.get(r.sector)
+    conf_lbl = ("confirmación: cumplir el checklist de " + CK_NAME.get({"Crecimiento": "CR", "Cíclicas": "CI", "Defensivas": "DF"}.get(fam_ck, ""), "su familia")
+                + (f" (cumple {int(r.ck_n)} de {int(r.ck_m)})" if getattr(r, "ck_n", None) is not None and pd.notna(r.ck_n) else "")
+                + " o estar barata contra su historia (P/E 30%+ debajo de su mediana de 5 años)") if fam_ck else \
+        "confirmación: estar barata contra su historia (P/E 30%+ debajo de su mediana de 5 años)"
+    checks.append((conf_txt is not None, conf_lbl))
     falta = [t for ok, t in checks if not ok]
     earn_soon = L["evt"] == 0
     up_txt = f"{up*100:+.0f}%".replace(".", ",") if up is not None else "—"
@@ -1546,7 +1567,9 @@ def verdict(r, mkt_up=True):
             return "Comprar en partes", (f"Cumple los 5 criterios ({ent.lower()}), pero el S&P 500 está debajo de su media de 200 días: "
                                          "mercado bajista. Entrada escalonada de a tercios, con stop.")
         return "Comprar", (f"Cumple los criterios de su sector: técnico {r.at:.0f}, fundamental {r.af:.0f}, recorrido {up_txt}, {ent.lower()}"
-                           + (", con momentum" if P["mom"] else "") + (" y ganancias creciendo" if P["growth"] else "") + ".")
+                           + (", con momentum" if P["mom"] else "") + (", ganancias creciendo" if P["growth"] else "")
+                           + f", y lo confirma: {conf_txt}. En 10 años, las compras así rindieron una mediana de ~14% a 12 meses "
+                           "(contra ~12% de cualquier día) y fueron las que menos cayeron.")
     # 2) Evitar
     if r.vm_z == "Evitar" or r.cyc or (r.val_verdict == "Cara" and r.trend_n <= 0):
         why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
@@ -1574,16 +1597,9 @@ def verdict(r, mkt_up=True):
             return "Mantener", (f"Recorrido {up_txt}, menor al {req*100:.0f}% que se exige por su volatilidad: "
                                 "si ya se tiene, mantener; no sumar.")
         return "Mantener", f"Cerca de su valor justo (recorrido {up_txt}): si ya se tiene, mantener; no sumar."
-    # 4) Comprar en partes
-    early = (getattr(r, "et_ctx", False) and r.et_n >= 4) or r.setup == "Golden Cross en formación"
-    if not P["partes"]:
-        early = False
-        entry = entry and P["edge"]
-    if (r.af >= 55 and L["cal"] != 0 and L["val"] != 0 and up is not None and up >= req and not doubt
-            and (early or entry) and not earn_soon):
-        how = "giro temprano" if early else "señal de entrada"
-        return "Comprar en partes", f"Entrada escalonada por {how}, con stop. Para compra plena falta: {', '.join(falta)}."
-    # 5) Vigilar
+    # (El "Comprar en partes" por giro temprano o señal de entrada se sacó en octubre de 2026: en el backtest rindió
+    #  una mediana de 13,3% a 12 meses, casi lo mismo que comprar cualquier día, y diluía al resto del motor.)
+    # 4) Vigilar
     if not P["edge"]:
         return "Vigilar", (f"{r.sector}: en 10 años ninguna señal de compra le ganó a comprar cualquier día en este sector. "
                            "El monitor no marca momento de compra; mirar calidad y valuación.")
