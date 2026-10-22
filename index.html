@@ -1935,8 +1935,8 @@ let loading=false;
 async function load(){
   if(loading)return;loading=true;$('#dot').className='dot load';
   const P=[getJ(API+'arg_bonds'),getJ(API+'arg_stocks'),getJ(API+'arg_cedears'),getJ(API+'usa_stocks'),getJ(API+'usa_adrs'),getJ(API+'ccl'),
-    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo'),getJ('riesgo.json?v='+Date.now())];
-  const [bo,st,ce,us,ad,cc,dl,rp,rj]=await Promise.allSettled(P);
+    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo'),getJ('riesgo.json?v='+Date.now()),getJ('api/sectores')];
+  const [bo,st,ce,us,ad,cc,dl,rp,rj,et]=await Promise.allSettled(P);
   const errs=[];
   if(bo.status==='fulfilled'&&Array.isArray(bo.value)){S.data.bonds=buildBonds(bo.value)}else errs.push('bonos');
   if(st.status==='fulfilled'&&Array.isArray(st.value))S.data.stocks=st.value;else errs.push('acciones');
@@ -1944,6 +1944,9 @@ async function load(){
   const usm=S.data.us||{};
   [us,ad].forEach(x=>{if(x.status==='fulfilled'&&Array.isArray(x.value))x.value.forEach(s=>{if(s&&s.symbol)usm[s.symbol]=s})});
   if(us.status!=='fulfilled')errs.push('EE.UU.');
+  // ETFs sectoriales y SPY en vivo (función api/sectores.js de Vercel, que los pide a Yahoo): solo la rueda de hoy
+  if(et.status==='fulfilled'&&Array.isArray(et.value)){const ny=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+    et.value.forEach(s=>{if(s&&s.symbol&&ok(s.c)&&s.day===ny)usm[s.symbol]=s})}
   S.data.us=usm;
   if(cc.status==='fulfilled'&&Array.isArray(cc.value)){const m={};cc.value.forEach(r=>{const v=ok(r.CCL_mark)?r.CCL_mark:(ok(r.CCL_close)?r.CCL_close:null);if(r.ticker_ar&&v)m[r.ticker_ar]=v});S.data.adrCcl=m}
   if(dl.status==='fulfilled'&&Array.isArray(dl.value))S.data.dolares=dl.value;
