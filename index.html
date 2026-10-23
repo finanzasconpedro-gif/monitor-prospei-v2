@@ -500,7 +500,6 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <button class="chip" data-rfs="tamar" disabled title="Próximamente">TAMAR · pronto</button>
       <button class="chip" data-rfs="dl" disabled title="Próximamente">Dólar linked · pronto</button>
     </div>
-    <div class="ticker" id="rf-kpis"></div>
     <div id="rf-new" class="rf-new hide"></div>
     <p class="note rf-disc">Información de mercado con fines informativos. TIR, duration, paridad y sensibilidades calculadas por PROSPEI con el precio en vivo (data912) y el flujo de pagos de cada instrumento. No es recomendación de compra o venta.</p>
 
@@ -2183,19 +2182,7 @@ function rfRowsSob(){
       k?{tir:k.tir,dur:k.dur,md:k.md,conv:k.conv,par:k.par,dnext:k.dnext,next:k.next,pv:k.pv,P:k.P}:{});
   });
 }
-function rfKpis(rows,lbl){
-  const d=S.data,k=[],mep=S.ref.mep,ccl=S.ref.ccl;
-  if(mep)k.push(['Dólar MEP','$ '+fmt(mep.v),'Ref. '+mep.src,null]);
-  if(ccl)k.push(['Dólar cable','$ '+fmt(ccl.v),'Ref. '+ccl.src,null]);
-  if(mep&&ccl)k.push(['Canje',pct(ccl.v/mep.v-1,2),'cable vs MEP',null]);
-  if(d.rp)k.push(['Riesgo país',fmt(d.rp.valor,0)+' pb',d.rp.fecha?'al '+rfFmtD(String(d.rp.fecha).slice(0,10)):'',null]);
-  const R=rows.filter(r=>r.px);
-  const mv=R.slice().sort((a,b)=>(b.volD||b.vol)-(a.volD||a.vol))[0];
-  const ch=R.filter(r=>r.chg!=null).sort((a,b)=>b.chg-a.chg);
-  if(mv)k.push(['Mayor volumen',mv.t,(lbl==='ars'?'$ ':'US$ ')+fmt(mv.px)+' · '+fmtC(mv.volD||mv.vol),null]);
-  if(ch.length){k.push(['Ganador',ch[0].t,pct(ch[0].chg,2),ch[0].chg>=0?'up':'down']);const l=ch[ch.length-1];k.push(['Perdedor',l.t,pct(l.chg,2),l.chg>=0?'up':'down'])}
-  $('#rf-kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v num ${x[3]||''}" style="text-align:left">${esc(x[1])}</div><div class="s ${x[3]||''}">${esc(x[2])}</div></div>`).join('');
-}
+function rfKpis(){} // sin recuadros: dólar y riesgo país ya están en la cabecera del monitor
 function fmtC(v){if(!v)return '—';const a=Math.abs(v);return a>=1e9?fmt(v/1e9,1)+'B':a>=1e6?fmt(v/1e6,1)+'M':a>=1e3?fmt(v/1e3,0)+'K':fmt(v,0)}
 /* curva: puntos + ajuste logarítmico por familia (y = a + b·ln x) */
 function rfFit(pts){const P=pts.filter(p=>p.x>0.15);if(P.length<3)return null;const n=P.length;let sx=0,sy=0,sxx=0,sxy=0;
@@ -2220,7 +2207,7 @@ function rfChart(el,pts,opt){
 function rfHeat(v,mx){mx=mx||0.3;if(v>=0){const a=Math.min(1,v/mx);return `hsl(${55+65*a} 62% ${90-28*a}%)`}const a=Math.min(1,-v/(mx*0.4));return `hsl(${45-45*a} 85% ${86-22*a}%)`}
 function renderRF(){
   if(!$('#t-rf')||$('#t-rf').classList.contains('hide'))return;
-  if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF();else $('#rf-kpis').innerHTML='<p class="note">No se pudo leer rentafija.json.</p>'});return}
+  if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF();else $('#rf-curve').innerHTML='<p class="note">No se pudo leer rentafija.json.</p>'});return}
   rfAviso();
   $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');$('#rf-on').classList.toggle('hide',S.rf.sub!=='on');
   if(S.rf.sub==='tf')return renderRFTasa();
