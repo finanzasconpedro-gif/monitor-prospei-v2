@@ -113,6 +113,7 @@ tr[data-t]{cursor:pointer}
 .vd-Mantener{background:var(--warnbg);color:var(--warn)}
 .vd-Evitar{background:var(--downbg);color:var(--down)}
 .vd-new{background:#e0a800;color:#1a1300;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:4px;margin-left:5px;vertical-align:middle}
+.vd-cons{display:inline-block;margin-left:4px;padding:1px 7px;border-radius:99px;font-size:10.5px;font-weight:600;background:#e0f4f5;color:#0b7a84;vertical-align:1px}
 .verdict-box{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0 4px}
 .verdict-box .vd{font-size:14px;padding:5px 12px}
 .buy-new{border:1px solid #e0a800;background:var(--best);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px}
@@ -273,7 +274,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
           <h2>Comprar hoy</h2>
-          <p class="sub">Cada sector tiene su propio perfil, según lo que funcionó en 10 años de historia: técnico ≥ 65 y fundamental ≥ 60 siempre, más la señal de entrada que sirvió en ese sector. <b>Tecnología, comunicaciones e industriales</b>: corrección con momentum (y crecimiento en tecnología e industriales), valuación con peso bajo. <b>Consumo discrecional</b>: corrección o ruptura, con recorrido a valor justo completo. <b>Utilities, salud y materiales</b>: corrección en tendencia alcista. <b>Energía</b>: corrección, ruptura o giro temprano. <b>Financiero, consumo básico y real estate</b>: ninguna señal le ganó a comprar cualquier día, así que no se marca momento de compra. Además, el perfil tiene que estar <b>confirmado</b>: que cumpla el checklist de su familia o que esté barata contra su propia historia (P/E 30%+ debajo de su mediana de 5 años); en 10 años, el perfil solo no le ganó a comprar cualquier día y con la confirmación sí. Siempre sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días.</p>
+          <p class="sub">Cada sector tiene su propio perfil, según lo que funcionó en 10 años de historia: técnico ≥ 65 y fundamental ≥ 60 siempre, más la señal de entrada que sirvió en ese sector. <b>Tecnología, comunicaciones e industriales</b>: corrección con momentum (y crecimiento en tecnología e industriales), valuación con peso bajo. <b>Consumo discrecional</b>: corrección o ruptura, con recorrido a valor justo completo. <b>Utilities, salud y materiales</b>: corrección en tendencia alcista. <b>Energía</b>: corrección, ruptura o giro temprano. <b>Financiero, consumo básico y real estate</b>: ninguna señal le ganó a comprar cualquier día, así que no se marca momento de compra (salvo el camino conservador, abajo). Además, el perfil tiene que estar <b>confirmado</b>: que cumpla el checklist de su familia o que esté barata contra su propia historia (P/E 30%+ debajo de su mediana de 5 años); en 10 años, el perfil solo no le ganó a comprar cualquier día y con la confirmación sí. Siempre sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días. <b>Conservador</b>: defensivas de calidad (consumo básico, salud y utilities de beta baja y 10 años sin pérdidas) en sobreventa sin perder la tendencia alcista; no buscan ganarle al S&amp;P 500, sino entrar con poco riesgo.</p>
         </div>
         <div id="verdict-count" style="display:flex;gap:4px;flex-wrap:wrap"></div>
       </div>
@@ -815,7 +816,8 @@ const sbar=v=>`<div class="sbar"><i><b style="width:${Math.max(0,Math.min(100,v|
 const cedCell=o=>!o.ced?'<span class="note">—</span>':o.ced.type==='local'?`<span class="ced-ok">BYMA ${o.ced.code}</span>`:`<span class="ced-ok">CEDEAR ${o.ced.ratio}</span>`;
 function passTf(o){return S.tf==='ced'?o.hasCed:S.tf==='latam'?o.region!=='EE.UU.':true}
 const vdCls=v=>'vd vd-'+String(v||'').replace(/ /g,'-');
-const vdChip=o=>o.verdict?`<span class="${vdCls(o.verdict)}" title="${esc(o.verdict_why||'')}">${esc(o.verdict)}</span>${o.verdict_new?'<span class="vd-new">NUEVA</span>':''}`:'—';
+const CONS='<span class="vd-cons" title="Defensiva de calidad en sobreventa: entrada de bajo riesgo para perfiles conservadores">conservador</span>';
+const vdChip=o=>o.verdict?`<span class="${vdCls(o.verdict)}" title="${esc(o.verdict_why||'')}">${esc(o.verdict)}</span>${o.cons?CONS:''}${o.verdict_new?'<span class="vd-new">NUEVA</span>':''}`:'—';
 function renderAudit(){
   const c=$('#audit-card'),A=S.scr&&S.scr.audit_summary;if(!A||!Object.keys(A).length){c.hidden=true;return}
   c.hidden=false;const ks=Object.keys(A),n=new Set(ks.flatMap(k=>A[k])).size;
@@ -942,7 +944,7 @@ function renderBuy(){
   $('#buy-new').querySelectorAll('[data-open]').forEach(a=>a.onclick=e=>{e.preventDefault();openDetail(a.dataset.open)});
   const cols=[
     {k:'fav',h:'',f:o=>star(o.t)},
-    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b>${o.verdict_new?'<span class="vd-new">NUEVA</span>':''}<div class="note">${esc(o.name)}</div>`},
+    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b>${o.cons?CONS:''}${o.verdict_new?'<span class="vd-new">NUEVA</span>':''}<div class="note">${esc(o.name)}</div>`},
     {k:'verdict_why',h:'Por qué',f:o=>`<span class="note">${esc(o.verdict_why)}</span>`},
     {k:'score',h:'Puntaje',f:o=>sbar(o.score)},
     {k:'fair_up',h:'Recorrido',n:1,f:o=>o.fair_up==null?'—':`<b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>`},
@@ -1522,7 +1524,7 @@ function openDetail(t){
       <div class="bigscore" style="background:${scoreCol(o.score)}"><b>${Math.round(o.score)}</b><small>Puntaje PROSPEI</small></div>
       <button class="chip no-print" id="pdf-btn" data-t="${esc(o.t)}" style="align-self:center" title="Descargar la ficha en PDF">⬇ Descargar PDF</button>
     </div>
-    ${o.verdict?`<div class="verdict-box"><span class="${vdCls(o.verdict)}">${esc(o.verdict)}</span><div><div style="font-size:13.5px">${esc(o.verdict_why)}</div>${o.verdict_prev&&o.verdict_prev!==o.verdict?`<div class="note">Ayer: ${esc(o.verdict_prev)}</div>`:''}</div></div>`:''}
+    ${o.verdict?`<div class="verdict-box"><span class="${vdCls(o.verdict)}">${esc(o.verdict)}</span>${o.cons?CONS:''}<div><div style="font-size:13.5px">${esc(o.verdict_why)}</div>${o.verdict_prev&&o.verdict_prev!==o.verdict?`<div class="note">Ayer: ${esc(o.verdict_prev)}</div>`:''}</div></div>`:''}
     ${o.perfil&&o.perfil.txt?`<div class="note" style="margin:-2px 0 10px">🧭 Perfil del sector · <b>${esc(o.perfil.fam)}</b> — ${esc(o.perfil.txt)}${o.perfil.edge?'':' El veredicto máximo en este sector es Vigilar.'}</div>`:''}
     ${o.lights?`<div class="semaf">${['cal','val','tec','evt'].map(k=>{const v=o.lights[k];return `<div><i class="l${v==null?'null':v}"></i><span><b>${LIGHTN[k]}</b><br><span class="note">${v==null?'sin dato':lightTxt[k][v]}</span></span></div>`}).join('')}</div>`:''}
     ${alertTags(o)?`<div style="margin-bottom:6px">${alertTags(o)}</div>`:''}
