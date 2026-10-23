@@ -283,6 +283,21 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Ver también las de <b>Comprar en partes</b> (entrada escalonada con stop)</summary>
         <div class="tw" style="margin-top:8px"><table id="tb-part"></table></div></details>
     </div>
+    <div class="card" id="ovs-card">
+      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px">
+          <h2>Sobreventa con tendencia alcista</h2>
+          <p class="sub">Acciones de <b>Consumo básico (XLP), Industrial (XLI), Salud (XLV) y Financiero (XLF)</b> (o de todos los sectores) que cayeron a sobreventa sin perder la tendencia de fondo: RSI bajo y precio arriba de su media de 200 días (o hasta 10% debajo, con la media todavía subiendo). Es una lista para mirar, no un veredicto: el veredicto del monitor está en su columna. Las marcadas <span class="vd-cons" style="margin:0">calidad</span> son defensivas de calidad: en ellas, con RSI menor a 35, esta entrada acertó 71% de las veces a 12 meses en 10 años.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <div id="ovs-rsi" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="chip on" data-v="35">RSI &lt; 35</button><button class="chip" data-v="40">RSI &lt; 40</button><button class="chip" data-v="45">RSI &lt; 45</button></div>
+          <div id="ovs-sec" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="chip on" data-v="">XLP, XLI, XLV y XLF</button><button class="chip" data-v="*">Todos los sectores</button></div>
+          <label class="note" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="ovs-grp" checked> Agrupar por sector</label>
+        </div>
+      </div>
+      <div id="ovs-ind" style="margin:6px 0 10px"></div>
+      <div id="ovs-body"></div>
+    </div>
     <div class="card">
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
@@ -572,7 +587,7 @@ function parseRatio(s){const m=String(s).match(/^\s*(\d+(?:[.,]\d+)?)\s*:\s*(\d+
 async function getJ(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(url+' → '+r.status);return r.json()}
 
 /* ---------- state ---------- */
-const S={data:{},ref:{},sort:{buy:['score',-1],part:['score',-1],acc:['vol',-1],mep:['liq',-1],ced:['desv',1],top:['rank',1],uni:['score',-1],vm:['fair_up',-1],fh:['pc',1]},
+const S={data:{},ref:{},sort:{buy:['score',-1],part:['score',-1],acc:['vol',-1],mep:['liq',-1],ced:['desv',1],top:['rank',1],uni:['score',-1],vm:['fair_up',-1],fh:['pc',1],ovs:['rsi',1]},
   fav:new Set(store('fav')||[]),ratioOv:store('ratios')||{},pa:'lider',lq:'1',cf:'all',cclsrc:'bono'};
 function saveFav(){store('fav',[...S.fav])}
 
@@ -596,7 +611,7 @@ function table(el,key,cols,rows,rowCls,limit){
   if(!r.length)h+=`<tr><td colspan="${cols.length}" class="note" style="text-align:center;padding:20px">Sin datos para mostrar.</td></tr>`;
   r.forEach(o=>{h+=`<tr class="${rowCls?rowCls(o):''}"${o.t?` data-t="${o.t}"`:''}>`+cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(o):(o[c.k]??'—')}</td>`).join('')+'</tr>'});
   el.innerHTML=h+'</tbody>';
-  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab})[key]()});
+  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab,ovs:renderOvs})[key]()});
   el.querySelectorAll('.star').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=b.dataset.s;S.fav.has(s)?S.fav.delete(s):S.fav.add(s);saveFav();renderAcc();renderCed();renderTop();renderUni()});
   el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t));
   el.querySelectorAll('.edit').forEach(b=>b.onclick=e=>{e.stopPropagation();editRatio(b.dataset.s)});
@@ -956,7 +971,51 @@ function renderBuy(){
   table($('#tb-buy'),'buy',cols,buy);
   if(!buy.length)$('#tb-buy').innerHTML='<tbody><tr><td class="note" style="padding:16px;text-align:center">Hoy ninguna acción cumple los criterios de su sector. Es normal: es un filtro exigente. Mirá las de <b>Comprar en partes</b> o el top 30.</td></tr></tbody>';
   table($('#tb-part'),'part',cols,all.filter(o=>o.verdict==='Comprar en partes').sort((a,b)=>b.score-a.score));
+  renderOvs();
 }
+/* ---------- sobreventa con tendencia alcista ---------- */
+S.ovsR=35;S.ovsS='';S.ovsF=null;
+const OVS_SECT=['Consumo básico','Industrial','Salud','Financiero'],
+  OVS_ETF={'Consumo básico':'XLP','Industrial':'XLI','Salud':'XLV','Financiero':'XLF','Tecnología':'XLK','Energía':'XLE','Materiales':'XLB','Utilities':'XLU','Comunicaciones':'XLC','Consumo discrecional':'XLY','Real estate':'XLRE'};
+function renderOvs(){
+  const box=$('#ovs-body');if(!box||!S.scr)return;
+  const secs=S.ovsS==='*'?Object.keys(OVS_ETF):OVS_SECT;
+  const US=S.scr.rows.filter(r=>r.region==='EE.UU.'&&secs.includes(r.sector));
+  // tendencia alcista: arriba de su media de 200, o a menos de 10% debajo con la media todavía subiendo
+  const hit=r=>r.rsi!=null&&r.rsi<S.ovsR&&r.p!=null&&r.sma200!=null&&(r.p>r.sma200||(r.slope200_pct!=null&&r.slope200_pct>0&&r.p>=0.9*r.sma200));
+  const all=US.filter(hit);
+  // indicador: cuántas acciones de cada sector están en sobreventa con tendencia alcista
+  const ind=secs.map(sec=>{const n=US.filter(r=>r.sector===sec).length,k=all.filter(r=>r.sector===sec).length;return {sec,n,k,f:n?k/n:0}}).sort((a,b)=>b.f-a.f||b.k-a.k);
+  const mx=Math.max(0.05,...ind.map(x=>x.f));
+  $('#ovs-ind').innerHTML=`<div class="note" style="margin-bottom:4px">Cuántas acciones de cada sector están en esta situación (tocá un sector para ver solo ese):</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 14px">${ind.map(x=>`<button class="ovs-i${S.ovsF===x.sec?' on':''}" data-s="${esc(x.sec)}" style="all:unset;cursor:pointer;display:grid;grid-template-columns:150px 1fr 54px;gap:6px;align-items:center;padding:3px 4px;border-radius:6px;${S.ovsF===x.sec?'background:var(--accent-bg,#eef2ff)':''}">
+      <span style="font-size:13px">${esc(x.sec)} <span class="note">${OVS_ETF[x.sec]}</span></span>
+      <span style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${(x.f/mx*100).toFixed(0)}%;background:#0e9aa7;border-radius:4px"></i></span>
+      <span class="num" style="font-size:12.5px;text-align:right"><b>${x.k}</b> <span class="note">de ${x.n}</span></span></button>`).join('')}</div>`;
+  $$('#ovs-ind .ovs-i').forEach(b=>b.onclick=()=>{S.ovsF=S.ovsF===b.dataset.s?null:b.dataset.s;renderOvs()});
+  const rows=all.filter(r=>!S.ovsF||r.sector===S.ovsF).map(r=>Object.assign(enrich(r),{d200:r.p/r.sma200-1}));
+  const cols=[
+    {k:'fav',h:'',f:o=>star(o.t)},
+    {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b>${o.dq_q?'<span class="vd-cons">calidad</span>':''}<div class="note">${esc(o.name)}</div>`},
+    {k:'rsi',h:'RSI',n:1,f:o=>`<b>${fmt(o.rsi,0)}</b>`},
+    {k:'d200',h:'Sobre su media de 200',n:1,f:o=>`<span class="${cls(o.d200)}">${pct(o.d200,1)}</span>`},
+    {k:'dd',h:'Desde su máximo',n:1,f:o=>o.dd==null?'—':`<span class="down">${pct(o.dd,1)}</span>`},
+    {k:'beta',h:'Beta',n:1,f:o=>o.beta==null?'—':fmt(o.beta,2)},
+    {k:'px',h:'Precio US$',n:1,f:o=>fmt(o.px)},
+    {k:'verdict',h:'Monitor',f:o=>vdChip(o)},
+    {k:'hasCed',h:'Argentina',f:cedCell}
+  ];
+  if(!rows.length){box.innerHTML=`<p class="note" style="padding:12px;text-align:center">Hoy ninguna acción ${S.ovsF?'de '+esc(S.ovsF):'de estos sectores'} está con RSI menor a ${S.ovsR} sin perder la tendencia alcista.${S.ovsR<45?' Probá con un RSI más alto para ver las que se están acercando.':''}</p>`;return}
+  const grp=$('#ovs-grp').checked&&!S.ovsF;
+  if(!grp){box.innerHTML='<div class="tw"><table id="tb-ovs"></table></div>';table($('#tb-ovs'),'ovs',[cols[0],cols[1],{k:'sector',h:'Sector',f:o=>`${esc(o.sector)} <span class="note">${OVS_ETF[o.sector]||''}</span>`},...cols.slice(2)],rows);return}
+  const by={};rows.forEach(o=>(by[o.sector]=by[o.sector]||[]).push(o));
+  const order=Object.keys(by).sort((a,b)=>by[b].length-by[a].length);
+  box.innerHTML=order.map((sec,i)=>`<h3 style="margin:${i?14:4}px 0 4px;font-size:14px">${esc(sec)} <span class="note">${OVS_ETF[sec]} · ${by[sec].length} ${by[sec].length===1?'acción':'acciones'}</span></h3><div class="tw"><table id="tb-ovs-${i}"></table></div>`).join('');
+  order.forEach((sec,i)=>table($('#tb-ovs-'+i),'ovs',cols,by[sec]));
+}
+$$('#ovs-rsi .chip').forEach(b=>b.onclick=()=>{$$('#ovs-rsi .chip').forEach(x=>x.classList.toggle('on',x===b));S.ovsR=+b.dataset.v;renderOvs()});
+$$('#ovs-sec .chip').forEach(b=>b.onclick=()=>{$$('#ovs-sec .chip').forEach(x=>x.classList.toggle('on',x===b));S.ovsS=b.dataset.v;S.ovsF=null;renderOvs()});
+$('#ovs-grp').onchange=renderOvs;
 function renderTop(){
   const el=$('#tb-top');if(!S.scr){el.innerHTML='';return}
   let rows=S.scr.rows.filter(r=>r.elig).map(enrich).filter(passTf).sort((a,b)=>b.score-a.score).slice(0,S.scr.top_n||30);
