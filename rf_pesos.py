@@ -1,8 +1,8 @@
 """
 Bonos y letras en pesos que ajustan por CER, TAMAR o dólar linked (GitHub Actions, rfpesos.yml).
 
-1) Lista: todos los bonos y letras de data912 (/live/arg_bonds y /live/arg_notes) que no son soberanos en dólares,
-   BOPREAL ni LECAP/BONCAP (esos ya están en rentafija.json).
+1) Lista: bonos y letras del Tesoro en pesos de data912 (/live/arg_bonds y /live/arg_notes), por ticker:
+   CER (TZX.., TX.., Lecer X.., Discount, Par, Cuasipar), dólar linked (Lelink D.., TZV..) y TAMAR / duales.
 2) Ficha de cada uno en Rava: nombre, tipo, flujo de pagos, TIR y duration.
 3) Índice CER y tasa TAMAR del BCRA (últimos 120 días).
 Guarda rf_pesos.json (lo lee el monitor) y rf_pesos_debug.json (qué se leyó de cada uno).
@@ -14,11 +14,15 @@ import time
 
 import requests
 
-from on_update import UA, texto, flujo_de_texto, num
+from on_update import UA, texto, num
 
 HOY = dt.date.today()
-SOB_USD = re.compile(r"^(AL|GD|AE|AO|AN)\d{2}[DC]?$|^BP")
-LECAP = re.compile(r"^[ST]\d{2}[A-Z]\d$")
+TIPOS = [
+    ("CER", re.compile(r"^(TZX[A-Z0-9]\d|TX\d{2}|X\d{2}[A-Z]\d|DICP|DIP0|PARP|PAP0|CUAP)$")),
+    ("DL", re.compile(r"^(D\d{2}[A-Z]\d|TZV\d{2}|TZV[A-Z]\d)$")),
+    ("DUAL", re.compile(r"^(TXM[A-Z]\d|TT[A-Z]\d{2}|TMVE\d)$")),
+    ("TAMAR", re.compile(r"^(TM[A-Z]\d{2}|M\d{2}[A-Z]\d)$")),
+]
 
 
 def data912():
@@ -34,30 +38,37 @@ def data912():
     return out
 
 
+def tipo_de(t):
+    for k, rx in TIPOS:
+        if rx.match(t):
+            return k
+    return None
+
+
 def candidatos(q):
-    c = []
-    for s, x in q.items():
-        if SOB_USD.match(s) or LECAP.match(s):
-            continue
-        if s.endswith(("D", "C")) and s[:-1] in q:   # especie en dólares de un bono en pesos: se usa la de pesos
-            continue
-        if not (x.get("c") or 0) > 0:
-            continue
-        c.append(s)
-    return sorted(c)
+    return sorted(s for s, x in q.items() if tipo_de(s) and (x.get("c") or 0) > 0)
 
 
-def tipo(nombre, tx):
-    n = (nombre + " " + tx[:3000]).upper()
-    if "DUAL" in n:
-        return "DUAL"
-    if "TAMAR" in n or "BADLAR" in n:
-        return "TAMAR"
-    if "LINKED" in n or "LELINK" in n or "D.LINK" in n or "DÓLAR LINK" in n or "DOLAR LINK" in n:
-        return "DL"
-    if "CER" in n or "BONCER" in n or "LECER" in n or "DISCOUNT" in n or "PAR $" in n or "CUASIPAR" in n:
-        return "CER"
-    return "OTRO"
+NUM = r"-?[\d.]*\d,\d+(?![\d/])"
+
+
+def flujo(tx):
+    """Tabla 'Fecha Interés Amort. Total [Saldo]' de Rava -> [fecha, interés, amortización]."""
+    k = tx.find("Fecha Interés Amort. Total")
+    if k < 0:
+        return []
+    seg = tx[k:k + 6000]
+    fin = seg.find("Flujo actualizado")
+    seg = seg[:fin] if fin > 0 else seg
+    rows = []
+    for m in re.finditer(r"(\d{2}/\d{2}/\d{4})((?:\s+(?:%s)){3,4})" % NUM, seg):
+        n = [num(x) for x in m.group(2).split()]
+        d, mo, y = m.group(1).split("/")
+        i, a, tot = n[0], n[1], n[2]
+        if abs(i + a - tot) > max(0.02, tot * 0.002):
+            continue
+        rows.append([f"{y}-{mo}-{d}", i, a])
+    return rows
 
 
 def ficha(t):
@@ -68,18 +79,17 @@ def ficha(t):
     h = r.text
     tx = texto(h)
     m = re.search(r"<title>(.*?)</title>", h, re.S)
-    nombre = re.sub(r"\s*\|.*$", "", (m.group(1) if m else "")).strip()
-    nombre = re.sub(r"^\S+\s+", "", nombre)
-    nombre = re.sub(r"\s+\$\s?[\d.,]+.*$", "", nombre).strip()
+    n2 = re.search(r"(?:Bono|Letra|Obligación negociable)\s+" + re.escape(t) + r"\s+(?:" + re.escape(t) + r"\s+)?(.{2,80}?)\s+[\d.]+,\d+\s+-?[\d,]*%", tx)
+    nombre = n2.group(1).strip() if n2 else t
     k = tx.find("Flujo de fondos")
     info["nombre"] = nombre
     info["texto_flujo"] = tx[max(0, k - 700):k + 900] if k >= 0 else tx[:1200]
-    rows = flujo_de_texto(tx)
+    rows = flujo(tx)
     tir = re.search(r"TIR\s*:?\s*(-?\d+,\d+)\s*%", tx)
     dur = re.search(r"Duration[^0-9]{0,30}(\d+,\d+)", tx, re.I)
     nota = re.search(r"(Pagos futuros[^.]{0,200}\.)", tx)
-    act = re.search(r"actualizad\w*\s+(?:al\s+)?(\d{2}/\d{2}/\d{4})", tx, re.I)
-    b = {"t": t, "nombre": nombre, "tipo": tipo(nombre, tx),
+    act = re.search(r"Flujo actualizado al (\d{2}/\d{2}/\d{4})", tx)
+    b = {"t": t, "nombre": nombre, "tipo": tipo_de(t),
          "tir_rava": num(tir.group(1)) if tir else None, "dur_rava": num(dur.group(1)) if dur else None,
          "nota": nota.group(1) if nota else None, "flujo_al": act.group(1) if act else None,
          "flows": [x for x in rows if x[0] > HOY.isoformat()]}
@@ -118,10 +128,10 @@ def main():
             info, b = ficha(t)
         except Exception as e:
             info, b = {"t": t, "error": str(e)}, None
-        if i >= 8 and info.get("tipo") not in ("CER", "TAMAR", "DL", "DUAL"):
+        if info.get("tipo") == "CER" and info.get("n_flujos"):
             info.pop("texto_flujo", None)
         debug.append(info)
-        if b and b["tipo"] != "OTRO" and b["flows"]:
+        if b and b["flows"]:
             b["v"] = q.get(t, {}).get("v")
             bonos.append(b)
         print(t, info.get("http"), info.get("tipo"), info.get("n_flujos"))
