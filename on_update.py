@@ -413,7 +413,9 @@ def completar(on):
         regs = sorted(f[1] / f[3] for f in fl[1:] if f[3] > 0) or [fl[0][1] / max(fl[0][3], 1e-9)]
         on["cup"] = round(regs[len(regs) // 2] * per * 100, 2)
     if not on.get("emp"):
-        on["emp"] = nom
+        # "Clase 4", "Serie XXIII"...: se toma la empresa de otra ON del mismo emisor (mismas dos primeras letras)
+        par = next((m["emp"] for m in META if m["t"][:2] == on["t"][:2]), None)
+        on["emp"] = par if par and re.match(r"(?i)(clase|serie)\b", nom) else (nom or par or on["t"])
     if not on.get("venc") and fl:
         on["venc"] = fl[-1][0]
     on.pop("texto_ficha", None)
