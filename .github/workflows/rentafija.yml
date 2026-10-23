@@ -1,0 +1,61 @@
+name: Renta fija PROSPEI
+
+on:
+  schedule:
+    - cron: "17 13 * * 1,4"   # lunes y jueves 10:17 hora Argentina (después de las licitaciones)
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: "Carga manual (opcional): ticker de la letra, ej. S31D6. Vacío = búsqueda automática"
+        required: false
+        default: ""
+      tipo:
+        description: "LECAP o BONCAP"
+        required: false
+        default: "LECAP"
+      emision:
+        description: "Fecha de emisión original (dd/mm/aaaa)"
+        required: false
+        default: ""
+      vencimiento:
+        description: "Fecha de vencimiento (dd/mm/aaaa)"
+        required: false
+        default: ""
+      tem:
+        description: "TEM de emisión en %, ej. 2,25"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rentafija
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Actualizar letras
+        env:
+          RF_TICKER: ${{ github.event.inputs.ticker }}
+          RF_TIPO: ${{ github.event.inputs.tipo }}
+          RF_EMISION: ${{ github.event.inputs.emision }}
+          RF_VENC: ${{ github.event.inputs.vencimiento }}
+          RF_TEM: ${{ github.event.inputs.tem }}
+        run: python rf_update.py
+      - name: Guardar cambios
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add rentafija.json rf_auto_log.json 2>/dev/null || true
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza renta fija $(date -u +'%Y-%m-%d %H:%M')"
+          git pull --rebase
+          git push
