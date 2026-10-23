@@ -551,6 +551,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <div id="rf-on" class="hide">
       <div class="card">
         <div class="rf-filt">
+          <label class="rf-fg"><span class="l">Industria</span><select id="on-ind"><option value="">Todas</option></select></label>
           <label class="rf-fg"><span class="l">Empresa</span><select id="on-emp"><option value="">Todas</option></select></label>
           <label class="rf-fg"><span class="l">Ley</span><select id="on-ley"><option value="">Todas</option><option value="ARG">Argentina</option><option value="NY">Nueva York</option></select></label>
           <label class="rf-fg"><span class="l">Moneda de pago</span><select id="on-mon"><option value="">Todas</option><option value="MEP">MEP</option><option value="CABLE">Cable</option></select></label>
@@ -2301,7 +2302,10 @@ $('#rf-sim-add').onclick=()=>{const t=($('#rf-sim-t').value||'SIM').trim().toUpp
 $('#rf-xls').onclick=()=>rfCSV(S.rfLastRows||[],[['Ticker',r=>r.t],['Familia',r=>r.fam],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Paridad %',r=>n2(r.par!=null?r.par*100:null,1)],['MD',r=>n2(r.md)],['Duration',r=>n2(r.dur)],['Convexidad',r=>n2(r.conv,1)],['Frecuencia',r=>r.freq],['Vencimiento',r=>rfFmtD(r.venc)],['Ley',r=>r.ley],['Volumen',r=>r.vol||'']],'soberanos_'+S.rf.cur+'.csv');
 $('#rf-tf-xls').onclick=()=>rfCSV(S.rfLastTF||[],[['Ticker',r=>r.t],['Familia',r=>r.fam],['Precio',r=>n2(r.px)],['Vencimiento',r=>rfFmtD(r.venc)],['Días',r=>r.dias],['Valor final',r=>n2(r.vf)],['TEM %',r=>n2(r.tem!=null?r.tem*100:null)],['TNA %',r=>n2(r.tna!=null?r.tna*100:null)],['TEA %',r=>n2(r.tea!=null?r.tea*100:null)],['Rend. directo %',r=>n2(r.rend!=null?r.rend*100:null)],['Volumen',r=>r.vol||'']],'tasa_fija.csv');
 /* ---------- ONs ---------- */
-async function loadONDef(){if(S.onDef)return S.onDef;try{S.onDef=await getJ('ons.json?v='+Date.now())}catch(e){S.onDef=null}return S.onDef}
+const ON_IND={"YPF": "Oil & Gas", "PAE": "Oil & Gas", "Vista": "Oil & Gas", "Vista Energy": "Oil & Gas", "Pluspetrol": "Oil & Gas", "Tecpetrol": "Oil & Gas", "CGC": "Oil & Gas", "Crown Point": "Oil & Gas", "Petrolera Aconcagua": "Oil & Gas", "PECOM": "Oil & Gas", "Oleoductos Del Valle": "Oil & Gas", "Oiltanking": "Oil & Gas", "Otamerica": "Oil & Gas", "TGS": "Oil & Gas", "VMOS": "Oil & Gas", "Capex": "Oil & Gas", "Petroquimica Comodoro Rivadavia": "Oil & Gas", "Mega": "Oil & Gas", "Pampa": "Energía eléctrica y gas", "Central Puerto": "Energía eléctrica y gas", "Edenor": "Energía eléctrica y gas", "Edesa": "Energía eléctrica y gas", "EDEMSA": "Energía eléctrica y gas", "Genneia": "Energía eléctrica y gas", "MSU ENERGY": "Energía eléctrica y gas", "MSU GREEN": "Energía eléctrica y gas", "AES Argentina": "Energía eléctrica y gas", "Gemsa": "Energía eléctrica y gas", "Generacion Litoral": "Energía eléctrica y gas", "360 Energy": "Energía eléctrica y gas", "Luz De Tres Picos": "Energía eléctrica y gas", "Ypf Electrica": "Energía eléctrica y gas", "Camuzzi": "Energía eléctrica y gas", "Banco Bbva": "Bancos y financieras", "Banco Comafi": "Bancos y financieras", "Banco De Valores": "Bancos y financieras", "Banco Galicia": "Bancos y financieras", "Banco Hipotecario": "Bancos y financieras", "Banco Macro": "Bancos y financieras", "Banco Mariva": "Bancos y financieras", "Banco Patagonia": "Bancos y financieras", "Banco Superviell": "Bancos y financieras", "Banco Supervielle": "Bancos y financieras", "Bst": "Bancos y financieras", "Tarjeta Naranja": "Bancos y financieras", "John Deere Credit": "Bancos y financieras", "Scania Credit": "Bancos y financieras", "Cnh": "Bancos y financieras", "Telecom": "Telecomunicaciones", "IRSA": "Agro y real estate", "Cresud": "Agro y real estate", "San Miguel": "Agro y real estate", "Fyo": "Agro y real estate", "Rizobacter": "Agro y real estate", "Ledesma": "Agro y real estate", "Inversora Juramento": "Agro y real estate", "Inversora": "Agro y real estate", "Arcor": "Consumo", "Mastellone": "Consumo", "Havanna 2028": "Consumo", "Havanna": "Consumo", "Farmacity": "Consumo", "Mirgor": "Consumo", "Aluar": "Industria y construcción", "Loma Negra": "Industria y construcción", "Sidersa": "Industria y construcción", "Profertil": "Industria y construcción", "Clisa": "Industria y construcción", "AA2000": "Infraestructura y logística", "Plaza Logistica": "Infraestructura y logística", "Minera Exar": "Minería"};
+function onPrep(D){const byP={};D.ons.forEach(o=>{const e=o.emp||o.nombre||'';if(!/^(clase|serie)\b/i.test(e)&&ON_IND[e])byP[o.t.slice(0,2)]=e});
+  D.ons.forEach(o=>{let e=o.emp||o.nombre||o.t;if(/^(clase|serie)\b/i.test(e)&&byP[o.t.slice(0,2)])e=byP[o.t.slice(0,2)];if(e==='Banco Superviell')e='Banco Supervielle';if(e==='Vista Energy')e='Vista';if(e==='Inversora')e='Inversora Juramento';if(e==='Havanna 2028')e='Havanna';o.emp=e;o.ind=ON_IND[e]||ON_IND[byP[o.t.slice(0,2)]]||'Otros'});return D}
+async function loadONDef(){if(S.onDef)return S.onDef;try{S.onDef=onPrep(await getJ('ons.json?v='+Date.now()))}catch(e){S.onDef=null}return S.onDef}
 const ON_PER={Mensual:12,Trimestral:4,Semestral:2,Anual:1};
 function onCalc(o,price,st){
   if(!(price>0))return null;
@@ -2326,7 +2330,7 @@ function onRows(cur){
     else if(cur==='cable'){q=qC||qD;px=q&&q.x.c;usd=px}
     else{q=qD;px=qD&&qD.x.c;usd=px;if(!qD&&qO&&mep){q=qO;usd=qO.x.c/mep;px=usd}}
     const k=usd?onCalc(o,usd,st):null;
-    return Object.assign({t:o.t,emp:o.emp||o.nombre||'',nombre:o.nombre,ley:o.ley||'',mon:o.mon||'',calif:o.calif||'',lam:o.lam||'',cup:o.cup,frec:o.frec||'',venc:o.venc,
+    return Object.assign({t:o.t,emp:o.emp||o.nombre||'',ind:o.ind,nombre:o.nombre,ley:o.ley||'',mon:o.mon||'',calif:o.calif||'',lam:o.lam||'',cup:o.cup,frec:o.frec||'',venc:o.venc,
       g:o.ley==='NY'?'Ley NY':'Ley Arg.',sym:q?q.s:null,px:px||null,usd:usd||null,
       chg:q&&q.x.pct_change!=null?q.x.pct_change/100:null,vol:q&&ok(q.x.v)?q.x.v:0,volD:qD&&ok(qD.x.v)?qD.x.v:0},k||{});
   });
@@ -2335,10 +2339,11 @@ function renderON(){
   if(!S.onDef){loadONDef().then(d=>{if(d)renderON();else $('#on-curve').innerHTML='<p class="note">No se pudo leer ons.json (corré la tarea "ONs PROSPEI" en GitHub).</p>'});return}
   if(!S.data.corp){$('#on-curve').innerHTML='<p class="note" style="padding:20px;text-align:center">Cargando precios de ONs…</p>';return}
   const cur=S.rf.onCur,rows=onRows(cur);rfKpis(rows,cur);
+  const si=$('#on-ind');if(si.options.length<=1){const iv=[...new Set(S.onDef.ons.map(o=>o.ind))].sort((a,b)=>a==='Otros'?1:b==='Otros'?-1:a.localeCompare(b,'es'));si.innerHTML='<option value="">Todas</option>'+iv.map(e=>`<option>${esc(e)}</option>`).join('')}
   const se=$('#on-emp');if(se.options.length<=1){const em=[...new Set(S.onDef.ons.map(o=>o.emp||o.nombre).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));se.innerHTML='<option value="">Todas</option>'+em.map(e=>`<option>${esc(e)}</option>`).join('')}
   const nv=id=>{const v=$(id).value;return v===''?null:+v};
-  const emp=$('#on-emp').value,ley=$('#on-ley').value,mon=$('#on-mon').value,tmin=nv('#on-tmin'),tmax=nv('#on-tmax'),dmin=nv('#on-dmin'),dmax=nv('#on-dmax');
-  const inF=r=>(!emp||r.emp===emp)&&(!ley||r.ley===ley)&&(!mon||r.mon===mon);
+  const ind=$('#on-ind').value,emp=$('#on-emp').value,ley=$('#on-ley').value,mon=$('#on-mon').value,tmin=nv('#on-tmin'),tmax=nv('#on-tmax'),dmin=nv('#on-dmin'),dmax=nv('#on-dmax');
+  const inF=r=>(!ind||r.ind===ind)&&(!emp||r.emp===emp)&&(!ley||r.ley===ley)&&(!mon||r.mon===mon);
   const inT=r=>r.tir!=null&&(tmin==null||r.tir*100>=tmin)&&(tmax==null||r.tir*100<=tmax)&&(dmin==null||r.dur>=dmin)&&(dmax==null||r.dur<=dmax);
   const rm=cur==='mep'?rows:onRows('mep');
   const pts=rm.filter(r=>inF(r)&&inT(r)&&r.dur>0.05).map(r=>({t:r.t,x:r.dur,y:r.tir,g:r.g})).concat(S.rf.onSim.map(s=>({t:s.t,x:s.d,y:s.y,g:'Simulado'})));
@@ -2349,6 +2354,7 @@ function renderON(){
   const cols=[
     {k:'t',h:'Ticker',f:o=>`<b title="${esc(o.nombre||'')}">${esc(o.sym||o.t)}</b>`},
     {k:'emp',h:'Empresa',f:o=>esc(o.emp)},
+    {k:'ind',h:'Industria',f:o=>`<span class="note">${esc(o.ind||'')}</span>`},
     {k:'px',h:'Precio',n:1,f:o=>o.px?sym+fmt(o.px,2):'—'},
     {k:'chg',h:'Var %',n:1,f:o=>o.chg==null?'—':`<span class="${cls(o.chg)}">${pct(o.chg,2)}</span>`},
     {k:'tir',h:'TIR',n:1,f:o=>o.tir==null?'—':`<b>${fmt(o.tir*100,2)}%</b>`},
@@ -2369,11 +2375,11 @@ function renderON(){
   S.onLast=T;
 }
 $$('[data-onc]').forEach(b=>b.onclick=()=>{$$('[data-onc]').forEach(x=>x.classList.toggle('on',x===b));S.rf.onCur=b.dataset.onc;renderRF()});
-['#on-emp','#on-ley','#on-mon'].forEach(id=>$(id).onchange=renderRF);
+['#on-ind','#on-emp','#on-ley','#on-mon'].forEach(id=>$(id).onchange=renderRF);
 ['#on-tmin','#on-tmax','#on-dmin','#on-dmax','#on-q'].forEach(id=>$(id).oninput=renderRF);
-$('#on-clear').onclick=()=>{['#on-emp','#on-ley','#on-mon','#on-dmin','#on-dmax','#on-q'].forEach(id=>$(id).value='');$('#on-tmin').value=-10;$('#on-tmax').value=15;S.rf.onSim=[];renderRF()};
+$('#on-clear').onclick=()=>{['#on-ind','#on-emp','#on-ley','#on-mon','#on-dmin','#on-dmax','#on-q'].forEach(id=>$(id).value='');$('#on-tmin').value=-10;$('#on-tmax').value=15;S.rf.onSim=[];renderRF()};
 $('#on-sim-add').onclick=()=>{const t=($('#on-sim-t').value||'SIM').trim().toUpperCase(),y=+$('#on-sim-y').value,d=+$('#on-sim-d').value;if(!(d>0)||!isFinite(y))return;S.rf.onSim.push({t,y:y/100,d});$('#on-sim-t').value='';renderRF()};
-$('#on-xls').onclick=()=>rfCSV(S.onLast||[],[['Ticker',r=>r.sym||r.t],['Empresa',r=>r.emp],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Paridad %',r=>n2(r.par!=null?r.par*100:null,1)],['MD',r=>n2(r.md)],['Duration',r=>n2(r.dur)],['Vencimiento',r=>rfFmtD(r.venc)],['Cupón %',r=>n2(r.cup)],['Frecuencia',r=>r.frec],['Moneda',r=>r.mon],['Calificación',r=>r.calif],['Ley',r=>r.ley],['Lámina',r=>r.lam],['Volumen',r=>r.vol||'']],'ons_'+S.rf.onCur+'.csv');
+$('#on-xls').onclick=()=>rfCSV(S.onLast||[],[['Ticker',r=>r.sym||r.t],['Empresa',r=>r.emp],['Industria',r=>r.ind],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Paridad %',r=>n2(r.par!=null?r.par*100:null,1)],['MD',r=>n2(r.md)],['Duration',r=>n2(r.dur)],['Vencimiento',r=>rfFmtD(r.venc)],['Cupón %',r=>n2(r.cup)],['Frecuencia',r=>r.frec],['Moneda',r=>r.mon],['Calificación',r=>r.calif],['Ley',r=>r.ley],['Lámina',r=>r.lam],['Volumen',r=>r.vol||'']],'ons_'+S.rf.onCur+'.csv');
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- carga ---------- */
 let loading=false;
