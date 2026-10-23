@@ -78,13 +78,20 @@ VARIANTS = {
     "NT": "Motor sin Comprar pleno: todos los caminos de producción menos T (barata contra su historia, checklists y giro temprano)",
     "NTQ": "Motor solo con los caminos fuertes: barata contra su historia (Y) y checklists de crecimiento y cíclicas (CR, CI)",
     "PR2": "Motor de producción con el Comprar endurecido: T2 en lugar de T, más Y, CR, CI y giro temprano (Q)",
+    "DQ0": "Defensivas de calidad, comprando cualquier día (referencia): consumo básico, salud o utilities con beta < 0,8, volatilidad < 25%, ganancia positiva en los últimos 5 a 10 años y ventas sin caer más de 5%",
+    "DQ1": "Defensivas de calidad en sobreventa: RSI < 35 con el precio arriba de su media de 200 días o la media de 200 todavía subiendo",
+    "DQ2": "Defensivas de calidad con bajón corto: caen 5% a 10% desde su máximo de 3 meses sin perder la media de 200 días",
+    "DQ3": "Defensivas de calidad que tocan su media de 200 días (±2% en la última semana) y rebotan arriba de ella",
+    "DQX": "Defensivas de calidad: cualquiera de las tres señales (DQ1, DQ2 o DQ3)",
     "PR3": "Motor nuevo propuesto (octubre 2026): Comprar endurecido (T2) más Comprar en partes por barata contra su historia (Y) y checklists de crecimiento y cíclicas (CR, CI), sin giro temprano",
     "PRD": "Motor anterior (hasta octubre de 2026): Comprar o Comprar en partes por cualquiera de sus caminos: perfil del sector (T), vía barata en consumo discrecional, industrial y salud (Y), crecimiento y cíclicas castigadas (CR, CI) y giro temprano con fundamentos en industrial, energía y consumo discrecional (Q)",
 }
 VARIANTS.pop("_", None)
 KEYS = ("A", "B", "C", "D", "E", "F", "G", "H", "J", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "DF", "CR", "CI", "ZX", "PRD",
-        "T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2", "PR3")
-NEW_K = ("T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2", "PR3")   # variantes para revisar el Comprar pleno
+        "T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2", "PR3",
+        "DQ0", "DQ1", "DQ2", "DQ3", "DQX")
+NEW_K = ("T2", "T4", "CK50", "CK20", "NT", "NTQ", "PR2", "PR3", "DQ0", "DQ1", "DQ2", "DQ3", "DQX")
+DQ_SECT = {"Consumo básico", "Salud", "Utilities"}   # defensivas de calidad (variantes DQ)   # variantes para revisar el Comprar pleno
 T4_SECT = {"Tecnología", "Industrial", "Consumo discrecional", "Energía"}
 PART_SECT = {"Industrial", "Energía", "Consumo discrecional"}   # sectores donde el motor permite "en partes" por giro temprano
 PE_CHEAP, PE_DEEP = 0.70, 0.50   # P/E contra su mediana de 5 años para las variantes U-X
@@ -1436,6 +1443,39 @@ def main():
                 res[t]["eps"]["NTQ"] = emit(j, t, ep_days(t, ["Y", "CR", "CI"]), "Caminos fuertes")
                 res[t]["eps"]["PR2"] = emit(j, t, ep_days(t, ["T2", "Y", "CR", "CI"] + q_), "Motor con Comprar endurecido")
                 res[t]["eps"]["PR3"] = emit(j, t, ep_days(t, ["T2", "Y", "CR", "CI"]), "Motor nuevo")
+            # ---- defensivas de calidad (tipo KO, PG, JNJ): filtro de calidad + tres formas de entrar en un bajón
+            s200 = Cdf.rolling(200).mean()
+            up200 = (Cdf > s200).values
+            slope200 = (s200 > s200.shift(21)).values
+            d_ = Cdf.diff()
+            g_ = d_.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+            l_ = (-d_.clip(upper=0)).ewm(alpha=1 / 14, adjust=False).mean()
+            rsi_ = (100 - 100 / (1 + g_ / l_.replace(0, np.nan))).values
+            dd3_ = (Cdf / Cdf.rolling(63, min_periods=40).max() - 1).values
+            touch = ((Cdf.rolling(5).min() / s200) <= 1.02).values & up200 & (Cdf > Cdf.shift(3)).values
+            vol_ = (np.log(Cdf).diff().rolling(63).std() * np.sqrt(252)).values
+            beta_lo = np.asarray(Kc["beta_lo"].values if hasattr(Kc["beta_lo"], "values") else Kc["beta_lo"], dtype=bool)
+            for j, t in enumerate(mt):
+                if (meta[t][1] or "") not in DQ_SECT or fund.get(t) is None:
+                    for k_ in ("DQ0", "DQ1", "DQ2", "DQ3", "DQX"):
+                        res[t]["eps"][k_] = []
+                    continue
+                e_ = pd.Series(fund[t][0], index=idx)
+                rg_ = fund[t][3]
+                eps_ok = (e_.rolling(2520, min_periods=1260).min() > 0).values
+                qual = beta_lo[:, j] & (vol_[:, j] < 0.25) & eps_ok & ~(rg_ < -0.05)
+                d1 = qual & (rsi_[:, j] < 35) & (up200[:, j] | slope200[:, j])
+                d2 = qual & (dd3_[:, j] <= -0.05) & (dd3_[:, j] >= -0.10) & up200[:, j]
+                d3 = qual & touch[:, j]
+                res[t]["eps"]["DQ0"] = emit(j, t, [i for i in days if qual[i]], "Defensiva de calidad")
+                res[t]["eps"]["DQ1"] = emit(j, t, [i for i in days if d1[i]], "Defensiva en sobreventa")
+                res[t]["eps"]["DQ2"] = emit(j, t, [i for i in days if d2[i]], "Defensiva con bajón corto")
+                res[t]["eps"]["DQ3"] = emit(j, t, [i for i in days if d3[i]], "Defensiva en su media de 200")
+                res[t]["eps"]["DQX"] = emit(j, t, [i for i in days if d1[i] or d2[i] or d3[i]], "Defensiva conservadora")
+                for e in res[t]["eps"]["DQX"]:
+                    i0 = pos.get(e["date"])
+                    if i0 is not None:
+                        e["setup"] = ("Sobreventa en tendencia" if d1[i0] else "Bajón corto" if d2[i0] else "Toca su media de 200")
         except Exception:
             import traceback
             traceback.print_exc()
@@ -1815,6 +1855,9 @@ def main():
         per[t] = {"n": meta[t][0], "s": meta[t][1], "f": fund[t] is not None,
                   "w": [r4(x) for x in close[t].values[wk]],
                   "sig": sig, "mot": mot,
+                  "dq": [{"date": e["date"], "via": e["setup"], "p": e.get("p"),
+                          **{h: r4(e.get(h)) for h in ("6m", "12m", "spy_6m", "spy_12m") if e.get(h) is not None}}
+                         for e in r["eps"].get("DQX", [])],
                   "base": {h: stats(r["base"], h) for h in ("6m", "12m")}}
     with open("backtest_tickers.json", "w", encoding="utf-8") as f:
         json.dump(S.no_nan({"dates": [str(idx[i].date()) for i in wk], "spy": [r4(x) for x in spy[wk]], "tickers": per}),
