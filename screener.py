@@ -16,6 +16,10 @@ ADR_AR = ["GGAL", "YPF", "PAM", "BMA", "BBAR", "SUPV", "CEPU", "TGS", "EDN", "CR
           "IRS", "LOMA", "TEO", "VIST", "GLOB", "MELI", "CAAP", "BIOX"]
 ADR_BR = ["PBR", "VALE", "ITUB", "BBD", "ABEV", "NU", "SBS", "GGB", "SID",
           "SUZ", "UGP", "CIG", "BSBR", "XP", "STNE", "PAGS", "VIV", "TIMB", "BAK"]
+# Seguimiento propio: papeles que no están en el S&P 500 pero se analizan igual (cotizan en EE.UU., en dólares).
+# Se valúan como empresas de EE.UU. Necesitan al menos ~10 meses de historia (210 ruedas): los que salieron a
+# la bolsa hace poco entran solos cuando la completan.
+EXTRA = ["TSM", "ASML", "SKHY", "SPOT", "SPCX"]
 TOP_N = 30
 # ---- modelos de valuación por tipo de negocio
 HOLDINGS = {"BRK-B"}                         # holdings/conglomerados: se valúan por valor libros
@@ -839,7 +843,7 @@ def build(universe, prices, infos, hist=None):
             sec = SECTOR_ES.get(ys, ys or "Otros")
         eps, fwd_eps = num(inf.get("trailingEps")), num(inf.get("forwardEps"))
         target = num(inf.get("targetMeanPrice"))
-        rows.append(dict(t, t=sym, name=inf.get("shortName") or name, sector=sec, region=region,
+        rows.append(dict(t, t=sym, name=inf.get("shortName") or name, sector=sec, region=region, extra=sym in EXTRA,
                          mcap=num(inf.get("marketCap")),
                          pe=num(inf.get("trailingPE")), fpe=num(inf.get("forwardPE")),
                          peg=num(inf.get("trailingPegRatio") or inf.get("pegRatio")),
@@ -1729,7 +1733,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
             "setup", "elig", "rank", "val_model", "eps_gap", "eps_grow", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
-            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk", "ck", "ck_n", "ck_m", "ck_list", "dq_q", "dq", "dq_yrs", "cons"]
+            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk", "ck", "ck_n", "ck_m", "ck_list", "dq_q", "dq", "dq_yrs", "cons", "extra"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
@@ -1776,6 +1780,7 @@ def main():
     seen = {u[0] for u in uni}
     uni += [(s, s, "", "Argentina") for s in ADR_AR if s not in seen]
     uni += [(s, s, "", "Brasil") for s in ADR_BR if s not in seen]
+    uni += [(s, s, "", "EE.UU.") for s in EXTRA if s not in seen]
     syms = [u[0] for u in uni]
     print("Universo:", len(syms))
 
