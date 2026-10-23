@@ -71,6 +71,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 .rf-fg{display:flex;flex-direction:column;gap:4px}.rf-fg .l,.rf-sim .l,.rf-tem .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .rf-fg input{width:92px}
 #tb-rfo td{white-space:nowrap}
+.ovs-tog{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:8px;width:100%;flex-wrap:wrap}.ovs-tog:hover h2{color:var(--accent,#4a9df0)}.ovs-arr{display:inline-block;font-size:14px;transition:transform .15s;color:var(--muted)}#ovs-card:not(.ovs-closed) .ovs-arr{transform:rotate(90deg)}.ovs-closed .ovs-in{display:none!important}
 .vd-btn{font-size:12px;cursor:pointer;border:1px solid transparent;font-family:inherit;transition:transform .1s}.vd-btn:hover{transform:translateY(-1px);filter:brightness(1.15)}.vd-btn.sel{border-color:currentColor;box-shadow:0 0 0 1px currentColor}
 .rf-new{margin:8px 0;padding:10px 12px;border:1px solid #c98a12;border-left:4px solid #c98a12;border-radius:8px;background:rgba(201,138,18,.08);font-size:13px}
 .rf-sim{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
@@ -296,10 +297,10 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <div id="buy-new"></div>
       <div class="tw"><table id="tb-buy"></table></div>
     </div>
-    <div class="card" id="ovs-card">
-      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+    <div class="card ovs-closed" id="ovs-card">
+      <button id="ovs-tog" class="ovs-tog" aria-expanded="false"><span class="ovs-arr">▸</span><h2 style="margin:0">Sobreventa con tendencia alcista</h2><span class="note" id="ovs-cnt"></span></button>
+      <div class="ovs-in" style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-top:8px">
         <div style="flex:1;min-width:260px">
-          <h2>Sobreventa con tendencia alcista</h2>
           <p class="sub">Acciones de <b>Consumo básico (XLP), Industrial (XLI), Salud (XLV) y Financiero (XLF)</b> (o de todos los sectores) que cayeron a sobreventa sin perder la tendencia de fondo: RSI bajo y precio arriba de su media de 200 días (o hasta 10% debajo, con la media todavía subiendo). Es una lista para mirar, no un veredicto: el veredicto del monitor está en su columna. Las marcadas <span class="vd-cons" style="margin:0">calidad</span> son defensivas de calidad: en ellas, con RSI menor a 35, esta entrada acertó 71% de las veces a 12 meses en 10 años.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
@@ -308,8 +309,8 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
           <label class="note" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="ovs-grp" checked> Agrupar por sector</label>
         </div>
       </div>
-      <div id="ovs-ind" style="margin:6px 0 10px"></div>
-      <div id="ovs-body"></div>
+      <div id="ovs-ind" class="ovs-in" style="margin:6px 0 10px"></div>
+      <div id="ovs-body" class="ovs-in"></div>
     </div>
     <div class="card">
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
@@ -1156,6 +1157,7 @@ function renderOvs(){
       <span style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${(x.f/mx*100).toFixed(0)}%;background:#0e9aa7;border-radius:4px"></i></span>
       <span class="num" style="font-size:12.5px;text-align:right"><b>${x.k}</b> <span class="note">de ${x.n}</span></span></button>`).join('')}</div>`;
   $$('#ovs-ind .ovs-i').forEach(b=>b.onclick=()=>{S.ovsF=S.ovsF===b.dataset.s?null:b.dataset.s;renderOvs()});
+  $('#ovs-cnt').textContent='· '+all.length+(all.length===1?' acción':' acciones')+' hoy (RSI < '+S.ovsR+')';
   const rows=all.filter(r=>!S.ovsF||r.sector===S.ovsF).map(r=>Object.assign(enrich(r),{d200:r.p/r.sma200-1}));
   const cols=[
     {k:'fav',h:'',f:o=>star(o.t)},
@@ -1179,6 +1181,9 @@ function renderOvs(){
 $$('#ovs-rsi .chip').forEach(b=>b.onclick=()=>{$$('#ovs-rsi .chip').forEach(x=>x.classList.toggle('on',x===b));S.ovsR=+b.dataset.v;renderOvs()});
 $$('#ovs-sec .chip').forEach(b=>b.onclick=()=>{$$('#ovs-sec .chip').forEach(x=>x.classList.toggle('on',x===b));S.ovsS=b.dataset.v;S.ovsF=null;renderOvs()});
 $('#ovs-grp').onchange=renderOvs;
+function ovsOpen(o){$('#ovs-card').classList.toggle('ovs-closed',!o);$('#ovs-tog').setAttribute('aria-expanded',o);try{localStorage.setItem('ovsOpen',o?'1':'0')}catch(e){}}
+$('#ovs-tog').onclick=()=>ovsOpen($('#ovs-card').classList.contains('ovs-closed'));
+try{if(localStorage.getItem('ovsOpen')==='1')ovsOpen(true)}catch(e){}
 function renderTop(){
   const el=$('#tb-top');if(!S.scr){el.innerHTML='';return}
   let rows=S.scr.rows.filter(r=>r.elig).map(enrich).filter(passTf).sort((a,b)=>b.score-a.score).slice(0,S.scr.top_n||30);
