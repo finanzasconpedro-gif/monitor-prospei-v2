@@ -170,7 +170,8 @@ def pick_universes():
     broad = {}
     try:
         rows = json.load(open("data.json", encoding="utf-8"))["rows"]
-        df = pd.DataFrame([{"t": r["t"], "sector": r["sector"], "region": r.get("region")} for r in rows])
+        # sin los papeles de seguimiento propio: las muestras son solo del S&P 500
+        df = pd.DataFrame([{"t": r["t"], "sector": r["sector"], "region": r.get("region")} for r in rows if not r.get("extra")])
         df = df[(df.region == "EE.UU.") & ~df.t.isin(tops)]
         frac = min(1.0, BROAD_N / len(df))
         for sec, g in df.groupby("sector"):
@@ -212,7 +213,7 @@ def pick_universe():
     try:
         rows = json.load(open("data.json", encoding="utf-8"))["rows"]
         df = pd.DataFrame([{"t": r["t"], "sector": r["sector"], "mcap": r.get("mcap") or 0, "region": r.get("region")}
-                           for r in rows])
+                           for r in rows if not r.get("extra")])
         df = df[(df.region == "EE.UU.") & (df.mcap > 0)]
         out = {}
         for sec, g in df.sort_values("mcap", ascending=False).groupby("sector"):
