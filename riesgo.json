@@ -1,9 +1,9 @@
 {
- "valor": 710.0,
+ "valor": 707.0,
  "fecha": "2026-10-23",
  "fuente": "Ámbito",
  "hora": "23-10-2026",
- "actualizado": "2026-10-23T17:50Z",
+ "actualizado": "2026-10-23T21:58Z",
  "fuentes": [
   {
    "valor": 704.0,
@@ -11,7 +11,7 @@
    "fuente": "ArgentinaDatos"
   },
   {
-   "valor": 710.0,
+   "valor": 707.0,
    "fecha": "2026-10-23",
    "fuente": "Ámbito",
    "hora": "23-10-2026"
@@ -36,7 +36,7 @@
   },
   {
    "fecha": "2026-10-23",
-   "valor": 710.0
+   "valor": 707.0
   }
  ]
 }
