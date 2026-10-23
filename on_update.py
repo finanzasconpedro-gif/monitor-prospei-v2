@@ -1,7 +1,7 @@
 """
 Arma ons.json con las obligaciones negociables en dólares más operadas y su flujo de pagos (GitHub Actions, ons.yml).
 
-1) Lista: las 80 ONs más operadas en Balanz (META, abajo) + las de más volumen en data912 (/live/arg_corp)
+1) Lista: las 205 ONs en dólares de Balanz (META, abajo) + las de más volumen en data912 (/live/arg_corp)
    que no estén en esa lista.
 2) Flujo de pagos, emisor, ley, cupón, etc.: página de perfil de Rava (rava.com/perfil/<TICKER>).
 3) Guarda ons.json (lo lee el monitor) y on_debug.json (qué se leyó de cada una y qué falló).
@@ -18,7 +18,7 @@ import time
 import requests
 
 N_EXTRA = 20          # además de la lista base, las ONs en MEP con más volumen en data912 que no estén en ella
-# Lista base (Balanz, 23/10/2026, las 80 con más monto operado): ticker sin sufijo y datos de la ficha
+# Lista base: las 205 ONs en dólares del monitor de Balanz (23/10/2026), ordenadas por monto operado: ticker sin sufijo y datos de la ficha
 META = [{"t": "YM44", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "B (S&P internacional)", "lam": "1.000", "cup": 7.55, "frec": "Semestral", "venc": "2035-06-17"},
  {"t": "YM43", "emp": "YPF", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "100", "cup": 5.5, "frec": "Semestral", "venc": "2030-04-13"},
  {"t": "YM34", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "1.000", "cup": 8.25, "frec": "Semestral", "venc": "2034-01-16"},
@@ -41,11 +41,11 @@ META = [{"t": "YM44", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "B (S&
  {"t": "TLCM", "emp": "Telecom", "ley": "NY", "mon": "CABLE", "calif": "AA+(arg)", "lam": "1.000", "cup": 9.5, "frec": "Semestral", "venc": "2031-07-17"},
  {"t": "YM37", "emp": "YPF", "ley": "ARG", "mon": "MEP", "calif": "AAA (FIX)", "lam": "100", "cup": 7.0, "frec": "Trimestral", "venc": "2027-05-06"},
  {"t": "PN36", "emp": "PAE", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "50", "cup": 7.25, "frec": "Semestral", "venc": "2031-11-12"},
- {"t": "MCC3", "emp": "Pecom", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2030-05-10"},
+ {"t": "MCC3", "emp": "PECOM", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2030-05-10"},
  {"t": "OLC7", "emp": "Oleoductos Del Valle", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 6.9, "frec": "Semestral", "venc": "2030-02-22"},
  {"t": "PLC5", "emp": "Pluspetrol", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "1.000", "cup": 8.13, "frec": "Semestral", "venc": "2031-05-17"},
  {"t": "PN35", "emp": "PAE", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 7.0, "frec": "Semestral", "venc": "2029-09-26"},
- {"t": "RUCE", "emp": "Msu Energy", "ley": "ARG", "mon": "MEP", "calif": "AA-(arg) (FIX)", "lam": "100", "cup": 7.5, "frec": "Trimestral", "venc": "2027-10-29"},
+ {"t": "RUCE", "emp": "MSU ENERGY", "ley": "ARG", "mon": "MEP", "calif": "AA-(arg) (FIX)", "lam": "100", "cup": 7.5, "frec": "Trimestral", "venc": "2027-10-29"},
  {"t": "MGCR", "emp": "Pampa", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "10.000", "cup": 7.75, "frec": "Semestral", "venc": "2037-11-13"},
  {"t": "MGCO", "emp": "Pampa", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "10.000", "cup": 7.88, "frec": "Semestral", "venc": "2034-12-15"},
  {"t": "DNC7", "emp": "Edenor", "ley": "NY", "mon": "CABLE", "calif": "CCC+ (Fitch)", "lam": "100", "cup": 9.75, "frec": "Semestral", "venc": "2030-10-23"},
@@ -70,7 +70,7 @@ META = [{"t": "YM44", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "B (S&
  {"t": "MGCM", "emp": "Pampa", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "10.000", "cup": 7.95, "frec": "Semestral", "venc": "2031-09-09"},
  {"t": "DNC3", "emp": "Edenor", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 9.75, "frec": "Semestral", "venc": "2026-11-21"},
  {"t": "DNCB", "emp": "Edenor", "ley": "ARG", "mon": "CABLE", "calif": "—", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2029-07-02"},
- {"t": "EAC4", "emp": "Msu Green", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "1", "cup": 9.75, "frec": "Semestral", "venc": "2036-06-15"},
+ {"t": "EAC4", "emp": "MSU GREEN", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "1", "cup": 9.75, "frec": "Semestral", "venc": "2036-06-15"},
  {"t": "DNC5", "emp": "Edenor", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 9.5, "frec": "Semestral", "venc": "2028-08-04"},
  {"t": "ARC1", "emp": "AA2000", "ley": "NY", "mon": "CABLE", "calif": "AA(arg)", "lam": "1.000", "cup": 8.5, "frec": "Trimestral", "venc": "2031-07-31"},
  {"t": "SBC3", "emp": "Scania Credit", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 6.5, "frec": "Trimestral", "venc": "2029-05-25"},
@@ -85,7 +85,7 @@ META = [{"t": "YM44", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "B (S&
  {"t": "AFCI", "emp": "Banco Comafi", "ley": "ARG", "mon": "MEP", "calif": "A1+ (FIX)", "lam": "1", "cup": 6.5, "frec": "Semestral", "venc": "2026-11-06"},
  {"t": "CAC5", "emp": "Capex", "ley": "NY", "mon": "CABLE", "calif": "AA (arg)", "lam": "1", "cup": 9.25, "frec": "Semestral", "venc": "2028-08-24"},
  {"t": "BACH", "emp": "Banco Macro", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "1.000", "cup": 8.0, "frec": "Semestral", "venc": "2031-01-27"},
- {"t": "RUCD", "emp": "Msu Energy", "ley": "NY", "mon": "CABLE", "calif": "CCC (Fitch)", "lam": "1", "cup": 9.75, "frec": "Semestral", "venc": "2030-12-04"},
+ {"t": "RUCD", "emp": "MSU ENERGY", "ley": "NY", "mon": "CABLE", "calif": "CCC (Fitch)", "lam": "1", "cup": 9.75, "frec": "Semestral", "venc": "2030-12-04"},
  {"t": "PLC6", "emp": "Pluspetrol", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "100", "cup": 6.5, "frec": "Semestral", "venc": "2029-02-26"},
  {"t": "LDCG", "emp": "Ledesma", "ley": "ARG", "mon": "MEP", "calif": "AA- (FIX)", "lam": "100", "cup": 7.0, "frec": "Trimestral", "venc": "2027-10-03"},
  {"t": "LOC6", "emp": "Loma Negra", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "50", "cup": 6.5, "frec": "Semestral", "venc": "2029-01-22"},
@@ -98,7 +98,132 @@ META = [{"t": "YM44", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "B (S&
  {"t": "TTCE", "emp": "Tecpetrol", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 5.5, "frec": "Semestral", "venc": "2029-05-20"},
  {"t": "NPCC", "emp": "Central Puerto", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2029-08-24"},
  {"t": "YMCI", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "1", "cup": 9.0, "frec": "Semestral", "venc": "2029-06-29"},
- {"t": "CP41", "emp": "CGC", "ley": "ARG", "mon": "MEP", "calif": "AA-(arg) (FIX)", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2029-09-06"}]
+ {"t": "CP41", "emp": "CGC", "ley": "ARG", "mon": "MEP", "calif": "AA-(arg) (FIX)", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2029-09-06"},
+ {"t": "ZZC1", "emp": "Camuzzi", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.95, "frec": "Semestral", "venc": "2027-02-20"},
+ {"t": "OZC8", "emp": "EDEMSA", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "10.000", "cup": 9.75, "frec": "Semestral", "venc": "2033-06-10"},
+ {"t": "BYCW", "emp": "Banco Galicia", "ley": "ARG", "mon": "MEP", "calif": "ML A-1.ar (Moodys)", "lam": "1", "cup": 6.0, "frec": "Semestral", "venc": "2026-11-29"},
+ {"t": "PN41", "emp": "PAE", "ley": "ARG", "mon": "CABLE", "calif": "AAA(arg) (FIX)", "lam": "50", "cup": 7.5, "frec": "Semestral", "venc": "2029-08-26"},
+ {"t": "PLC3", "emp": "Pluspetrol", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.25, "frec": "Semestral", "venc": "2028-04-29"},
+ {"t": "JNC6", "emp": "Inversora Juramento", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 9.0, "frec": "Semestral", "venc": "2027-10-02"},
+ {"t": "LMS8", "emp": "Aluar", "ley": "ARG", "mon": "CABLE", "calif": "AAA (arg) (FIX)", "lam": "50", "cup": 6.25, "frec": "Trimestral", "venc": "2027-03-20"},
+ {"t": "MIC4", "emp": "Mirgor", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 8.25, "frec": "Trimestral", "venc": "2027-07-28"},
+ {"t": "CACB", "emp": "Capex", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "1", "cup": 7.75, "frec": "Trimestral", "venc": "2028-06-16"},
+ {"t": "HJCL", "emp": "John Deere Credit", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1.000", "cup": 6.5, "frec": "Semestral", "venc": "2028-12-07"},
+ {"t": "CS50", "emp": "Cresud", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 7.25, "frec": "Semestral", "venc": "2029-03-09"},
+ {"t": "T641", "emp": "Tarjeta Naranja", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "1.200", "cup": 7.9, "frec": "Trimestral", "venc": "2027-04-29"},
+ {"t": "MR46", "emp": "Gemsa", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "1.000", "cup": 7.0, "frec": "Semestral", "venc": "2034-12-30"},
+ {"t": "NPCD", "emp": "Central Puerto", "ley": "ARG", "mon": "MEP", "calif": "AAA.ar (Moodys)", "lam": "100", "cup": 6.0, "frec": "Semestral", "venc": "2030-04-29"},
+ {"t": "CACD", "emp": "Capex", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1", "cup": 8.25, "frec": "Semestral", "venc": "2029-06-03"},
+ {"t": "CS53", "emp": "Cresud", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 6.25, "frec": "Semestral", "venc": "2030-04-29"},
+ {"t": "LUC5", "emp": "Luz De Tres Picos", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2029-02-25"},
+ {"t": "YFCJ", "emp": "Ypf Electrica", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "1.000", "cup": 7.88, "frec": "Semestral", "venc": "2032-10-15"},
+ {"t": "VSCZ", "emp": "Vista", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 5.0, "frec": "Semestral", "venc": "2029-07-15"},
+ {"t": "RC5C", "emp": "Arcor", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 5.25, "frec": "Semestral", "venc": "2029-05-20"},
+ {"t": "GN49", "emp": "Genneia", "ley": "NY", "mon": "CABLE", "calif": "B2 (Moodys)", "lam": "1.000", "cup": 7.75, "frec": "Semestral", "venc": "2033-12-01"},
+ {"t": "VSCP", "emp": "Vista", "ley": "ARG", "mon": "CABLE", "calif": "AAA (FIX)", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2029-05-02"},
+ {"t": "MCC2", "emp": "PECOM", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2027-06-01"},
+ {"t": "HJCK", "emp": "John Deere Credit", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1.000", "cup": 7.75, "frec": "Semestral", "venc": "2029-01-15"},
+ {"t": "IRCF", "emp": "IRSA", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "1", "cup": 8.75, "frec": "Semestral", "venc": "2028-06-21"},
+ {"t": "CS48", "emp": "Cresud", "ley": "ARG", "mon": "MEP", "calif": "AAA (FIX)", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2028-07-10"},
+ {"t": "MCC1", "emp": "PECOM", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.9, "frec": "Semestral", "venc": "2029-03-09"},
+ {"t": "MGCN", "emp": "Pampa", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 5.75, "frec": "Semestral", "venc": "2028-10-03"},
+ {"t": "WBS3", "emp": "Banco Mariva", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1.000", "cup": 6.0, "frec": "Trimestral", "venc": "2027-07-05"},
+ {"t": "CICA", "emp": "Cnh", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "100", "cup": 8.0, "frec": "Semestral", "venc": "2028-06-02"},
+ {"t": "HJCI", "emp": "John Deere Credit", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1.200", "cup": 7.5, "frec": "Semestral", "venc": "2027-05-26"},
+ {"t": "YM41", "emp": "YPF", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 6.0, "frec": "Trimestral", "venc": "2027-01-07"},
+ {"t": "YFCP", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "AAA.ar (Moodys)", "lam": "1", "cup": 5.0, "frec": "Semestral", "venc": "2029-08-17"},
+ {"t": "OTS7", "emp": "Oiltanking", "ley": "ARG", "mon": "MEP", "calif": "AAA.ar (Moodys)", "lam": "1", "cup": 6.25, "frec": "Trimestral", "venc": "2030-09-24"},
+ {"t": "VSCY", "emp": "Vista", "ley": "ARG", "mon": "CABLE", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 3.75, "frec": "Semestral", "venc": "2028-01-15"},
+ {"t": "SIC2", "emp": "Sidersa", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2029-06-18"},
+ {"t": "OTS6", "emp": "Otamerica", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 6.74, "frec": "Trimestral", "venc": "2029-07-28"},
+ {"t": "MIC3", "emp": "Mirgor", "ley": "ARG", "mon": "MEP", "calif": "ML A-1.ar", "lam": "100", "cup": 8.5, "frec": "Trimestral", "venc": "2026-11-10"},
+ {"t": "CICB", "emp": "Cnh", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1", "cup": 7.5, "frec": "Semestral", "venc": "2029-02-08"},
+ {"t": "MIC6", "emp": "Mirgor", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 8.0, "frec": "Trimestral", "venc": "2028-05-27"},
+ {"t": "TTCB", "emp": "Tecpetrol", "ley": "ARG", "mon": "MEP", "calif": "AAA (FIX)", "lam": "1", "cup": 6.5, "frec": "Semestral", "venc": "2027-10-15"},
+ {"t": "PN34", "emp": "PAE", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 4.97, "frec": "Semestral", "venc": "2027-09-26"},
+ {"t": "YCAM", "emp": "YPF", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "10.000", "cup": 6.95, "frec": "Semestral", "venc": "2027-07-20"},
+ {"t": "TLCU", "emp": "Telecom", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 6.5, "frec": "Semestral", "venc": "2029-03-04"},
+ {"t": "OTS3", "emp": "Oiltanking", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 7.0, "frec": "Trimestral", "venc": "2028-10-31"},
+ {"t": "TLCQ", "emp": "Telecom", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.5, "frec": "Trimestral", "venc": "2027-07-01"},
+ {"t": "IRCJ", "emp": "IRSA", "ley": "ARG", "mon": "MEP", "calif": "AA+ (FIX)", "lam": "100", "cup": 7.0, "frec": "Semestral", "venc": "2027-02-27"},
+ {"t": "BGC4", "emp": "Banco Patagonia", "ley": "ARG", "mon": "MEP", "calif": "A1 (FIX)", "lam": "1.200", "cup": 6.25, "frec": "Semestral", "venc": "2026-11-12"},
+ {"t": "SNEB", "emp": "San Miguel", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1", "cup": 8.0, "frec": "Semestral", "venc": "2029-07-13"},
+ {"t": "OLC5", "emp": "Oleoductos Del Valle", "ley": "ARG", "mon": "MEP", "calif": "AAA (FIX)", "lam": "100", "cup": 7.89, "frec": "Semestral", "venc": "2028-06-11"},
+ {"t": "TLCV", "emp": "Telecom", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 3.5, "frec": "Trimestral", "venc": "2027-05-28"},
+ {"t": "EMC1", "emp": "Mega", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2027-07-03"},
+ {"t": "EAC3", "emp": "MSU GREEN", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 8.5, "frec": "Semestral", "venc": "2028-12-19"},
+ {"t": "SNSD", "emp": "San Miguel", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "50", "cup": 9.5, "frec": "Semestral", "venc": "2027-02-05"},
+ {"t": "PLC1", "emp": "Pluspetrol", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "100", "cup": 6.0, "frec": "Semestral", "venc": "2028-01-26"},
+ {"t": "YFCG", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 5.0, "frec": "Trimestral", "venc": "2027-02-26"},
+ {"t": "OT41", "emp": "Oiltanking", "ley": "ARG", "mon": "MEP", "calif": "AA.ar (Moodys)", "lam": "100", "cup": 7.0, "frec": "Trimestral", "venc": "2028-01-16"},
+ {"t": "CP37", "emp": "CGC", "ley": "ARG", "mon": "MEP", "calif": "AA- (Moodys)", "lam": "1", "cup": 7.0, "frec": "Trimestral", "venc": "2027-03-09"},
+ {"t": "OTS2", "emp": "Oiltanking", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 7.0, "frec": "Trimestral", "venc": "2027-04-23"},
+ {"t": "GN47", "emp": "Genneia", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "1", "cup": 6.0, "frec": "Semestral", "venc": "2028-10-16"},
+ {"t": "RZAB", "emp": "Rizobacter", "ley": "ARG", "mon": "MEP", "calif": "A+ (FIX)", "lam": "100", "cup": 8.0, "frec": "Trimestral", "venc": "2027-11-27"},
+ {"t": "YFCI", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 5.9, "frec": "Trimestral", "venc": "2027-06-12"},
+ {"t": "SBC1", "emp": "Scania Credit", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "100", "cup": 8.75, "frec": "Trimestral", "venc": "2027-09-04"},
+ {"t": "YFCM", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "100", "cup": 6.5, "frec": "Trimestral", "venc": "2027-05-19"},
+ {"t": "YFCK", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "100", "cup": 5.25, "frec": "Trimestral", "venc": "2026-11-21"},
+ {"t": "CP40", "emp": "CGC", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 9.5, "frec": "Trimestral", "venc": "2028-03-08"},
+ {"t": "YFCL", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "100", "cup": 6.75, "frec": "Trimestral", "venc": "2028-11-21"},
+ {"t": "PECN", "emp": "Petrolera Aconcagua", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 3.0, "frec": "Anual", "venc": "2032-08-24"},
+ {"t": "PQCR", "emp": "Petroquimica Comodoro Rivadavia", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1", "cup": 6.75, "frec": "Semestral", "venc": "2028-10-21"},
+ {"t": "LMS7", "emp": "Aluar", "ley": "ARG", "mon": "CABLE", "calif": "AAA (arg) (FIX)", "lam": "1", "cup": 7.0, "frec": "Trimestral", "venc": "2028-10-11"},
+ {"t": "FO4A", "emp": "Fyo", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 7.9, "frec": "Trimestral", "venc": "2027-07-19"},
+ {"t": "CIC7", "emp": "Cnh", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 6.0, "frec": "Semestral", "venc": "2026-11-11"},
+ {"t": "GN48", "emp": "Genneia", "ley": "ARG", "mon": "MEP", "calif": "AA+ (FIX)", "lam": "1", "cup": 6.5, "frec": "Semestral", "venc": "2028-03-04"},
+ {"t": "TTC8", "emp": "Tecpetrol", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 5.0, "frec": "Semestral", "venc": "2027-10-23"},
+ {"t": "CS52", "emp": "Cresud", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 4.75, "frec": "Semestral", "venc": "2028-04-29"},
+ {"t": "HJCH", "emp": "John Deere Credit", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1.200", "cup": 7.0, "frec": "Semestral", "venc": "2028-01-16"},
+ {"t": "HJCG", "emp": "John Deere Credit", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "1", "cup": 6.5, "frec": "Semestral", "venc": "2028-10-20"},
+ {"t": "PFC2", "emp": "Profertil", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.25, "frec": "Semestral", "venc": "2027-07-13"},
+ {"t": "AERB", "emp": "AA2000", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 5.5, "frec": "Semestral", "venc": "2026-12-14"},
+ {"t": "GYC4", "emp": "360 Energy", "ley": "ARG", "mon": "MEP", "calif": "BV1(arg) (FIX)", "lam": "1", "cup": 8.0, "frec": "Trimestral", "venc": "2027-10-29"},
+ {"t": "ZPC5", "emp": "Plaza Logistica", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 6.5, "frec": "Trimestral", "venc": "2029-06-25"},
+ {"t": "PNDC", "emp": "PAE", "ley": "NY", "mon": "CABLE", "calif": "AAA(arg)", "lam": "1.000", "cup": 9.13, "frec": "Semestral", "venc": "2027-04-29"},
+ {"t": "MR47", "emp": "Gemsa", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "1.000", "cup": 10.5, "frec": "Semestral", "venc": "2036-06-29"},
+ {"t": "TLCW", "emp": "Telecom", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 6.25, "frec": "Semestral", "venc": "2030-05-28"},
+ {"t": "IRCN", "emp": "IRSA", "ley": "ARG", "mon": "MEP", "calif": "AA+ (FIX)", "lam": "1", "cup": 5.75, "frec": "Semestral", "venc": "2027-10-22"},
+ {"t": "CIC8", "emp": "Cnh", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2028-11-11"},
+ {"t": "CP36", "emp": "CGC", "ley": "ARG", "mon": "MEP", "calif": "AA- (FIX)", "lam": "1", "cup": 6.5, "frec": "Semestral", "venc": "2027-10-09"},
+ {"t": "PFC4", "emp": "Profertil", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) Fix", "lam": "1", "cup": 5.5, "frec": "Semestral", "venc": "2030-02-27"},
+ {"t": "MSSG", "emp": "MSU ENERGY", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1", "cup": 8.5, "frec": "Semestral", "venc": "2029-04-15"},
+ {"t": "PN42", "emp": "PAE", "ley": "ARG", "mon": "MEP", "calif": "AAA(arg) (FIX)", "lam": "50", "cup": 6.0, "frec": "Semestral", "venc": "2027-04-16"},
+ {"t": "CS51", "emp": "Cresud", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 5.75, "frec": "Semestral", "venc": "2027-01-19"},
+ {"t": "DEC2", "emp": "Edesa", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 8.5, "frec": "Semestral", "venc": "2027-02-23"},
+ {"t": "SIC1", "emp": "Sidersa", "ley": "ARG", "mon": "MEP", "calif": "A+(arg) (FIX)", "lam": "100", "cup": 6.5, "frec": "Semestral", "venc": "2026-12-08"},
+ {"t": "GYC5", "emp": "360 Energy", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "50", "cup": 8.75, "frec": "Trimestral", "venc": "2027-09-04"},
+ {"t": "YFCO", "emp": "Ypf Electrica", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "100", "cup": 6.75, "frec": "Trimestral", "venc": "2028-12-14"},
+ {"t": "YMCZ", "emp": "YPF", "ley": "ARG", "mon": "CABLE", "calif": "AAA(arg) (FIX)", "lam": "1", "cup": 7.0, "frec": "Semestral", "venc": "2028-10-09"},
+ {"t": "ZPC3", "emp": "Plaza Logistica", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1", "cup": 8.5, "frec": "Trimestral", "venc": "2027-09-02"},
+ {"t": "CWC6", "emp": "Crown Point", "ley": "ARG", "mon": "MEP", "calif": "A+ (FIX)", "lam": "1", "cup": 9.5, "frec": "Semestral", "venc": "2027-10-29"},
+ {"t": "MSSF", "emp": "MSU ENERGY", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 7.5, "frec": "Semestral", "venc": "2027-07-22"},
+ {"t": "CLI1", "emp": "Clisa", "ley": "NY", "mon": "CABLE", "calif": "—", "lam": "1", "cup": 7.0, "frec": "Semestral", "venc": "2034-12-09"},
+ {"t": "PUC2", "emp": "Petroleos Sudamericanos", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 8.75, "frec": "Semestral", "venc": "2027-08-27"},
+ {"t": "CLSI", "emp": "Clisa", "ley": "NY", "mon": "CABLE", "calif": "BBB (arg)", "lam": "100", "cup": 3.5, "frec": "Semestral", "venc": "2031-12-09"},
+ {"t": "FYC1", "emp": "Farmacity", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 7.5, "frec": "Semestral", "venc": "2029-05-10"},
+ {"t": "AFCJ", "emp": "Banco Comafi", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1.100", "cup": 4.75, "frec": "Semestral", "venc": "2027-02-05"},
+ {"t": "AFCK", "emp": "Banco Comafi", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1.100", "cup": 7.0, "frec": "Semestral", "venc": "2029-02-05"},
+ {"t": "BF39", "emp": "Banco Bbva", "ley": "ARG", "mon": "MEP", "calif": "A1+(arg) (FIX)", "lam": "1", "cup": 5.75, "frec": "Semestral", "venc": "2026-12-04"},
+ {"t": "BPCT", "emp": "Banco Supervielle", "ley": "ARG", "mon": "MEP", "calif": "AA+ (FIX)", "lam": "1", "cup": 8.0, "frec": "Semestral", "venc": "2027-08-25"},
+ {"t": "BPCU", "emp": "Banco Supervielle", "ley": "ARG", "mon": "MEP", "calif": "ML A-1.ar (Moodys)", "lam": "1", "cup": 6.25, "frec": "Semestral", "venc": "2026-12-03"},
+ {"t": "BPCV", "emp": "Banco Supervielle", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1.100", "cup": 3.25, "frec": "Semestral", "venc": "2027-05-04"},
+ {"t": "BVCR", "emp": "Bst", "ley": "ARG", "mon": "MEP", "calif": "ML A-1.ar (FIX)", "lam": "1", "cup": 7.0, "frec": "Trimestral", "venc": "2027-01-14"},
+ {"t": "BYCX", "emp": "Banco Galicia", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "1.000", "cup": 5.5, "frec": "Semestral", "venc": "2026-12-29"},
+ {"t": "CIC9", "emp": "Cnh", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 8.25, "frec": "Semestral", "venc": "2027-05-20"},
+ {"t": "GN43", "emp": "Genneia", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "50", "cup": 6.25, "frec": "Trimestral", "venc": "2027-03-07"},
+ {"t": "GOC4", "emp": "Generacion Litoral", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "1", "cup": 4.0, "frec": "Mensual", "venc": "2030-10-27"},
+ {"t": "HBCD", "emp": "Banco Hipotecario", "ley": "ARG", "mon": "MEP", "calif": "A1+(arg) (FIX)", "lam": "1.000", "cup": 6.0, "frec": "Semestral", "venc": "2026-11-19"},
+ {"t": "IRCQ", "emp": "IRSA", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 3.75, "frec": "Semestral", "venc": "2027-06-07"},
+ {"t": "PN37", "emp": "PAE", "ley": "ARG", "mon": "MEP", "calif": "-", "lam": "50", "cup": 6.25, "frec": "Semestral", "venc": "2028-11-12"},
+ {"t": "PQCT", "emp": "Petroquimica Comodoro Rivadavia", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "50", "cup": 8.5, "frec": "Semestral", "venc": "2028-07-20"},
+ {"t": "PZCG", "emp": "Plaza Logistica", "ley": "ARG", "mon": "MEP", "calif": "AA (FIX)", "lam": "100", "cup": 7.0, "frec": "Trimestral", "venc": "2028-06-03"},
+ {"t": "RZ9B", "emp": "Rizobacter", "ley": "ARG", "mon": "MEP", "calif": "A+ (FIX)", "lam": "100", "cup": 7.5, "frec": "Trimestral", "venc": "2026-06-27"},
+ {"t": "RZBB", "emp": "Rizobacter", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 9.0, "frec": "Semestral", "venc": "2029-09-02"},
+ {"t": "RZBC", "emp": "Rizobacter", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 9.0, "frec": "Semestral", "venc": "2029-09-02"},
+ {"t": "T672", "emp": "Tarjeta Naranja", "ley": "ARG", "mon": "MEP", "calif": "—", "lam": "100", "cup": 5.0, "frec": "Trimestral", "venc": "2027-02-21"},
+ {"t": "VBC1", "emp": "Banco De Valores", "ley": "ARG", "mon": "MEP", "calif": "AA+ (FIX)", "lam": "1.000", "cup": 7.5, "frec": "Semestral", "venc": "2027-03-10"},
+ {"t": "ZPC2", "emp": "Plaza Logistica", "ley": "ARG", "mon": "MEP", "calif": "AA(arg) (FIX)", "lam": "1", "cup": 7.5, "frec": "Trimestral", "venc": "2027-06-01"}]
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
       "Accept-Language": "es-AR,es;q=0.9"}
 HOY = dt.date.today()
@@ -271,6 +396,30 @@ def perfil(base):
     return info, on
 
 
+def completar(on):
+    """Deja cada ON con los mismos campos: nombre limpio, empresa, cupón y frecuencia (para las que no vienen en META)."""
+    nom = on.get("nombre") or ""
+    nom = re.sub(r"^\S+\s+", "", nom)               # saca el ticker
+    nom = re.sub(r"\s*\|.*$", "", nom)                 # saca "| Cotizaciones | Rava Bursátil"
+    nom = re.sub(r"\s+\$\s?[\d.,]+.*$", "", nom).strip()  # saca el precio
+    on["nombre"] = nom
+    fl = on["flows"]
+    if len(fl) >= 2 and not on.get("frec"):
+        d = (fecha(fl[1][0]) - fecha(fl[0][0])).days
+        on["frec"] = "Mensual" if d < 45 else "Trimestral" if d < 135 else "Semestral" if d < 270 else "Anual"
+    on.setdefault("frec", "Semestral")
+    if not on.get("cup") and fl:
+        per = {"Mensual": 12, "Trimestral": 4, "Semestral": 2, "Anual": 1}.get(on.get("frec"), 2)
+        regs = sorted(f[1] / f[3] for f in fl[1:] if f[3] > 0) or [fl[0][1] / max(fl[0][3], 1e-9)]
+        on["cup"] = round(regs[len(regs) // 2] * per * 100, 2)
+    if not on.get("emp"):
+        on["emp"] = nom
+    if not on.get("venc") and fl:
+        on["venc"] = fl[-1][0]
+    on.pop("texto_ficha", None)
+    return on
+
+
 def main():
     tickers, px = lista()
     print(len(tickers), "ONs a buscar")
@@ -289,9 +438,9 @@ def main():
             m = next((m for m in META if m["t"] == t), {})
             on.update({k: v for k, v in m.items() if k != "t"})
             on["v"] = (px.get(t + "D") or {}).get("v")
-            ons.append(on)
+            ons.append(completar(on))
         print(t, info.get("http"), info.get("fuente_flujo"), len(on["flows"]) if on else 0)
-        time.sleep(1.2)
+        time.sleep(0.8)
     with open("ons.json", "w", encoding="utf-8") as f:
         json.dump({"updated": HOY.isoformat(), "ons": ons}, f, ensure_ascii=False, separators=(",", ":"))
     with open("on_debug.json", "w", encoding="utf-8") as f:
