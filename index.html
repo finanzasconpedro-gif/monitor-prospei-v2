@@ -1440,7 +1440,7 @@ function sessionLive(){
    en vivo, ponderadas por capitalización (como arma el ETF su cartera). Hace falta cubrir la mitad del sector. */
 function liveDay(etf,sector){
   const lv=liveOf(etf);if(lv&&lv.pct_change!=null&&isFinite(lv.pct_change))return {v:lv.pct_change/100,est:false};
-  const R=(S.scr.rows||[]).filter(r=>r.region==='EE.UU.'&&r.mcap>0&&(sector==null||r.sector===sector));
+  const R=(S.scr.rows||[]).filter(r=>r.region==='EE.UU.'&&!r.extra&&r.mcap>0&&(sector==null||r.sector===sector));
   let tot=0,cov=0,acc=0;
   R.forEach(r=>{tot+=r.mcap;const x=liveOf(r.t);if(x&&x.pct_change!=null&&isFinite(x.pct_change)){cov+=r.mcap;acc+=r.mcap*x.pct_change/100}});
   return tot>0&&cov/tot>=0.5?{v:acc/cov,est:true,cov:cov/tot}:null;
@@ -1572,7 +1572,7 @@ function openDetail(t){
     <div class="mhead">
       <div>
         <h3>${esc(o.t)} ${o.rank?`<span class="tag">TOP ${o.rank}</span>`:''}</h3>
-        <div class="nm">${esc(o.name)} · ${esc(o.sector)} · ${esc(o.region)}</div>
+        <div class="nm">${esc(o.name)} · ${esc(o.sector)} · ${esc(o.region)}${o.extra?' · <span class="vd-cons" style="margin:0">seguimiento propio</span>':''}</div>
         <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <span style="font-size:22px;font-weight:700" class="num">US$ ${fmt(o.px)}</span>
           <span class="pill ${cls(o.chg)}">${pct(o.chg)}</span>
