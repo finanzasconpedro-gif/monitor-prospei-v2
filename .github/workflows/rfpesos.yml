@@ -1,0 +1,34 @@
+name: Renta fija en pesos PROSPEI
+
+on:
+  schedule:
+    - cron: "23 21 * * 1-5"   # lunes a viernes 18:23 hora Argentina
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rfpesos
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Bajar bonos CER, TAMAR y dólar linked
+        run: python rf_pesos.py
+      - name: Guardar cambios
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add rf_pesos.json rf_pesos_debug.json 2>/dev/null || true
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza renta fija en pesos $(date -u +'%Y-%m-%d %H:%M')"
+          git pull --rebase
+          git push
