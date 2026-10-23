@@ -1319,6 +1319,7 @@ def add_verdicts(df, prev, mkt_up=True):
     vv = [verdict(r, mkt_up) for r in df.itertuples()]
     df["verdict"] = [v[0] for v in vv]
     df["verdict_why"] = [v[1] for v in vv]
+    df["cons"] = [v[0] == "Comprar" and v[1].startswith("Conservadora") for v in vv]
     df["verdict_prev"] = [prev.get(t) for t in df.t]
     df.attrs["verdict_base"] = {k: v for k, v in prev.items() if isinstance(v, str)}
     df["verdict_new"] = [(v[0] == "Comprar" and bool(prev) and prev.get(t) != "Comprar") for v, t in zip(vv, df.t)]
@@ -1453,6 +1454,37 @@ CK_FAM = {"Tecnología": "Crecimiento", "Comunicaciones": "Crecimiento", "Indust
 
 CK_NAME = {"CR": "crecimiento", "CI": "cíclicas", "DF": "defensivas"}
 
+# Defensivas de calidad en sobreventa (variante DQ1 del backtest, octubre 2026): consumo básico, salud y utilities con
+# beta < 0,8, volatilidad de 3 meses < 25%, ganancia de 12 meses positiva en todos los meses de los últimos 5 a 10 años
+# (balances de la SEC) y ventas que no caen más de 5%; entra con RSI < 35 sin perder la tendencia alcista (precio arriba
+# de su media de 200 días o la media todavía subiendo). En 10 años acertó 71% a 12 meses (contra 63% de comprar esas
+# mismas acciones cualquier día) y solo 4% de las compras perdió 20% o más (contra 11%). No busca ganarle al S&P 500.
+DQ_SECT = {"Consumo básico", "Salud", "Utilities"}
+
+
+def add_dq(df, folder="fund"):
+    q_, sig_, yrs_ = [], [], []
+    for r in df.itertuples():
+        q = s_ = False
+        yrs = None
+        if r.sector in DQ_SECT:
+            try:
+                with open(os.path.join(folder, f"{r.t}.json"), encoding="utf-8") as f:
+                    e = [x for x in json.load(f).get("eps", [])[-120:] if x is not None]
+                if len(e) >= 60 and min(e) > 0:
+                    yrs = len(e) // 12
+            except (OSError, ValueError, TypeError):
+                pass
+            beta, vol, rg = getattr(r, "beta", None), getattr(r, "volat", None), getattr(r, "rev_g", None)
+            q = bool(yrs and beta is not None and pd.notna(beta) and beta < 0.8 and vol is not None and pd.notna(vol) and vol < 0.25
+                     and not (rg is not None and pd.notna(rg) and rg < -0.05))
+            sl = getattr(r, "slope200_pct", None)
+            trend_ok = (r.p > r.sma200) or (sl is not None and pd.notna(sl) and sl > 0)
+            s_ = bool(q and pd.notna(r.rsi) and r.rsi < 35 and trend_ok)
+        q_.append(q); sig_.append(s_); yrs_.append(yrs)
+    df["dq_q"], df["dq"], df["dq_yrs"] = q_, sig_, yrs_
+    return df
+
 
 def add_checklists(df):
     ck, ck_n, ck_m, ck_l = [], [], [], []
@@ -1570,6 +1602,12 @@ def verdict(r, mkt_up=True):
                            + (", con momentum" if P["mom"] else "") + (", ganancias creciendo" if P["growth"] else "")
                            + f", y lo confirma: {conf_txt}. En 10 años, las compras así rindieron una mediana de ~14% a 12 meses "
                            "(contra ~12% de cualquier día) y fueron las que menos cayeron.")
+    # 1b) Comprar conservador: defensiva de calidad en sobreventa sin perder la tendencia (variante DQ1 del backtest)
+    if bool(getattr(r, "dq", False)) and not earn_soon:
+        return "Comprar", (f"Conservadora: defensiva de calidad (beta {fx(r.beta, 2)}, volatilidad {fx(r.volat * 100, 0)}% anual, "
+                           f"{int(r.dq_yrs)} años sin pérdidas) en sobreventa (RSI {r.rsi:.0f}) sin perder la tendencia alcista. "
+                           "En 10 años, comprar así acertó 71% de las veces a 12 meses y redujo a menos de la mitad las compras que "
+                           "terminaron mal. No busca ganarle al S&P 500: es una entrada de bajo riesgo para perfiles conservadores.")
     # 2) Evitar
     if r.vm_z == "Evitar" or r.cyc or (r.val_verdict == "Cara" and r.trend_n <= 0):
         why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
@@ -1691,7 +1729,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
             "setup", "elig", "rank", "val_model", "eps_gap", "eps_grow", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
-            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk", "ck", "ck_n", "ck_m", "ck_list"]
+            "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk", "ck", "ck_n", "ck_m", "ck_list", "dq_q", "dq", "dq_yrs", "cons"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
@@ -1878,6 +1916,7 @@ def main():
     df = add_value_momentum(df, series)
     df = add_risk(df, series)
     df = add_checklists(df)
+    df = add_dq(df)
     # filtro de mercado: con el S&P 500 debajo de su media de 200 días no hay "Comprar" pleno
     st = technical(*prices[BENCH]) if BENCH in prices else None
     mkt = {"up": bool(st["p"] > st["sma200"]), "p": r2(st["p"], 2), "sma200": r2(st["sma200"], 2),
