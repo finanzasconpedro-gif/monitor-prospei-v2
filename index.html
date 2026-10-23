@@ -73,6 +73,13 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 #tb-rfo td{white-space:nowrap}
 .ovs-tog{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:8px;width:100%;flex-wrap:wrap}.ovs-tog:hover h2{color:var(--accent,#4a9df0)}.ovs-arr{display:inline-block;font-size:14px;transition:transform .15s;color:var(--muted)}#ovs-card:not(.ovs-closed) .ovs-arr{transform:rotate(90deg)}.ovs-closed .ovs-in{display:none!important}
 .vd-btn{font-size:12px;cursor:pointer;border:1px solid transparent;font-family:inherit;transition:transform .1s}.vd-btn:hover{transform:translateY(-1px);filter:brightness(1.15)}.vd-btn.sel{border-color:currentColor;box-shadow:0 0 0 1px currentColor}
+[data-rfs="cup"].on{background:#c98a12!important;border-color:#c98a12!important;color:#fff!important}
+.cup-cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:12px}.cup-m{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}.cup-mh{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.cup-ml{max-height:260px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}.cup-it{all:unset;cursor:pointer;display:grid;grid-template-columns:62px 46px 1fr 70px;gap:4px 6px;align-items:center;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}.cup-it>.note{grid-column:3/5;font-size:11px}
+.cup-it:hover{border-color:var(--accent)}.cup-it.in{border-color:#c98a12;background:rgba(201,138,18,.10)}.cup-mon{font-size:10.5px;font-weight:700;color:var(--accent)}.cup-mon.cb{color:#e08a3c}
+.cup-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:10px}.cup-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:18px;margin-top:14px}@media(max-width:800px){.cup-grid{grid-template-columns:1fr}}
+.cup-h{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px}.cup-ff{width:100%;border-collapse:collapse;font-size:12.5px}.cup-ff td,.cup-ff th{padding:4px 6px}.cup-ff th{font-size:11px;color:var(--muted);text-align:left}.cup-ff .n{text-align:right}.cup-ff tr.cup-ff-m td{border-top:1px solid var(--line)}.cup-ff tfoot td{border-top:2px solid var(--ink);padding-top:6px}
+#cup-cli,#cup-q,.cup-amt{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}
 .rf-new{margin:8px 0;padding:10px 12px;border:1px solid #c98a12;border-left:4px solid #c98a12;border-radius:8px;background:rgba(201,138,18,.08);font-size:13px}
 .rf-sim{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
 .rf-sim input{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
@@ -499,6 +506,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <button class="chip" data-rfs="cer">CER</button>
       <button class="chip" data-rfs="tamar">TAMAR</button>
       <button class="chip" data-rfs="dl">Dólar linked</button>
+      <button class="chip" data-rfs="cup" style="margin-left:auto;border-color:#c98a12;color:#c98a12">★ Cartera cuponera</button>
     </div>
     <div id="rf-new" class="rf-new hide"></div>
     <p class="note rf-disc">Información de mercado con fines informativos. TIR, duration, paridad y sensibilidades calculadas por PROSPEI con el precio en vivo (data912) y el flujo de pagos de cada instrumento. No es recomendación de compra o venta.</p>
@@ -608,6 +616,40 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
         </div>
         <div class="tw"><table id="tb-rfp"></table></div>
         <p class="note" id="rp-foot" style="margin-top:6px"></p>
+      </div>
+    </div>
+
+
+    <!-- CARTERA CUPONERA -->
+    <div id="rf-cup" class="hide">
+      <div class="card">
+        <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <h2>Cartera cuponera · calendario de cobros</h2>
+            <p class="sub">Renta en dólares con pagos a lo largo del año. Cada mes muestra qué bonos y ONs pagan en los próximos 12 meses y cuánto por cada 100 nominales. <b>Tocá un papel para sumarlo a la cartera.</b></p>
+          </div>
+        </div>
+        <div class="rf-filt">
+          <label class="rf-fg"><span class="l">Buscar</span><input id="cup-q" placeholder="Ticker o empresa" style="width:150px"></label>
+          <label class="rf-fg"><span class="l">Tipo</span><select id="cup-tipo"><option value="">Todos</option><option value="sob">Soberanos</option><option value="on">ONs</option></select></label>
+          <label class="rf-fg"><span class="l">Industria</span><select id="cup-ind"><option value="">Todas</option></select></label>
+          <label class="rf-fg"><span class="l">Ley</span><select id="cup-ley"><option value="">Todas</option><option value="ARG">Argentina</option><option value="NY">Nueva York</option></select></label>
+          <label class="rf-fg"><span class="l">Moneda</span><select id="cup-mon"><option value="">Todas</option><option value="MEP">MEP</option><option value="CABLE">Cable</option></select></label>
+          <label class="rf-fg"><span class="l">TIR mín %</span><input type="number" id="cup-tmin" step="0.5" value="0" style="width:80px"></label>
+          <label class="rf-fg"><span class="l">TIR máx %</span><input type="number" id="cup-tmax" step="0.5" value="15" style="width:80px"></label>
+          <label class="rf-fg"><span class="l">Duration máx</span><input type="number" id="cup-dmax" step="0.5" style="width:80px"></label>
+          <label class="rf-fg"><span class="l">Ordenar</span><select id="cup-ord"><option value="tir">Mayor TIR</option><option value="cpn">Mayor cupón</option><option value="venc">Vencimiento</option><option value="vol">Más operadas</option></select></label>
+        </div>
+        <div id="cup-cal" class="cup-cal"></div>
+      </div>
+      <div class="card" id="cup-port">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <h2 style="margin:0;flex:1">Tu cartera</h2>
+          <label class="note" style="display:flex;gap:6px;align-items:center">Cliente <input id="cup-cli" placeholder="Nombre (opcional)" style="width:180px"></label>
+          <button class="chip" id="cup-clear">Vaciar</button>
+          <button class="chip" id="cup-pdf" style="background:#c98a12;border-color:#c98a12;color:#fff">⬇ Descargar PDF</button>
+        </div>
+        <div id="cup-body" style="margin-top:10px"></div>
       </div>
     </div>
 
@@ -2246,7 +2288,8 @@ function renderRF(){
   if(!$('#t-rf')||$('#t-rf').classList.contains('hide'))return;
   if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF();else $('#rf-curve').innerHTML='<p class="note">No se pudo leer rentafija.json.</p>'});return}
   rfAviso();
-  $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');$('#rf-on').classList.toggle('hide',S.rf.sub!=='on');$('#rf-pes').classList.toggle('hide',!['cer','dl','tamar'].includes(S.rf.sub));
+  $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');$('#rf-on').classList.toggle('hide',S.rf.sub!=='on');$('#rf-pes').classList.toggle('hide',!['cer','dl','tamar'].includes(S.rf.sub));$('#rf-cup').classList.toggle('hide',S.rf.sub!=='cup');
+  if(S.rf.sub==='cup')return renderCup();
   if(S.rf.sub==='tf')return renderRFTasa();
   if(['cer','dl','tamar'].includes(S.rf.sub))return renderRFP(S.rf.sub);
   if(S.rf.sub==='on')return renderON();
@@ -2477,6 +2520,110 @@ function renderRFP(kind){
 ['#rp-tmin','#rp-tmax','#rp-dmin','#rp-dmax','#rp-q'].forEach(id=>$(id).oninput=renderRF);
 $('#rp-clear').onclick=()=>{['#rp-tmin','#rp-tmax','#rp-dmin','#rp-dmax','#rp-q'].forEach(id=>$(id).value='');S.rf.rpFam={};renderRF()};
 $('#rp-xls').onclick=()=>rfCSV(S.rpLast||[],[['Ticker',r=>r.t],['Familia',r=>r.fam],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['Vencimiento',r=>rfFmtD(r.venc)],['Días',r=>r.dias],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Valor técnico',r=>n2(r.vt)],['Paridad %',r=>n2(r.par!=null?r.par*100:null)],['Duration',r=>n2(r.dur)],['MD',r=>n2(r.md)],['Volumen',r=>r.vol||'']],({cer:'cer',dl:'dolar_linked',tamar:'tamar'}[S.rf.sub]||'renta_fija')+'.csv');
+/* ---------- CARTERA CUPONERA ---------- */
+S.cup=(()=>{try{const v=JSON.parse(localStorage.getItem('cupPort')||'null');if(v&&Array.isArray(v.items))return v}catch(e){}return {items:[],cli:''}})();
+function cupSave(){try{localStorage.setItem('cupPort',JSON.stringify(S.cup))}catch(e){}}
+const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function cupLam(s){const v=parseFloat(String(s||'1').replace(/\./g,'').replace(',','.'));return v>0?v:1}
+/* universo: soberanos en dólares (rentafija.json) + ONs (ons.json), con precio MEP en vivo */
+function cupUniverse(){
+  const out=[];
+  if(S.rfDef){const c0=S.rf.cur;S.rf.cur='mep';const R=rfRowsSob();S.rf.cur=c0;
+    R.forEach(r=>{if(!r.usd||r.tir==null)return;const b=r.def;
+      out.push({id:'S:'+r.t,t:r.t,tipo:'sob',emp:r.fam==='Bopreal'?'BCRA (Bopreal)':'Tesoro Nacional',ind:'Soberano',ley:r.ley==='NY'||r.fam==='Globales'?'NY':'ARG',mon:r.fam==='Globales'?'CABLE':'MEP',calif:'',lam:1,
+        px:r.usd,tir:r.tir,dur:r.dur,venc:b.venc,flows:b.flows,vol:r.volD||r.vol||0,cpn:b.cpn})})}
+  if(S.onDef&&S.data.corp){onRows('mep').forEach(r=>{if(!r.usd||r.tir==null)return;const o=S.onDef.ons.find(x=>x.t===r.t);if(!o)return;
+    out.push({id:'O:'+r.t,t:r.t+'O',tipo:'on',emp:r.emp,ind:r.ind||'Otros',ley:r.ley||'',mon:r.mon||'',calif:r.calif||'',lam:cupLam(r.lam),
+      px:r.usd,tir:r.tir,dur:r.dur,venc:r.venc,flows:o.flows,vol:r.vol||0,cpn:r.cup})})}
+  return out;
+}
+function cupMonths(){const h=rfToday();const out=[];for(let i=0;i<12;i++){const d=new Date(Date.UTC(h.getUTCFullYear(),h.getUTCMonth()+i,1));out.push({y:d.getUTCFullYear(),m:d.getUTCMonth(),k:d.toISOString().slice(0,7)})}return out}
+function cupPays(u){const st=rfSettle().toISOString().slice(0,10),h=new Date(+rfToday());const lim=new Date(Date.UTC(h.getUTCFullYear(),h.getUTCMonth()+12,1)).toISOString().slice(0,10);
+  return u.flows.filter(f=>f[0]>st&&f[0]<lim&&(f[1]>0||f[2]>0))}
+function renderCup(){
+  if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF()});return}
+  if(!S.onDef){loadONDef().then(d=>{if(d)renderRF()});}
+  const U=cupUniverse(),byId={};U.forEach(u=>byId[u.id]=u);S.cupU=byId;
+  const si=$('#cup-ind');if(si.options.length<=1&&U.length){const iv=[...new Set(U.map(u=>u.ind))].sort((a,b)=>a==='Soberano'?-1:b==='Soberano'?1:a==='Otros'?1:b==='Otros'?-1:a.localeCompare(b,'es'));si.innerHTML='<option value="">Todas</option>'+iv.map(e=>`<option>${esc(e)}</option>`).join('')}
+  const nv=id=>{const v=$(id).value;return v===''?null:+v};const q=($('#cup-q').value||'').trim().toUpperCase(),tp=$('#cup-tipo').value,ind=$('#cup-ind').value,ley=$('#cup-ley').value,mon=$('#cup-mon').value,
+    tmin=nv('#cup-tmin'),tmax=nv('#cup-tmax'),dmax=nv('#cup-dmax'),ord=$('#cup-ord').value;
+  const F=U.filter(u=>(!q||u.t.includes(q)||u.emp.toUpperCase().includes(q))&&(!tp||u.tipo===tp)&&(!ind||u.ind===ind)&&(!ley||u.ley===ley)&&(!mon||u.mon===mon)&&(tmin==null||u.tir*100>=tmin)&&(tmax==null||u.tir*100<=tmax)&&(dmax==null||u.dur<=dmax));
+  const inP=new Set(S.cup.items.map(x=>x.id));
+  const M=cupMonths().map(m=>({...m,L:[]}));const mi={};M.forEach((m,i)=>mi[m.k]=i);
+  F.forEach(u=>cupPays(u).forEach(f=>{const i=mi[f[0].slice(0,7)];if(i!=null)M[i].L.push({u,c:f[1],a:f[2],d:f[0]})}));
+  const so={tir:(a,b)=>b.u.tir-a.u.tir,cpn:(a,b)=>(b.c+b.a)-(a.c+a.a),venc:(a,b)=>a.u.venc<b.u.venc?-1:1,vol:(a,b)=>b.u.vol-a.u.vol}[ord];
+  $('#cup-cal').innerHTML=U.length?M.map(m=>`<div class="cup-m"><div class="cup-mh"><b>${MES[m.m]} ${String(m.y).slice(2)}</b><span class="note">${m.L.length} papeles</span></div><div class="cup-ml">${m.L.sort(so).map(x=>`<button class="cup-it${inP.has(x.u.id)?' in':''}" data-id="${x.u.id}" title="${esc(x.u.emp)} · paga el ${rfFmtD(x.d)}${x.a>0?' (incluye amortización '+fmt(x.a,2)+')':''}"><b>${esc(x.u.t)}</b><span class="cup-mon ${x.u.mon==='CABLE'?'cb':''}">${esc(x.u.mon||'')}</span><span>Cupón <b>${fmt(x.c,2)}</b>${x.a>0?` <span class="note">+${fmt(x.a,1)} amort.</span>`:''}</span><span>TIR <b class="${x.u.tir>=0?'up':'down'}">${fmt(x.u.tir*100,1)}%</b></span><span class="note">Vto ${x.u.venc.slice(0,4)} · ${esc(x.u.ley)}</span></button>`).join('')||'<p class="note" style="padding:8px">Ningún papel filtrado paga este mes.</p>'}</div></div>`).join(''):'<p class="note" style="padding:16px;text-align:center">Cargando precios…</p>';
+  $$('#cup-cal .cup-it').forEach(b=>b.onclick=()=>{const id=b.dataset.id;if(inP.has(id))S.cup.items=S.cup.items.filter(x=>x.id!==id);else S.cup.items.push({id,monto:10000});cupSave();renderCup()});
+  renderCupPort();
+}
+function cupCalc(){
+  const U=S.cupU||{};const P=S.cup.items.map(x=>{const u=U[x.id];if(!u)return {x,u:null};const vn=Math.floor(x.monto/(u.px/100));const monto=vn*u.px/100;return {x,u,vn,monto}});
+  const ok=P.filter(p=>p.u&&p.monto>0);const tot=ok.reduce((a,p)=>a+p.monto,0);
+  ok.forEach(p=>p.w=tot?p.monto/tot:0);
+  const tir=ok.reduce((a,p)=>a+p.w*p.u.tir,0),dur=ok.reduce((a,p)=>a+p.w*p.u.dur,0);
+  const M=cupMonths().map(m=>({...m,L:[]}));const mi={};M.forEach((m,i)=>mi[m.k]=i);
+  ok.forEach(p=>cupPays(p.u).forEach(f=>{const i=mi[f[0].slice(0,7)];if(i!=null)M[i].L.push({t:p.u.t,c:p.vn/100*f[1],a:p.vn/100*f[2]})}));
+  const cup=M.reduce((a,m)=>a+m.L.reduce((b,x)=>b+x.c,0),0),am=M.reduce((a,m)=>a+m.L.reduce((b,x)=>b+x.a,0),0);
+  const ind={};ok.forEach(p=>ind[p.u.ind]=(ind[p.u.ind]||0)+p.w);
+  return {P,ok,tot,tir,dur,M,cup,am,ind,missing:P.filter(p=>!p.u)};
+}
+const CUP_COL=['#1d4ed8','#3b82f6','#60a5fa','#0e9aa7','#22c3b5','#7c6cf6','#a78bfa','#c98a12','#e0a84a','#e05f5f','#64748b','#94a3b8'];
+function cupPie(ok,R){R=R||80;if(!ok.length)return '';let a0=-Math.PI/2,s='';const cx=R+4,cy=R+4;
+  ok.forEach((p,i)=>{const a1=a0+p.w*2*Math.PI;const L=a1-a0>Math.PI?1:0;const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+    s+=ok.length===1?`<circle cx="${cx}" cy="${cy}" r="${R}" fill="${CUP_COL[0]}"/>`:`<path d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${R},${R} 0 ${L} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z" fill="${CUP_COL[i%CUP_COL.length]}" stroke="#fff" stroke-width="1.5"/>`;a0=a1});
+  return `<svg viewBox="0 0 ${2*R+8} ${2*R+8}" width="${2*R+8}" height="${2*R+8}">${s}</svg>`}
+function renderCupPort(){
+  const el=$('#cup-body');$('#cup-cli').value=S.cup.cli||'';
+  if(!S.cup.items.length){el.innerHTML='<p class="note" style="padding:14px;text-align:center">Todavía no hay papeles. Tocá cualquier papel del calendario para sumarlo; después ajustás el monto de cada uno.</p>';return}
+  const C=cupCalc();S.cupLast=C;
+  const kp=[['Monto invertido','US$ '+fmt(C.tot,0)],['TIR promedio',fmt(C.tir*100,2)+'%'],['Duration promedio',fmt(C.dur,2)],['Cupones 12 meses','US$ '+fmt(C.cup,0)],['Renta anual s/ invertido',C.tot?fmt(C.cup/C.tot*100,2)+'%':'—']];
+  el.innerHTML=`<div class="cup-kpis">${kp.map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v num" style="text-align:left">${k[1]}</div></div>`).join('')}</div>
+  <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Empresa</th><th class="n">Monto US$</th><th class="n">VN</th><th class="n">Precio MEP</th><th class="n">Ponder.</th><th class="n">TIR</th><th class="n">Duration</th><th class="n">Vto.</th><th></th></tr></thead><tbody>
+  ${C.P.map(p=>p.u?`<tr><td><b>${esc(p.u.t)}</b></td><td>${esc(p.u.emp)}<div class="note">${esc(p.u.ind)}</div></td><td class="n"><input type="number" class="cup-amt" data-id="${p.x.id}" value="${p.x.monto}" step="500" min="0" style="width:110px;text-align:right"></td>
+    <td class="n">${fmt(p.vn,0)}${p.vn<p.u.lam?`<div class="down" style="font-size:11px">mín. ${fmt(p.u.lam,0)}</div>`:''}</td><td class="n">${fmt(p.u.px,2)}</td><td class="n">${fmt((p.w||0)*100,1)}%</td><td class="n"><b class="up">${fmt(p.u.tir*100,2)}%</b></td><td class="n">${fmt(p.u.dur,2)}</td><td class="n">${p.u.venc.slice(0,4)}</td>
+    <td><button class="chip cup-del" data-id="${p.x.id}" title="Quitar">✕</button></td></tr>`:`<tr><td colspan="10" class="note">${esc(p.x.id.slice(2))}: sin precio en este momento <button class="chip cup-del" data-id="${p.x.id}">✕</button></td></tr>`).join('')}</tbody></table></div>
+  <div class="cup-grid">
+    <div><h3 class="cup-h">Composición</h3><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">${cupPie(C.ok,70)}<div>${C.ok.map((p,i)=>`<div style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin:2px 0"><i style="width:10px;height:10px;border-radius:2px;background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(p.u.t)}</b><span class="note">${fmt(p.w*100,1)}%</span></div>`).join('')}</div></div>
+      <h3 class="cup-h" style="margin-top:14px">Por industria</h3>${Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:grid;grid-template-columns:150px 1fr 50px;gap:8px;align-items:center;font-size:12.5px;margin:3px 0"><span>${esc(k)}</span><span style="height:7px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${(v*100).toFixed(0)}%;background:#0e9aa7"></i></span><b class="num" style="text-align:right">${fmt(v*100,1)}%</b></div>`).join('')}</div>
+    <div><h3 class="cup-h">Flujo de fondos · próximos 12 meses</h3><table class="cup-ff"><thead><tr><th>Mes</th><th>Papel</th><th class="n">Cupón US$</th><th class="n">Amortización</th></tr></thead><tbody>
+      ${C.M.map(m=>m.L.length?m.L.map((x,i)=>`<tr${i===0?' class="cup-ff-m"':''}><td>${i===0?`<b>${MES[m.m]} ${String(m.y).slice(2)}</b>`:''}</td><td>${esc(x.t)}</td><td class="n"><b>${fmt(x.c,2)}</b></td><td class="n">${x.a>0?fmt(x.a,2):''}</td></tr>`).join(''):`<tr class="cup-ff-m"><td><b>${MES[m.m]} ${String(m.y).slice(2)}</b></td><td class="note">—</td><td></td><td></td></tr>`).join('')}
+      </tbody><tfoot><tr><td colspan="2"><b>Total 12 meses</b></td><td class="n"><b>US$ ${fmt(C.cup,2)}</b></td><td class="n">${C.am>0?'US$ '+fmt(C.am,2):''}</td></tr></tfoot></table>
+      <p class="note" style="margin-top:6px">Cupones estimados en dólares según el VN de cada papel. La renta anual (${C.tot?fmt(C.cup/C.tot*100,2):'—'}%) cuenta sólo los cupones; las amortizaciones son devolución de capital.</p></div>
+  </div>`;
+  $$('#cup-body .cup-amt').forEach(i=>i.onchange=()=>{const it=S.cup.items.find(x=>x.id===i.dataset.id);if(it){it.monto=Math.max(0,+i.value||0);cupSave();renderCupPort()}});
+  $$('#cup-body .cup-del').forEach(b=>b.onclick=()=>{S.cup.items=S.cup.items.filter(x=>x.id!==b.dataset.id);cupSave();renderCup()});
+}
+function cupPDF(){
+  const C=S.cupLast;if(!C||!C.ok.length){alert('Primero armá la cartera.');return}
+  const hoy=rfToday().toISOString().slice(0,10).split('-').reverse().join('/'),cli=(S.cup.cli||'').trim();
+  const rows=C.ok.map(p=>`<tr><td class="tk">${esc(p.u.t)}</td><td>${esc(p.u.emp)}</td><td class="n">${fmt(p.w*100,2)}%</td><td class="n">${fmt(p.vn,0)}</td><td class="n">${fmt(p.u.px,2)}</td><td class="n">US$ ${fmt(p.monto,0)}</td><td class="n g">${fmt(p.u.tir*100,2)}%</td><td class="n">${fmt(p.u.dur,2)}</td><td class="n">${p.u.venc.slice(0,4)}</td></tr>`).join('');
+  const ff=C.M.map(m=>m.L.length?m.L.map((x,i)=>`<tr class="${i===0?'mt':''}"><td>${i===0?MES[m.m]+' '+String(m.y).slice(2):''}</td><td class="tk">${esc(x.t)}</td><td class="n b">US$ ${fmt(x.c,2)}</td><td class="n">${x.a>0?'US$ '+fmt(x.a,2):''}</td></tr>`).join(''):`<tr class="mt"><td>${MES[m.m]} ${String(m.y).slice(2)}</td><td class="mu">—</td><td></td><td></td></tr>`).join('');
+  const ind=Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="ib"><span>${esc(k)}</span><span class="bar"><i style="width:${(v*100).toFixed(0)}%"></i></span><b>${fmt(v*100,1)}%</b></div>`).join('');
+  const leg=C.ok.map((p,i)=>`<div class="lg"><i style="background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(p.u.t)}</b> <span>${fmt(p.w*100,1)}%</span></div>`).join('');
+  const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Cartera cuponera PROSPEI${cli?' - '+esc(cli):''}</title><style>
+  @page{size:A4;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#0f1b2d;margin:0;font-size:11px}
+  .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #551CE3;padding-bottom:8px;margin-bottom:12px}.hd h1{font-size:20px;margin:0}.hd p{margin:2px 0 0;color:#5b6b80}.brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.06em}.brand small{display:block;font-weight:500;letter-spacing:0;color:#5b6b80;font-size:9.5px}
+  .k{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}.k div{border:1px solid #e2e8f0;border-radius:8px;padding:8px}.k span{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:#5b6b80}.k b{font-size:15px}
+  table{width:100%;border-collapse:collapse}th{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:#5b6b80;text-align:left;padding:5px 6px;background:#f4f6f9}td{padding:5px 6px;border-bottom:1px solid #eef2f6}.n{text-align:right}.tk{font-weight:700;color:#1d4ed8}.g{color:#0f9d58;font-weight:700}.b{font-weight:700}.mu{color:#93a3b8}
+  .grid{display:grid;grid-template-columns:1fr 1.15fr;gap:14px;margin-top:14px}.box{border:1px solid #e2e8f0;border-radius:10px;padding:10px}h3{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:#5b6b80;margin:0 0 8px}
+  .lg{display:flex;gap:6px;align-items:center;margin:2px 0}.lg i{width:9px;height:9px;border-radius:2px;display:inline-block}.lg span{color:#5b6b80}.ib{display:grid;grid-template-columns:110px 1fr 40px;gap:6px;align-items:center;margin:3px 0}.bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:#0e9aa7}.ib b{text-align:right}
+  tr.mt td{border-top:1px solid #d5dde8}.ff td{padding:2.6px 6px;font-size:10px}.ff th{padding:4px 6px}tfoot td{font-weight:700;border-top:2px solid #0f1b2d}.ra{margin-top:10px;display:flex;justify-content:space-between;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 10px}.ra b{font-size:18px;color:#0f9d58}
+  .ft{margin-top:14px;color:#93a3b8;font-size:8.5px;border-top:1px solid #e2e8f0;padding-top:6px}</style></head><body>
+  <div class="hd"><div><h1>Propuesta de cartera · Cuponera</h1><p>Renta en dólares con pagos a lo largo del año${cli?' · Preparada para <b>'+esc(cli)+'</b>':''}</p></div>
+  <div style="text-align:right"><div class="brand"><svg viewBox="0 0 34 34" width="22" height="22"><rect width="16" height="16" fill="#551CE3"/><rect x="18" width="16" height="16" fill="#798DF7"/><rect y="18" width="16" height="16" fill="#9AA8F9"/><rect x="18" y="18" width="16" height="16" fill="#BCC6FA"/></svg><div>PROSPEI<small>Consultores Financieros</small></div></div><p>${hoy}</p></div></div>
+  <div class="k"><div><span>Monto</span><b>US$ ${fmt(C.tot,0)}</b></div><div><span>TIR promedio</span><b style="color:#0f9d58">${fmt(C.tir*100,2)}%</b></div><div><span>Duration promedio</span><b>${fmt(C.dur,2)}</b></div><div><span>Instrumentos</span><b>${C.ok.length}</b></div><div><span>Cupones 12 meses</span><b>US$ ${fmt(C.cup,0)}</b></div></div>
+  <table><thead><tr><th>Ticker</th><th>Empresa</th><th class="n">Ponder.</th><th class="n">VN</th><th class="n">P. MEP</th><th class="n">Monto</th><th class="n">TIR</th><th class="n">Dur.</th><th class="n">Venc.</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="grid"><div class="box"><h3>Composición</h3><div style="display:flex;gap:12px;align-items:center">${cupPie(C.ok,62)}<div>${leg}</div></div><h3 style="margin-top:12px">Distribución por industria</h3>${ind}
+  <div class="ra" style="margin-top:16px"><div><b style="font-size:11px;color:#0f1b2d">Renta anual sobre lo invertido</b><div class="mu" style="font-size:8.5px">sólo cupones · US$ ${fmt(C.cup,2)} / US$ ${fmt(C.tot,2)}</div></div><b>${C.tot?fmt(C.cup/C.tot*100,2):'—'}%</b></div></div>
+  <div class="box"><h3>Flujo de fondos · próximos 12 meses</h3><table class="ff"><thead><tr><th>Mes</th><th>Ticker</th><th class="n">Cupón (US$)</th><th class="n">Amortiz.</th></tr></thead><tbody>${ff}</tbody><tfoot><tr><td colspan="2">Total 12 meses</td><td class="n">US$ ${fmt(C.cup,2)}</td><td class="n">${C.am>0?'US$ '+fmt(C.am,2):''}</td></tr></tfoot></table></div></div>
+  <div class="ft">Precios MEP de mercado al ${hoy}; cupones estimados según el valor nominal asignado y el flujo de pagos de cada instrumento. Material con fines informativos; no constituye una recomendación de inversión. PROSPEI Consultores Financieros.</div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`;
+  const w=window.open('','_blank');if(!w){alert('El navegador bloqueó la ventana. Permití ventanas emergentes para este sitio.');return}w.document.open();w.document.write(html);w.document.close();
+}
+['#cup-q','#cup-tmin','#cup-tmax','#cup-dmax'].forEach(id=>$(id).oninput=renderRF);['#cup-tipo','#cup-ind','#cup-ley','#cup-mon','#cup-ord'].forEach(id=>$(id).onchange=renderRF);
+$('#cup-cli').oninput=()=>{S.cup.cli=$('#cup-cli').value;cupSave()};
+$('#cup-clear').onclick=()=>{if(!S.cup.items.length||confirm('¿Vaciar la cartera?')){S.cup.items=[];cupSave();renderRF()}};
+$('#cup-pdf').onclick=cupPDF;
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- carga ---------- */
 let loading=false;
