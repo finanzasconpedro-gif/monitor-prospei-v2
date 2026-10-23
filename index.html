@@ -496,9 +496,9 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
       <button class="chip on" data-rfs="sob">Soberanos</button>
       <button class="chip" data-rfs="tf">Tasa fija</button>
       <button class="chip" data-rfs="on">ONs</button>
-      <button class="chip" data-rfs="cer" disabled title="Próximamente">CER · pronto</button>
+      <button class="chip" data-rfs="cer">CER</button>
       <button class="chip" data-rfs="tamar" disabled title="Próximamente">TAMAR · pronto</button>
-      <button class="chip" data-rfs="dl" disabled title="Próximamente">Dólar linked · pronto</button>
+      <button class="chip" data-rfs="dl">Dólar linked</button>
     </div>
     <div id="rf-new" class="rf-new hide"></div>
     <p class="note rf-disc">Información de mercado con fines informativos. TIR, duration, paridad y sensibilidades calculadas por PROSPEI con el precio en vivo (data912) y el flujo de pagos de cada instrumento. No es recomendación de compra o venta.</p>
@@ -580,6 +580,34 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
         </div>
         <div class="tw"><table id="tb-rfo"></table></div>
         <p class="note" id="on-foot" style="margin-top:6px"></p>
+      </div>
+    </div>
+
+
+    <!-- CER y DÓLAR LINKED (mismo formato) -->
+    <div id="rf-pes" class="hide">
+      <div class="card">
+        <div class="rf-filt">
+          <div class="rf-fg"><span class="l">Familia</span><div id="rp-fam" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+          <label class="rf-fg"><span class="l">TIR mín %</span><input type="number" id="rp-tmin" step="0.5"></label>
+          <label class="rf-fg"><span class="l">TIR máx %</span><input type="number" id="rp-tmax" step="0.5"></label>
+          <label class="rf-fg"><span class="l">Duration mín</span><input type="number" id="rp-dmin" step="0.25"></label>
+          <label class="rf-fg"><span class="l">Duration máx</span><input type="number" id="rp-dmax" step="0.25"></label>
+          <button class="chip" id="rp-clear">Limpiar</button>
+          <div class="rf-tem"><span class="l" id="rp-idx-l">CER</span><b id="rp-idx">—</b></div>
+        </div>
+        <h2 style="margin-top:12px" id="rp-title"></h2>
+        <p class="sub" id="rp-sub"></p>
+        <div id="rp-curve"></div>
+      </div>
+      <div class="card">
+        <div class="bar">
+          <input type="search" id="rp-q" placeholder="Buscar ticker…">
+          <span class="note" id="rp-n"></span>
+          <button class="chip" id="rp-xls" style="margin-left:auto">⬇ Exportar Excel</button>
+        </div>
+        <div class="tw"><table id="tb-rfp"></table></div>
+        <p class="note" id="rp-foot" style="margin-top:6px"></p>
       </div>
     </div>
 
@@ -743,7 +771,7 @@ function table(el,key,cols,rows,rowCls,limit){
   if(!r.length)h+=`<tr><td colspan="${cols.length}" class="note" style="text-align:center;padding:20px">Sin datos para mostrar.</td></tr>`;
   r.forEach(o=>{h+=`<tr class="${rowCls?rowCls(o):''}"${o.t?` data-t="${o.t}"`:''}>`+cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(o):(o[c.k]??'—')}</td>`).join('')+'</tr>'});
   el.innerHTML=h+'</tbody>';
-  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab,ovs:renderOvs,rfs:renderRF,rfo:renderRF,rfl:renderRF})[key]()});
+  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab,ovs:renderOvs,rfs:renderRF,rfo:renderRF,rfp:renderRF,rfl:renderRF})[key]()});
   el.querySelectorAll('.star').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=b.dataset.s;S.fav.has(s)?S.fav.delete(s):S.fav.add(s);saveFav();renderAcc();renderCed();renderTop();renderUni()});
   el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t));
   el.querySelectorAll('.edit').forEach(b=>b.onclick=e=>{e.stopPropagation();editRatio(b.dataset.s)});
@@ -2134,9 +2162,9 @@ function renderKpis(){
 }
 
 /* ---------- RENTA FIJA ---------- */
-S.rf={sub:'sob',cur:'mep',fam:{Bonares:true,Globales:true,Bopreal:true},sim:[],tfH:'',onCur:'mep',onSim:[]};
-S.sort.rfs=['vol',-1];S.sort.rfo=['vol',-1];S.sort.rfl=['venc',1];
-const RF_COL={Bonares:'#e08a3c',Globales:'#4a9df0',Bopreal:'#9aa3b2',LECAP:'#3fb6c9',BONCAP:'#e08a3c',Simulado:'#c98a12','Ley Arg.':'#3fb6c9','Ley NY':'#8b7cf6'};
+S.rf={sub:'sob',cur:'mep',fam:{Bonares:true,Globales:true,Bopreal:true},sim:[],tfH:'',onCur:'mep',onSim:[],rpFam:{}};
+S.sort.rfs=['vol',-1];S.sort.rfo=['vol',-1];S.sort.rfp=['venc',1];S.sort.rfl=['venc',1];
+const RF_COL={Bonares:'#e08a3c',Globales:'#4a9df0',Bopreal:'#9aa3b2',LECAP:'#3fb6c9',BONCAP:'#e08a3c',Simulado:'#c98a12','Ley Arg.':'#3fb6c9','Ley NY':'#8b7cf6',LECER:'#3fb6c9',BONCER:'#6c8cff','Discount / Par':'#e08a3c',LELINK:'#3fb6c9','Bono DL':'#e08a3c'};
 const RF_DAY=864e5;
 async function loadRFDef(){if(S.rfDef)return S.rfDef;try{S.rfDef=await getJ('rentafija.json?v='+Date.now())}catch(e){S.rfDef=null}return S.rfDef}
 function rfPd(s){const [y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d))}
@@ -2210,8 +2238,9 @@ function renderRF(){
   if(!$('#t-rf')||$('#t-rf').classList.contains('hide'))return;
   if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF();else $('#rf-curve').innerHTML='<p class="note">No se pudo leer rentafija.json.</p>'});return}
   rfAviso();
-  $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');$('#rf-on').classList.toggle('hide',S.rf.sub!=='on');
+  $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');$('#rf-on').classList.toggle('hide',S.rf.sub!=='on');$('#rf-pes').classList.toggle('hide',S.rf.sub!=='cer'&&S.rf.sub!=='dl');
   if(S.rf.sub==='tf')return renderRFTasa();
+  if(S.rf.sub==='cer'||S.rf.sub==='dl')return renderRFP(S.rf.sub);
   if(S.rf.sub==='on')return renderON();
   const rows=rfRowsSob();rfKpis(rows,S.rf.cur);
   // filtros de familia
@@ -2380,6 +2409,58 @@ $$('[data-onc]').forEach(b=>b.onclick=()=>{$$('[data-onc]').forEach(x=>x.classLi
 $('#on-clear').onclick=()=>{['#on-ind','#on-emp','#on-ley','#on-mon','#on-dmin','#on-dmax','#on-q'].forEach(id=>$(id).value='');$('#on-tmin').value=-10;$('#on-tmax').value=15;S.rf.onSim=[];renderRF()};
 $('#on-sim-add').onclick=()=>{const t=($('#on-sim-t').value||'SIM').trim().toUpperCase(),y=+$('#on-sim-y').value,d=+$('#on-sim-d').value;if(!(d>0)||!isFinite(y))return;S.rf.onSim.push({t,y:y/100,d});$('#on-sim-t').value='';renderRF()};
 $('#on-xls').onclick=()=>rfCSV(S.onLast||[],[['Ticker',r=>r.sym||r.t],['Empresa',r=>r.emp],['Industria',r=>r.ind],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Paridad %',r=>n2(r.par!=null?r.par*100:null,1)],['MD',r=>n2(r.md)],['Duration',r=>n2(r.dur)],['Vencimiento',r=>rfFmtD(r.venc)],['Cupón %',r=>n2(r.cup)],['Frecuencia',r=>r.frec],['Moneda',r=>r.mon],['Calificación',r=>r.calif],['Ley',r=>r.ley],['Lámina',r=>r.lam],['Volumen',r=>r.vol||'']],'ons_'+S.rf.onCur+'.csv');
+/* ---------- CER y DÓLAR LINKED ---------- */
+async function loadRPDef(){if(S.rpDef)return S.rpDef;try{S.rpDef=await getJ('rf_pesos.json?v='+Date.now())}catch(e){S.rpDef=null}return S.rpDef}
+function rpFam(b){const t=b.t;if(b.tipo==='CER')return /^X\d/.test(t)?'LECER':/^(DICP|DIP0|PARP|PAP0|CUAP)$/.test(t)?'Discount / Par':'BONCER';return /^D\d/.test(t)?'LELINK':'Bono DL'}
+const RP_FAMS={cer:['LECER','BONCER','Discount / Par'],dl:['LELINK','Bono DL']};
+function rpCalc(b,price,st){
+  if(!(price>0))return null;const fut=b.flows.filter(f=>rfPd(f[0])>st);if(!fut.length)return null;
+  const cf=fut.map(f=>({t:(rfPd(f[0])-st)/RF_DAY/365,c:f[1]+f[2]}));
+  const pv=y=>cf.reduce((a,x)=>a+x.c/Math.pow(1+y,x.t),0);
+  let lo=-0.95,hi=5;for(let i=0;i<140;i++){const m=(lo+hi)/2;if(pv(m)>price)lo=m;else hi=m}
+  const y=(lo+hi)/2,P=pv(y),dur=cf.reduce((a,x)=>a+x.t*x.c/Math.pow(1+y,x.t),0)/P;
+  const res=fut.reduce((a,f)=>a+f[2],0);
+  const per=fut.length>1?(rfPd(fut[1][0])-rfPd(fut[0][0]))/RF_DAY:182,dn=(rfPd(fut[0][0])-st)/RF_DAY;
+  const acc=fut[0][1]*Math.max(0,Math.min(1,(per-dn)/per));
+  const vt=res+acc,par=vt>0?price/vt:null;
+  if(par==null||par<0.3||par>3)return null; // precio y flujo en escalas distintas (dato inconsistente): no se muestra
+  return {tir:y,dur,md:dur/(1+y),vt,par};
+}
+function renderRFP(kind){
+  if(!S.rpDef){loadRPDef().then(d=>{if(d)renderRF();else $('#rp-curve').innerHTML='<p class="note">No se pudo leer rf_pesos.json (corré la tarea "Renta fija en pesos PROSPEI" en GitHub).</p>'});return}
+  const D=S.rpDef,m=rfQuotes(),st=rfSettle(),hoy=rfToday(),tipo=kind==='cer'?'CER':'DL';
+  const fams=RP_FAMS[kind];fams.forEach(f=>{if(S.rf.rpFam[f]==null)S.rf.rpFam[f]=true});
+  const rows=D.bonos.filter(b=>b.tipo===tipo).map(b=>{const q=rfPick(m,[b.t]);const px=q?q.x.c:null;const fam=rpFam(b);
+    const venc=b.flows.length?b.flows[b.flows.length-1][0]:null;const dias=venc?Math.round((rfPd(venc)-hoy)/RF_DAY):null;
+    const k=px?rpCalc(b,px,st):null;
+    return Object.assign({t:b.t,nombre:b.nombre,fam,px,venc,dias,meses:dias!=null?dias/30:null,chg:q&&q.x.pct_change!=null?q.x.pct_change/100:null,vol:q&&ok(q.x.v)?q.x.v:0},k||{})}).filter(r=>r.dias==null||r.dias>0);
+  // índice de referencia
+  const ser=kind==='cer'?D.cer:null;
+  $('#rp-idx-l').textContent=kind==='cer'?'CER (BCRA)':'Dólar MEP';
+  $('#rp-idx-l').textContent=kind==='cer'?'CER al '+(ser&&ser.length?rfFmtD(ser[ser.length-1][0]):'—'):'Dólar MEP';$('#rp-idx').textContent=kind==='cer'?(ser&&ser.length?fmt(ser[ser.length-1][1],2):'—'):(S.ref.mep?'$ '+fmt(S.ref.mep.v):'—');
+  $('#rp-title').textContent=kind==='cer'?'Curva CER · TIR real vs duration':'Curva dólar linked · TIR en dólares vs duration';
+  $('#rp-sub').innerHTML=kind==='cer'?'TIR <b>real</b>: lo que rinde por encima de la inflación (CER). Flujos en pesos al CER de hoy, sin proyectar inflación. Valor técnico = capital ajustado por CER + intereses corridos.':'TIR en dólares: lo que rinde por encima de la variación del dólar oficial (A3500). Flujos en pesos al tipo de cambio de hoy, sin proyectar devaluación.';
+  $('#rp-fam').innerHTML=fams.map(f=>`<button class="chip ${S.rf.rpFam[f]?'on':''}" data-rpf="${f}" style="${S.rf.rpFam[f]?`background:${RF_COL[f]};border-color:${RF_COL[f]};color:#fff`:''}">${f}</button>`).join('');
+  $$('#rp-fam [data-rpf]').forEach(b=>b.onclick=()=>{S.rf.rpFam[b.dataset.rpf]=!S.rf.rpFam[b.dataset.rpf];renderRF()});
+  const nv=id=>{const v=$(id).value;return v===''?null:+v};const tmin=nv('#rp-tmin'),tmax=nv('#rp-tmax'),dmin=nv('#rp-dmin'),dmax=nv('#rp-dmax');
+  const inF=r=>S.rf.rpFam[r.fam]&&(r.tir==null||((tmin==null||r.tir*100>=tmin)&&(tmax==null||r.tir*100<=tmax)&&(dmin==null||r.dur>=dmin)&&(dmax==null||r.dur<=dmax)));
+  const pts=rows.filter(r=>inF(r)&&r.tir!=null&&r.dur>0.02&&Math.abs(r.tir)<0.6).map(r=>({t:r.t,x:r.dur,y:r.tir,g:r.fam}));
+  const lg={};fams.forEach(f=>lg[f]=1);
+  rfChart($('#rp-curve'),pts,{fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['*'],leg:lg,tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
+  const q=($('#rp-q').value||'').trim().toUpperCase();const T=rows.filter(r=>inF(r)&&(!q||r.t.includes(q)));
+  const cols=[{k:'t',h:'Ticker',f:o=>`<b title="${esc(o.nombre||'')}">${o.t}</b>`},{k:'fam',h:'Familia',f:o=>`<span class="rf-tag" style="color:${RF_COL[o.fam]};border-color:${RF_COL[o.fam]}">${esc(o.fam)}</span>`},
+    {k:'px',h:'Precio',n:1,f:o=>o.px?'$ '+fmt(o.px,2):'—'},{k:'chg',h:'Var %',n:1,f:o=>o.chg==null?'—':`<span class="${cls(o.chg)}">${pct(o.chg,2)}</span>`},
+    {k:'venc',h:'Vencim.',n:1,f:o=>rfFmtD(o.venc)},{k:'dias',h:'Días',n:1,f:o=>o.dias==null?'—':o.dias+'d'},{k:'meses',h:'Meses',n:1,f:o=>o.meses==null?'—':fmt(o.meses,1)},
+    {k:'tir',h:kind==='cer'?'TIR real':'TIR USD',n:1,f:o=>o.tir==null?'—':`<b>${fmt(o.tir*100,2)}%</b>`},
+    {k:'vt',h:'Valor téc.',n:1,f:o=>o.vt==null?'—':fmt(o.vt,2)},{k:'par',h:'Paridad',n:1,f:o=>o.par==null?'—':fmt(o.par*100,2)+'%'},
+    {k:'dur',h:'Duration',n:1,f:o=>o.dur==null?'—':fmt(o.dur,2)},{k:'md',h:'MD',n:1,f:o=>o.md==null?'—':fmt(o.md,2)},{k:'vol',h:'Volumen',n:1,f:o=>fmtC(o.vol)}];
+  table($('#tb-rfp'),'rfp',cols,T);$('#rp-n').textContent=T.length+' instrumentos';
+  $('#rp-foot').textContent='Precios en pesos por cada 100 de valor nominal. Flujos de pago según la ficha de cada bono (Rava), actualizados el '+rfFmtD(D.updated)+'. Liquidación: '+rfFmtD(st.toISOString().slice(0,10))+'.';
+  S.rpLast=T;
+}
+['#rp-tmin','#rp-tmax','#rp-dmin','#rp-dmax','#rp-q'].forEach(id=>$(id).oninput=renderRF);
+$('#rp-clear').onclick=()=>{['#rp-tmin','#rp-tmax','#rp-dmin','#rp-dmax','#rp-q'].forEach(id=>$(id).value='');S.rf.rpFam={};renderRF()};
+$('#rp-xls').onclick=()=>rfCSV(S.rpLast||[],[['Ticker',r=>r.t],['Familia',r=>r.fam],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['Vencimiento',r=>rfFmtD(r.venc)],['Días',r=>r.dias],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Valor técnico',r=>n2(r.vt)],['Paridad %',r=>n2(r.par!=null?r.par*100:null)],['Duration',r=>n2(r.dur)],['MD',r=>n2(r.md)],['Volumen',r=>r.vol||'']],(S.rf.sub==='cer'?'cer':'dolar_linked')+'.csv');
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- carga ---------- */
 let loading=false;
