@@ -669,12 +669,14 @@ def audit_and_model(df):
         # ADRs con balances en otra moneda (pesos, reales): Yahoo divide la capitalización en dólares por las
         # ventas en moneda local (precio/ventas de 0,001 en las argentinas) y arma la historia de múltiplos con
         # el precio del ADR en dólares contra la ganancia por acción en moneda local. Nada de eso es comparable.
-        if adr:
+        # también las de seguimiento propio (TSM, ASML, SKHY...): cotizan en EE.UU. pero sus balances están en
+        # dólares taiwaneses, euros o wones, igual que un ADR
+        if adr or bool(getattr(r, "extra", False)):
             fc = getattr(r, "fin_cur", "") or ""
             if fc and fc != "USD":
-                df.loc[i, ["ps", "pe_hist", "ps_hist", "pb_hist"]] = np.nan
-                a.append(f"Balances en {fc}: su precio/ventas y su historia de múltiplos no son comparables con el "
-                         "precio del ADR en dólares; no se usan.")
+                df.loc[i, ["ps", "pe_hist", "ps_hist", "pb_hist", "fcf_y"]] = np.nan
+                a.append(f"Balances en {fc}: su precio/ventas, su flujo de caja y su historia de múltiplos no son "
+                         "comparables con el precio en dólares; no se usan.")
             # P/VL: por identidad contable P/VL = P/E x ROE. Si no se cumple, el valor libros de Yahoo está por acción
             # ordinaria o en otra moneda (le pasa a algunos bancos argentinos) y el P/VL no sirve.
             pb_c, pe_c, roe_c = df.at[i, "pb"], df.at[i, "pe"], df.at[i, "roe"]
