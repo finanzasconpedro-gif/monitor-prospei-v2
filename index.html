@@ -70,6 +70,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 .rf-filt{display:flex;gap:10px 14px;flex-wrap:wrap;align-items:flex-end}
 .rf-fg{display:flex;flex-direction:column;gap:4px}.rf-fg .l,.rf-sim .l,.rf-tem .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .rf-fg input{width:92px}
+#tb-rfo td{white-space:nowrap}
 .rf-new{margin:8px 0;padding:10px 12px;border:1px solid #c98a12;border-left:4px solid #c98a12;border-radius:8px;background:rgba(201,138,18,.08);font-size:13px}
 .rf-sim{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
 .rf-sim input{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
@@ -494,7 +495,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <div class="rf-sub" id="rf-sub">
       <button class="chip on" data-rfs="sob">Soberanos</button>
       <button class="chip" data-rfs="tf">Tasa fija</button>
-      <button class="chip" data-rfs="on" disabled title="Próximamente">ONs · pronto</button>
+      <button class="chip" data-rfs="on">ONs</button>
       <button class="chip" data-rfs="cer" disabled title="Próximamente">CER · pronto</button>
       <button class="chip" data-rfs="tamar" disabled title="Próximamente">TAMAR · pronto</button>
       <button class="chip" data-rfs="dl" disabled title="Próximamente">Dólar linked · pronto</button>
@@ -543,6 +544,42 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
         </div>
         <div class="tw"><table id="tb-rfs"></table></div>
         <p class="note" id="rf-foot" style="margin-top:6px"></p>
+      </div>
+    </div>
+
+
+    <!-- OBLIGACIONES NEGOCIABLES -->
+    <div id="rf-on" class="hide">
+      <div class="card">
+        <div class="rf-filt">
+          <label class="rf-fg"><span class="l">Empresa</span><select id="on-emp"><option value="">Todas</option></select></label>
+          <label class="rf-fg"><span class="l">Ley</span><select id="on-ley"><option value="">Todas</option><option value="ARG">Argentina</option><option value="NY">Nueva York</option></select></label>
+          <label class="rf-fg"><span class="l">Moneda de pago</span><select id="on-mon"><option value="">Todas</option><option value="MEP">MEP</option><option value="CABLE">Cable</option></select></label>
+          <label class="rf-fg"><span class="l">TIR mín %</span><input type="number" id="on-tmin" step="0.5" value="-10"></label>
+          <label class="rf-fg"><span class="l">TIR máx %</span><input type="number" id="on-tmax" step="0.5" value="15"></label>
+          <label class="rf-fg"><span class="l">Duration mín</span><input type="number" id="on-dmin" step="0.25"></label>
+          <label class="rf-fg"><span class="l">Duration máx</span><input type="number" id="on-dmax" step="0.25"></label>
+          <button class="chip" id="on-clear">Limpiar</button>
+          <div class="rf-sim">
+            <span class="l" style="color:#c98a12;font-weight:600">Simular instrumento nuevo</span>
+            <input id="on-sim-t" placeholder="Ej: YMCXO" style="width:90px;text-transform:uppercase">
+            <input type="number" id="on-sim-y" placeholder="TIR %" step="0.1" style="width:80px">
+            <input type="number" id="on-sim-d" placeholder="Duration" step="0.1" style="width:90px">
+            <button class="chip" id="on-sim-add" style="background:#c98a12;border-color:#c98a12;color:#fff">+ Agregar</button>
+          </div>
+        </div>
+        <h2 style="margin-top:12px">Curva de ONs en dólares · TIR vs duration</h2>
+        <div id="on-curve"></div>
+      </div>
+      <div class="card">
+        <div class="bar">
+          <div style="display:flex;gap:4px"><button class="chip" data-onc="ars">ARS</button><button class="chip on" data-onc="mep">MEP</button><button class="chip" data-onc="cable">Cable</button></div>
+          <input type="search" id="on-q" placeholder="Buscar ticker o empresa…">
+          <span class="note" id="on-n"></span>
+          <button class="chip" id="on-xls" style="margin-left:auto">⬇ Exportar Excel</button>
+        </div>
+        <div class="tw"><table id="tb-rfo"></table></div>
+        <p class="note" id="on-foot" style="margin-top:6px"></p>
       </div>
     </div>
 
@@ -706,7 +743,7 @@ function table(el,key,cols,rows,rowCls,limit){
   if(!r.length)h+=`<tr><td colspan="${cols.length}" class="note" style="text-align:center;padding:20px">Sin datos para mostrar.</td></tr>`;
   r.forEach(o=>{h+=`<tr class="${rowCls?rowCls(o):''}"${o.t?` data-t="${o.t}"`:''}>`+cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(o):(o[c.k]??'—')}</td>`).join('')+'</tr>'});
   el.innerHTML=h+'</tbody>';
-  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab,ovs:renderOvs,rfs:renderRF,rfl:renderRF})[key]()});
+  el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='fav')return;const cur=S.sort[key];S.sort[key]=[k,cur[0]===k?-cur[1]:(cols.find(c=>c.k===k).n?-1:1)];({buy:renderBuy,part:renderBuy,acc:renderAcc,mep:renderMep,ced:renderCed,top:renderTop,uni:renderUni,vm:renderVM,fh:renderFHTab,ovs:renderOvs,rfs:renderRF,rfo:renderRF,rfl:renderRF})[key]()});
   el.querySelectorAll('.star').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=b.dataset.s;S.fav.has(s)?S.fav.delete(s):S.fav.add(s);saveFav();renderAcc();renderCed();renderTop();renderUni()});
   el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.t));
   el.querySelectorAll('.edit').forEach(b=>b.onclick=e=>{e.stopPropagation();editRatio(b.dataset.s)});
@@ -2097,9 +2134,9 @@ function renderKpis(){
 }
 
 /* ---------- RENTA FIJA ---------- */
-S.rf={sub:'sob',cur:'mep',fam:{Bonares:true,Globales:true,Bopreal:true},sim:[],tfH:''};
-S.sort.rfs=['vol',-1];S.sort.rfl=['venc',1];
-const RF_COL={Bonares:'#e08a3c',Globales:'#4a9df0',Bopreal:'#9aa3b2',LECAP:'#3fb6c9',BONCAP:'#e08a3c',Simulado:'#c98a12'};
+S.rf={sub:'sob',cur:'mep',fam:{Bonares:true,Globales:true,Bopreal:true},sim:[],tfH:'',onCur:'mep',onSim:[]};
+S.sort.rfs=['vol',-1];S.sort.rfo=['vol',-1];S.sort.rfl=['venc',1];
+const RF_COL={Bonares:'#e08a3c',Globales:'#4a9df0',Bopreal:'#9aa3b2',LECAP:'#3fb6c9',BONCAP:'#e08a3c',Simulado:'#c98a12','Ley Arg.':'#3fb6c9','Ley NY':'#8b7cf6'};
 const RF_DAY=864e5;
 async function loadRFDef(){if(S.rfDef)return S.rfDef;try{S.rfDef=await getJ('rentafija.json?v='+Date.now())}catch(e){S.rfDef=null}return S.rfDef}
 function rfPd(s){const [y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d))}
@@ -2176,7 +2213,7 @@ function rfChart(el,pts,opt){
   let c='';(opt.fits||[]).forEach(f=>{const PP=f==='*'?pts:pts.filter(p=>p.g===f);const fn=rfFit(PP);if(!fn)return;let d='';const fx0=Math.max(0.12,Math.min(...PP.map(p=>p.x))*0.85),fx1=Math.max(...PP.map(p=>p.x))*1.03;
     for(let i=0;i<=40;i++){const v=fx0+(fx1-fx0)*i/40,yy=fn(v);if(yy<y0||yy>y1)continue;d+=(d?'L':'M')+X(v).toFixed(1)+','+Y(yy).toFixed(1)}
     if(d)c+=`<path d="${d}" fill="none" stroke="${RF_COL[f]||'var(--muted)'}" stroke-width="1.5" stroke-dasharray="5 4" opacity=".8"/>`});
-  const dots=pts.map(p=>`<g><circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${p.g==='Simulado'?7:6}" fill="${RF_COL[p.g]||'#888'}" stroke="var(--card)" stroke-width="2"><title>${esc(p.t)} · ${opt.tip(p)}</title></circle><text x="${X(p.x).toFixed(1)}" y="${(Y(p.y)-9).toFixed(1)}" font-size="10.5" font-weight="600" fill="${RF_COL[p.g]||'var(--ink)'}" text-anchor="middle">${esc(p.t)}</text></g>`).join('');
+  const dots=pts.map(p=>`<g><circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${p.g==='Simulado'?7:(pts.length>40?4.5:6)}" fill="${RF_COL[p.g]||'#888'}" stroke="var(--card)" stroke-width="2"><title>${esc(p.t)} · ${opt.tip(p)}</title></circle>${pts.length<=(opt.maxLbl||40)||p.g==='Simulado'?`<text x="${X(p.x).toFixed(1)}" y="${(Y(p.y)-9).toFixed(1)}" font-size="10.5" font-weight="600" fill="${RF_COL[p.g]||'var(--ink)'}" text-anchor="middle">${esc(p.t)}</text>`:''}</g>`).join('');
   const leg=Object.keys(opt.leg||{}).map(k=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><i style="width:10px;height:10px;border-radius:50%;background:${RF_COL[k]};display:inline-block"></i>${esc(k)}</span>`).join('');
   el.innerHTML=`<div class="note" style="margin:2px 0 4px">${leg}${opt.legNote||''}</div><svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}${c}${dots}</svg>`;
 }
@@ -2185,8 +2222,9 @@ function renderRF(){
   if(!$('#t-rf')||$('#t-rf').classList.contains('hide'))return;
   if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF();else $('#rf-kpis').innerHTML='<p class="note">No se pudo leer rentafija.json.</p>'});return}
   rfAviso();
-  $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');
+  $('#rf-sob').classList.toggle('hide',S.rf.sub!=='sob');$('#rf-tf').classList.toggle('hide',S.rf.sub!=='tf');$('#rf-on').classList.toggle('hide',S.rf.sub!=='on');
   if(S.rf.sub==='tf')return renderRFTasa();
+  if(S.rf.sub==='on')return renderON();
   const rows=rfRowsSob();rfKpis(rows,S.rf.cur);
   // filtros de familia
   $('#rf-fam').innerHTML=['Bonares','Globales','Bopreal'].map(f=>`<button class="chip ${S.rf.fam[f]?'on':''}" data-rff="${f}" style="${S.rf.fam[f]?`background:${RF_COL[f]};border-color:${RF_COL[f]}`:''}">${f}</button>`).join('');
@@ -2275,16 +2313,91 @@ $('#rf-clear').onclick=()=>{['#rf-tmin','#rf-tmax','#rf-dmin','#rf-dmax'].forEac
 $('#rf-sim-add').onclick=()=>{const t=($('#rf-sim-t').value||'SIM').trim().toUpperCase(),y=+$('#rf-sim-y').value,d=+$('#rf-sim-d').value;if(!(d>0)||!isFinite(y))return;S.rf.sim.push({t,y:y/100,d});$('#rf-sim-t').value='';renderRF()};
 $('#rf-xls').onclick=()=>rfCSV(S.rfLastRows||[],[['Ticker',r=>r.t],['Familia',r=>r.fam],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Paridad %',r=>n2(r.par!=null?r.par*100:null,1)],['MD',r=>n2(r.md)],['Duration',r=>n2(r.dur)],['Convexidad',r=>n2(r.conv,1)],['Frecuencia',r=>r.freq],['Vencimiento',r=>rfFmtD(r.venc)],['Ley',r=>r.ley],['Volumen',r=>r.vol||'']],'soberanos_'+S.rf.cur+'.csv');
 $('#rf-tf-xls').onclick=()=>rfCSV(S.rfLastTF||[],[['Ticker',r=>r.t],['Familia',r=>r.fam],['Precio',r=>n2(r.px)],['Vencimiento',r=>rfFmtD(r.venc)],['Días',r=>r.dias],['Valor final',r=>n2(r.vf)],['TEM %',r=>n2(r.tem!=null?r.tem*100:null)],['TNA %',r=>n2(r.tna!=null?r.tna*100:null)],['TEA %',r=>n2(r.tea!=null?r.tea*100:null)],['Rend. directo %',r=>n2(r.rend!=null?r.rend*100:null)],['Volumen',r=>r.vol||'']],'tasa_fija.csv');
+/* ---------- ONs ---------- */
+async function loadONDef(){if(S.onDef)return S.onDef;try{S.onDef=await getJ('ons.json?v='+Date.now())}catch(e){S.onDef=null}return S.onDef}
+const ON_PER={Mensual:12,Trimestral:4,Semestral:2,Anual:1};
+function onCalc(o,price,st){
+  if(!(price>0))return null;
+  const fut=o.flows.filter(f=>rfPd(f[0])>st);if(!fut.length)return null;
+  const cf=fut.map(f=>({t:(rfPd(f[0])-st)/RF_DAY/365,c:f[1]+f[2]}));
+  const pv=y=>cf.reduce((a,x)=>a+x.c/Math.pow(1+y,x.t),0);
+  let lo=-0.9,hi=3;for(let i=0;i<120;i++){const m=(lo+hi)/2;if(pv(m)>price)lo=m;else hi=m}
+  const y=(lo+hi)/2,P=pv(y);
+  const dur=cf.reduce((a,x)=>a+x.t*x.c/Math.pow(1+y,x.t),0)/P;
+  const res=fut[0][3]||0,per=365/(ON_PER[o.frec]||2),dn=(rfPd(fut[0][0])-st)/RF_DAY;
+  const acc=(o.cup||0)/100*res*Math.max(0,per-dn)/365;
+  const nc=fut.find(f=>f[1]>0);
+  return {tir:y,dur,md:dur/(1+y),par:res>0?price/(res+acc):null,res,dnext:nc?Math.round((rfPd(nc[0])-rfToday())/RF_DAY):null};
+}
+function onRows(cur){
+  const D=S.onDef;if(!D)return [];const m={};(S.data.corp||[]).forEach(x=>{if(x&&x.symbol)m[x.symbol]=x});
+  const st=rfSettle(),mep=S.ref.mep&&S.ref.mep.v;
+  return D.ons.map(o=>{
+    const qO=rfPick(m,[o.t+'O']),qD=rfPick(m,[o.t+'D']),qC=rfPick(m,[o.t+'C']);
+    let q,px,usd;
+    if(cur==='ars'){q=qO;px=qO&&qO.x.c;usd=qO&&mep?qO.x.c/mep:null}
+    else if(cur==='cable'){q=qC||qD;px=q&&q.x.c;usd=px}
+    else{q=qD;px=qD&&qD.x.c;usd=px;if(!qD&&qO&&mep){q=qO;usd=qO.x.c/mep;px=usd}}
+    const k=usd?onCalc(o,usd,st):null;
+    return Object.assign({t:o.t,emp:o.emp||o.nombre||'',nombre:o.nombre,ley:o.ley||'',mon:o.mon||'',calif:o.calif||'',lam:o.lam||'',cup:o.cup,frec:o.frec||'',venc:o.venc,
+      g:o.ley==='NY'?'Ley NY':'Ley Arg.',sym:q?q.s:null,px:px||null,usd:usd||null,
+      chg:q&&q.x.pct_change!=null?q.x.pct_change/100:null,vol:q&&ok(q.x.v)?q.x.v:0,volD:qD&&ok(qD.x.v)?qD.x.v:0},k||{});
+  });
+}
+function renderON(){
+  if(!S.onDef){loadONDef().then(d=>{if(d)renderON();else $('#on-curve').innerHTML='<p class="note">No se pudo leer ons.json (corré la tarea "ONs PROSPEI" en GitHub).</p>'});return}
+  if(!S.data.corp){$('#on-curve').innerHTML='<p class="note" style="padding:20px;text-align:center">Cargando precios de ONs…</p>';return}
+  const cur=S.rf.onCur,rows=onRows(cur);rfKpis(rows,cur);
+  const se=$('#on-emp');if(se.options.length<=1){const em=[...new Set(S.onDef.ons.map(o=>o.emp||o.nombre).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));se.innerHTML='<option value="">Todas</option>'+em.map(e=>`<option>${esc(e)}</option>`).join('')}
+  const nv=id=>{const v=$(id).value;return v===''?null:+v};
+  const emp=$('#on-emp').value,ley=$('#on-ley').value,mon=$('#on-mon').value,tmin=nv('#on-tmin'),tmax=nv('#on-tmax'),dmin=nv('#on-dmin'),dmax=nv('#on-dmax');
+  const inF=r=>(!emp||r.emp===emp)&&(!ley||r.ley===ley)&&(!mon||r.mon===mon);
+  const inT=r=>r.tir!=null&&(tmin==null||r.tir*100>=tmin)&&(tmax==null||r.tir*100<=tmax)&&(dmin==null||r.dur>=dmin)&&(dmax==null||r.dur<=dmax);
+  const rm=cur==='mep'?rows:onRows('mep');
+  const pts=rm.filter(r=>inF(r)&&inT(r)&&r.dur>0.05).map(r=>({t:r.t,x:r.dur,y:r.tir,g:r.g})).concat(S.rf.onSim.map(s=>({t:s.t,x:s.d,y:s.y,g:'Simulado'})));
+  rfChart($('#on-curve'),pts,{fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['*'],maxLbl:45,leg:{'Ley Arg.':1,'Ley NY':1,...(S.rf.onSim.length?{Simulado:1}:{})},
+    legNote:pts.length>45?' <span class="note">· pasá el mouse por un punto para ver el ticker</span>':'',tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
+  const q=($('#on-q').value||'').trim().toUpperCase(),sym=cur==='ars'?'$ ':'US$ ';
+  const T=rows.filter(r=>inF(r)&&(r.tir==null||inT(r)||(tmin==null&&tmax==null&&dmin==null&&dmax==null))&&(!q||r.t.includes(q)||(r.sym||'').includes(q)||(r.emp||'').toUpperCase().includes(q)));
+  const cols=[
+    {k:'t',h:'Ticker',f:o=>`<b title="${esc(o.nombre||'')}">${esc(o.sym||o.t)}</b>`},
+    {k:'emp',h:'Empresa',f:o=>esc(o.emp)},
+    {k:'px',h:'Precio',n:1,f:o=>o.px?sym+fmt(o.px,2):'—'},
+    {k:'chg',h:'Var %',n:1,f:o=>o.chg==null?'—':`<span class="${cls(o.chg)}">${pct(o.chg,2)}</span>`},
+    {k:'tir',h:'TIR',n:1,f:o=>o.tir==null?'—':`<b>${fmt(o.tir*100,2)}%</b>`},
+    {k:'par',h:'Paridad',n:1,f:o=>o.par==null?'—':`<span class="${o.par>1.05?'':o.par<0.95?'down':'up'}">${fmt(o.par*100,1)}%</span>`},
+    {k:'md',h:'MD',n:1,f:o=>o.md==null?'—':fmt(o.md,2)},
+    {k:'dur',h:'Duration',n:1,f:o=>o.dur==null?'—':fmt(o.dur,2)},
+    {k:'venc',h:'Vencim.',n:1,f:o=>rfFmtD(o.venc)},
+    {k:'cup',h:'Cupón',n:1,f:o=>o.cup==null?'—':fmt(o.cup,2)+'%'},
+    {k:'frec',h:'Frec. pago',f:o=>esc(o.frec)},
+    {k:'mon',h:'Moneda',f:o=>esc(o.mon||'—')},
+    {k:'calif',h:'Calificación',f:o=>`<span class="note">${esc(o.calif||'—')}</span>`},
+    {k:'ley',h:'Ley',f:o=>esc(o.ley||'—')},
+    {k:'lam',h:'Lámina mín.',n:1,f:o=>o.lam?esc(o.lam):'—'},
+    {k:'vol',h:'Volumen',n:1,f:o=>fmtC(o.vol)}];
+  table($('#tb-rfo'),'rfo',cols,T);
+  $('#on-n').textContent=T.length+' instrumentos';
+  $('#on-foot').textContent=(cur==='ars'?'Precios en pesos; la TIR se calcula pasándolos a dólares al MEP de referencia. ':'Precios en dólares '+(cur==='mep'?'MEP':'cable')+' por cada 100 de valor nominal. ')+'Flujos de pago según la ficha de cada ON (Rava), actualizados el '+rfFmtD(S.onDef.updated)+'. Liquidación: '+rfFmtD(rfSettle().toISOString().slice(0,10))+'.';
+  S.onLast=T;
+}
+$$('[data-onc]').forEach(b=>b.onclick=()=>{$$('[data-onc]').forEach(x=>x.classList.toggle('on',x===b));S.rf.onCur=b.dataset.onc;renderRF()});
+['#on-emp','#on-ley','#on-mon'].forEach(id=>$(id).onchange=renderRF);
+['#on-tmin','#on-tmax','#on-dmin','#on-dmax','#on-q'].forEach(id=>$(id).oninput=renderRF);
+$('#on-clear').onclick=()=>{['#on-emp','#on-ley','#on-mon','#on-dmin','#on-dmax','#on-q'].forEach(id=>$(id).value='');$('#on-tmin').value=-10;$('#on-tmax').value=15;S.rf.onSim=[];renderRF()};
+$('#on-sim-add').onclick=()=>{const t=($('#on-sim-t').value||'SIM').trim().toUpperCase(),y=+$('#on-sim-y').value,d=+$('#on-sim-d').value;if(!(d>0)||!isFinite(y))return;S.rf.onSim.push({t,y:y/100,d});$('#on-sim-t').value='';renderRF()};
+$('#on-xls').onclick=()=>rfCSV(S.onLast||[],[['Ticker',r=>r.sym||r.t],['Empresa',r=>r.emp],['Precio',r=>n2(r.px)],['Var %',r=>n2(r.chg!=null?r.chg*100:null)],['TIR %',r=>n2(r.tir!=null?r.tir*100:null)],['Paridad %',r=>n2(r.par!=null?r.par*100:null,1)],['MD',r=>n2(r.md)],['Duration',r=>n2(r.dur)],['Vencimiento',r=>rfFmtD(r.venc)],['Cupón %',r=>n2(r.cup)],['Frecuencia',r=>r.frec],['Moneda',r=>r.mon],['Calificación',r=>r.calif],['Ley',r=>r.ley],['Lámina',r=>r.lam],['Volumen',r=>r.vol||'']],'ons_'+S.rf.onCur+'.csv');
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- carga ---------- */
 let loading=false;
 async function load(){
   if(loading)return;loading=true;$('#dot').className='dot load';
   const P=[getJ(API+'arg_bonds'),getJ(API+'arg_stocks'),getJ(API+'arg_cedears'),getJ(API+'usa_stocks'),getJ(API+'usa_adrs'),getJ(API+'ccl'),
-    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo'),getJ('riesgo.json?v='+Date.now()),getJ('api/sectores'),getJ(API+'arg_notes')];
-  const [bo,st,ce,us,ad,cc,dl,rp,rj,et,nt]=await Promise.allSettled(P);
+    getJ('https://dolarapi.com/v1/dolares'),getJ('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo'),getJ('riesgo.json?v='+Date.now()),getJ('api/sectores'),getJ(API+'arg_notes'),getJ(API+'arg_corp')];
+  const [bo,st,ce,us,ad,cc,dl,rp,rj,et,nt,co]=await Promise.allSettled(P);
   if(bo.status==='fulfilled'&&Array.isArray(bo.value))S.data.bondsRaw=bo.value;
   if(nt.status==='fulfilled'&&Array.isArray(nt.value))S.data.notes=nt.value;
+  if(co.status==='fulfilled'&&Array.isArray(co.value))S.data.corp=co.value;
   const errs=[];
   if(bo.status==='fulfilled'&&Array.isArray(bo.value)){S.data.bonds=buildBonds(bo.value)}else errs.push('bonos');
   if(st.status==='fulfilled'&&Array.isArray(st.value))S.data.stocks=st.value;else errs.push('acciones');
