@@ -114,7 +114,11 @@ PF_KEYS = {"PRD": ("Motor de producción (PRD) · 12 meses", 252, _PRD),
            "NT": ("Motor sin Comprar pleno (NT) · 12 meses", 252, [{"keys": ["NT"], "slots": 30}]),
            "PR2": ("Motor con Comprar endurecido (PR2) · 12 meses", 252, [{"keys": ["PR2"], "slots": 30}]),
            "PR3": ("Motor nuevo propuesto (PR3) · 12 meses", 252, [{"keys": ["PR3"], "slots": 30}]),
-           "PR36": ("Motor nuevo propuesto (PR3) · 6 meses", 126, [{"keys": ["PR3"], "slots": 30}])}
+           "PR36": ("Motor nuevo propuesto (PR3) · 6 meses", 126, [{"keys": ["PR3"], "slots": 30}]),
+           "PR3D": ("Repartida: 70% motor nuevo + 30% defensivas de calidad con señal (DQX) · 12 meses", 252,
+                    [{"keys": ["PR3"], "slots": 21}, {"keys": ["DQX"], "slots": 9}]),
+           "PR3Q": ("Repartida: 70% motor nuevo + 30% defensivas de calidad cualquier día (DQ0) · 12 meses", 252,
+                    [{"keys": ["PR3"], "slots": 21}, {"keys": ["DQ0"], "slots": 9}])}
 # Checklists por familia (elegidos por el análisis de variables con las acciones de diseño): familia, condiciones, mínimo
 CK = {"DF": ("Defensivas", ["beta_lo", "lowvol", "at_high", "pe_rich", "trend", "near200", "rsi_hi"], 5),
       "CR": ("Crecimiento", ["beta_lo", "dd_deep", "highvol", "pe_gt40", "rsi_lo"], 3),
