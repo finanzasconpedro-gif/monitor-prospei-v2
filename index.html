@@ -71,6 +71,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 .rf-fg{display:flex;flex-direction:column;gap:4px}.rf-fg .l,.rf-sim .l,.rf-tem .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .rf-fg input{width:92px}
 #tb-rfo td{white-space:nowrap}
+.vd-btn{font-size:12px;cursor:pointer;border:1px solid transparent;font-family:inherit;transition:transform .1s}.vd-btn:hover{transform:translateY(-1px);filter:brightness(1.15)}.vd-btn.sel{border-color:currentColor;box-shadow:0 0 0 1px currentColor}
 .rf-new{margin:8px 0;padding:10px 12px;border:1px solid #c98a12;border-left:4px solid #c98a12;border-radius:8px;background:rgba(201,138,18,.08);font-size:13px}
 .rf-sim{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
 .rf-sim input{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
@@ -287,15 +288,13 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <div class="card" id="buy-card">
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
-          <h2>Comprar hoy</h2>
-          <p class="sub">Cada sector tiene su propio perfil, según lo que funcionó en 10 años de historia: técnico ≥ 65 y fundamental ≥ 60 siempre, más la señal de entrada que sirvió en ese sector. <b>Tecnología, comunicaciones e industriales</b>: corrección con momentum (y crecimiento en tecnología e industriales), valuación con peso bajo. <b>Consumo discrecional</b>: corrección o ruptura, con recorrido a valor justo completo. <b>Utilities, salud y materiales</b>: corrección en tendencia alcista. <b>Energía</b>: corrección, ruptura o giro temprano. <b>Financiero, consumo básico y real estate</b>: ninguna señal le ganó a comprar cualquier día, así que no se marca momento de compra (salvo el camino conservador, abajo). Además, el perfil tiene que estar <b>confirmado</b>: que cumpla el checklist de su familia o que esté barata contra su propia historia (P/E 30%+ debajo de su mediana de 5 años); en 10 años, el perfil solo no le ganó a comprar cualquier día y con la confirmación sí. Siempre sin balance en los próximos 7 días y con el S&amp;P 500 arriba de su media de 200 días. <b>Conservador</b>: defensivas de calidad (consumo básico, salud y utilities de beta baja y 10 años sin pérdidas) en sobreventa sin perder la tendencia alcista; no buscan ganarle al S&amp;P 500, sino entrar con poco riesgo.</p>
+          <h2 id="vd-title">Comprar hoy</h2>
+          <p class="sub" id="vd-sub"></p>
         </div>
         <div id="verdict-count" style="display:flex;gap:4px;flex-wrap:wrap"></div>
       </div>
       <div id="buy-new"></div>
       <div class="tw"><table id="tb-buy"></table></div>
-      <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Ver también las de <b>Comprar en partes</b> (entrada escalonada con stop)</summary>
-        <div class="tw" style="margin-top:8px"><table id="tb-part"></table></div></details>
     </div>
     <div class="card" id="ovs-card">
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
@@ -1112,7 +1111,9 @@ function renderBuy(){
   const M=S.scr.market;let mb=$('#mkt-banner');if(!mb){mb=document.createElement('div');mb.id='mkt-banner';$('#buy-new').before(mb)}
   mb.innerHTML=M&&M.up===false?`<div class="buy-new" style="border-color:var(--down)"><b>⚠️ Mercado bajista:</b> el S&amp;P 500 está ${M.dist!=null?pct(Math.abs(M.dist),1).replace('+','')+' ':''}debajo de su media de 200 días. En el track récord, en esos períodos las señales de compra fallaron mucho más (2022), así que hoy no hay "Comprar" pleno: las que cumplen todo pasan a <b>Comprar en partes</b> (entrada escalonada de a tercios, con stop).</div>`:'';
   const cnt={};all.forEach(o=>{cnt[o.verdict]=(cnt[o.verdict]||0)+1});
-  $('#verdict-count').innerHTML=['Comprar','Comprar en partes','Vigilar','Mantener','Evitar'].map(v=>`<span class="${vdCls(v)}" style="font-size:11px">${v} ${cnt[v]||0}</span>`).join('');
+  if(!S.vdSel)S.vdSel=cnt['Comprar']?'Comprar':'Comprar en partes';
+  $('#verdict-count').innerHTML=['Comprar','Comprar en partes','Vigilar','Mantener','Evitar'].map(v=>`<button class="${vdCls(v)} vd-btn${S.vdSel===v?' sel':''}" data-vd="${v}" title="Ver la lista">${v} ${cnt[v]||0}</button>`).join('');
+  $$('#verdict-count [data-vd]').forEach(b=>b.onclick=()=>{S.vdSel=b.dataset.vd;renderBuy()});
   const nw=all.filter(o=>o.verdict_new);
   const prevBuy=all.filter(o=>o.verdict_prev==='Comprar'&&o.verdict!=='Comprar');
   $('#buy-new').innerHTML=(nw.length||prevBuy.length)?`<div class="buy-new">${nw.length?`<b>Novedades del día${S.scr.verdict_base_date?' <span class="note">(vs. '+esc(S.scr.verdict_base_date.split('-').reverse().join('/'))+')</span>':''}:</b> pasaron a Comprar ${nw.map(o=>`<a href="#" data-open="${esc(o.t)}"><b>${esc(o.t)}</b></a>`).join(', ')}.`:''}${prevBuy.length?` ${nw.length?'<br>':''}<b>Dejaron de ser Comprar:</b> ${prevBuy.map(o=>`<a href="#" data-open="${esc(o.t)}">${esc(o.t)}</a> (ahora ${esc(o.verdict)})`).join(', ')}.`:''}</div>`:'';
@@ -1127,10 +1128,12 @@ function renderBuy(){
     {k:'sector',h:'Sector',f:o=>esc(o.sector)},
     {k:'hasCed',h:'Argentina',f:cedCell}
   ];
-  const buy=all.filter(o=>o.verdict==='Comprar').sort((a,b)=>b.score-a.score);
+  const V=S.vdSel,VT={'Comprar':'Comprar hoy','Comprar en partes':'Comprar en partes','Vigilar':'Vigilar','Mantener':'Mantener','Evitar':'Evitar'},
+    VS={'Comprar':'Cumplen el perfil de compra de su sector.','Comprar en partes':'Entrada escalonada de a tercios, con stop.','Vigilar':'Buenas empresas a las que todavía les falta la señal de entrada.','Mantener':'Para quien ya las tiene: sin señal de compra ni de venta.','Evitar':'Débiles en lo técnico o en lo fundamental, o empresas con problemas.'};
+  $('#vd-title').textContent=VT[V]||V;$('#vd-sub').textContent=VS[V]||'';
+  const buy=all.filter(o=>o.verdict===V).sort((a,b)=>b.score-a.score);
   table($('#tb-buy'),'buy',cols,buy);
-  if(!buy.length)$('#tb-buy').innerHTML='<tbody><tr><td class="note" style="padding:16px;text-align:center">Hoy ninguna acción cumple los criterios de su sector. Es normal: es un filtro exigente. Mirá las de <b>Comprar en partes</b> o el top 30.</td></tr></tbody>';
-  table($('#tb-part'),'part',cols,all.filter(o=>o.verdict==='Comprar en partes').sort((a,b)=>b.score-a.score));
+  if(!buy.length)$('#tb-buy').innerHTML='<tbody><tr><td class="note" style="padding:16px;text-align:center">'+(V==='Comprar'?'Hoy ninguna acción cumple los criterios de su sector. Es normal: es un filtro exigente. Tocá <b>Comprar en partes</b> o mirá el top 30.':'Hoy no hay papeles en esta lista.')+'</td></tr></tbody>';
   renderOvs();
 }
 /* ---------- sobreventa con tendencia alcista ---------- */
