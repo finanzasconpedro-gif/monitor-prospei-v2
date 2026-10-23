@@ -1464,6 +1464,7 @@ CK_NAME = {"CR": "crecimiento", "CI": "cíclicas", "DF": "defensivas"}
 # de su media de 200 días o la media todavía subiendo). En 10 años acertó 71% a 12 meses (contra 63% de comprar esas
 # mismas acciones cualquier día) y solo 4% de las compras perdió 20% o más (contra 11%). No busca ganarle al S&P 500.
 DQ_SECT = {"Consumo básico", "Salud", "Utilities"}
+SMALL_CAP = 2e9      # US$ 2.000 millones: debajo de esto ninguna regla del motor está probada
 
 
 def add_dq(df, folder="fund"):
@@ -1613,11 +1614,32 @@ def verdict(r, mkt_up=True):
                            "En 10 años, comprar así acertó 71% de las veces a 12 meses y redujo a menos de la mitad las compras que "
                            "terminaron mal. No busca ganarle al S&P 500: es una entrada de bajo riesgo para perfiles conservadores.")
     # 2) Evitar
+    # Empresa en problemas: chica (menos de US$ 2.000 millones) y perdiendo plata con fundamentos débiles, o
+    # cotizando debajo de US$ 1 (riesgo de salir de la bolsa). Ninguna regla del motor se probó con empresas así.
+    mc_ = getattr(r, "mcap", None)
+    small = mc_ is not None and pd.notna(mc_) and mc_ < SMALL_CAP
+    losing = getattr(r, "eps", None) is not None and pd.notna(r.eps) and r.eps < 0
+    if (small and losing and r.af < 40) or (r.p is not None and r.p < 1):
+        det = []
+        if r.p is not None and r.p < 1:
+            det.append(f"cotiza a US$ {fx(r.p, 2)} (debajo de US$ 1, riesgo de salir de la bolsa)")
+        if small:
+            det.append(f"empresa chica (US$ {mc_ / 1e6:,.0f} millones)".replace(",", "."))
+        if losing:
+            det.append("pierde plata")
+        if r.af < 40:
+            det.append(f"fundamentos débiles ({r.af:.0f} de 100)")
+        return "Evitar", "Evitar: empresa en problemas: " + ", ".join(det) + ". Las señales del motor no se probaron con empresas así."
     if r.vm_z == "Evitar" or r.cyc or (r.val_verdict == "Cara" and r.trend_n <= 0):
         why = "pico de ciclo" if r.cyc else "cara y perdiendo fuerza" if r.vm_z == "Evitar" else "cara y sin tendencia alcista"
         return "Evitar", f"Evitar por ahora: {why}."
     # 2a) Castigada y volátil en crecimiento o cíclicas (checklists CR / CI del backtest)
     ckc = getattr(r, "ck", None)
+    # Los checklists se validaron con acciones del S&P 500 (empresas grandes). En ADRs y papeles de seguimiento
+    # propio se exige además que gane plata, que valga US$ 2.000 millones o más y fundamentos de 40 o más.
+    if ckc in ("CR", "CI") and (r.region != "EE.UU." or bool(getattr(r, "extra", False))):
+        if not ((mc_ is not None and pd.notna(mc_) and mc_ >= SMALL_CAP) and not losing and r.af >= 40):
+            ckc = None
     if ckc in ("CR", "CI") and not earn_soon:
         fam_ = "crecimiento" if ckc == "CR" else "cíclicas"
         deep = getattr(r, "dd", None) is not None and pd.notna(r.dd) and r.dd < -0.30
