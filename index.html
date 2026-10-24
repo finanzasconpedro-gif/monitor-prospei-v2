@@ -74,7 +74,8 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 .ovs-tog{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:8px;width:100%;flex-wrap:wrap}.ovs-tog:hover h2{color:var(--accent,#4a9df0)}.ovs-arr{display:inline-block;font-size:14px;transition:transform .15s;color:var(--muted)}#ovs-card:not(.ovs-closed) .ovs-arr{transform:rotate(90deg)}.ovs-closed .ovs-in{display:none!important}
 .vd-btn{font-size:12px;cursor:pointer;border:1px solid transparent;font-family:inherit;transition:transform .1s}.vd-btn:hover{transform:translateY(-1px);filter:brightness(1.15)}.vd-btn.sel{border-color:currentColor;box-shadow:0 0 0 1px currentColor}
 [data-rfs="cup"].on{background:#c98a12!important;border-color:#c98a12!important;color:#fff!important}
-[data-rfs="plan"].on{background:#0e9aa7!important;border-color:#0e9aa7!important;color:#fff!important}.plan-in input,.plan-in select,#pl-cap,#pl-q,.pl-pick{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}.pl-pick{max-width:360px}.plan-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:4px;margin-top:6px}
+[data-rfs="plan"].on{background:#0e9aa7!important;border-color:#0e9aa7!important;color:#fff!important}.plan-in input,.plan-in select,#pl-cap,#pl-q,.pl-pick{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}.pl-pick{max-width:360px}.plan-line{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.plan-line>div:first-child b{font-size:18px}.plan-kv{display:flex;flex-direction:column;gap:2px}.plan-kv span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.plan-kv b{font-size:16px}#pl-mmn,#pl-usdn,#pl-usd{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}
+.plan-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:4px;margin-top:6px}
 .cup-cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:12px}.cup-m{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}.cup-m{border:1px solid #2b4a8a!important;box-shadow:0 2px 8px rgba(0,0,0,.12)}.cup-mh{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:linear-gradient(90deg,#551CE3,#1d4ed8);color:#fff}.cup-mh b{font-size:15px;letter-spacing:.02em}.cup-mh b span{font-weight:500;opacity:.8}.cup-mh small{font-size:11.5px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:10px}
 .cup-ml{max-height:260px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}.cup-it{all:unset;cursor:pointer;display:grid;grid-template-columns:62px 46px 1fr 70px;gap:4px 6px;align-items:center;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}.cup-it>.note{grid-column:3/5;font-size:11px}
 .cup-it:hover{border-color:var(--accent)}.cup-it.in{border-color:#c98a12;background:rgba(201,138,18,.10)}.cup-mon{font-size:10.5px;font-weight:700;color:var(--accent)}.cup-mon.cb{color:#e08a3c}
@@ -662,30 +663,37 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <div id="rf-plan" class="hide">
       <div class="card">
         <h2>Plan de ingresos mensuales</h2>
-        <p class="sub">Para quien necesita vivir de su capital por un tiempo (por ejemplo, después de una desvinculación). Los primeros meses se cubren con una <b>letra que vence cada mes</b> y paga justo lo que hace falta; para los meses siguientes se arma una cartera con los papeles que elijas.</p>
+        <p class="sub">Para quien necesita vivir de su capital por un tiempo (por ejemplo, después de una desvinculación). El primer mes queda en un <b>fondo money market</b>, los meses siguientes se cubren con <b>una LECAP por mes</b>, el resto con un <b>Boncer</b> que ajusta por inflación, y lo que quiera dolarizar va a un <b>fondo en dólares</b>.</p>
         <div class="rf-filt plan-in">
           <label class="rf-fg"><span class="l">Cliente</span><input id="pl-cli" placeholder="Nombre (opcional)" style="width:170px"></label>
           <label class="rf-fg"><span class="l">Necesita por mes ($)</span><input type="number" id="pl-mes" step="50000" min="0" style="width:150px"></label>
           <label class="rf-fg"><span class="l">Meses a cubrir</span><input type="number" id="pl-n" min="1" max="36" style="width:80px"></label>
-          <label class="rf-fg"><span class="l">Meses con letras</span><input type="number" id="pl-k" min="0" max="18" style="width:80px"></label>
           <label class="rf-fg"><span class="l">Primer cobro</span><select id="pl-ini"></select></label>
-          <label class="rf-fg"><span class="l">Letras a usar</span><select id="pl-tipo"><option value="tf">Tasa fija (LECAP / BONCAP)</option><option value="all">Tasa fija + CER</option><option value="cer">Sólo CER</option></select></label>
+          <label class="rf-fg"><span class="l">Meses en money market</span><input type="number" id="pl-mm" min="0" max="6" style="width:80px"></label>
+          <label class="rf-fg"><span class="l">Meses con LECAP</span><input type="number" id="pl-k" min="0" max="18" style="width:80px"></label>
           <button class="chip" id="pl-pdf" style="background:#0e9aa7;border-color:#0e9aa7;color:#fff;margin-left:auto">⬇ Descargar PDF</button>
         </div>
         <div id="pl-kpis" class="cup-kpis" style="margin-top:12px"></div>
       </div>
       <div class="card">
-        <h2 id="pl-t1">Tramo corto · una letra por mes</h2>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 id="pl-t0" style="margin:0;flex:1">1 · Fondo money market</h2><label class="note" style="display:flex;gap:6px;align-items:center">Fondo <input id="pl-mmn" style="width:110px"></label></div>
+        <div id="pl-mm-box" style="margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <h2 id="pl-t1">2 · LECAP · una letra por mes</h2>
         <p class="sub">Para cada mes se usa una letra que vence ese mes (o antes, si ese mes no vence ninguna) y se compran los nominales justos para cobrar lo que el cliente necesita. Podés cambiar la letra de cada mes.</p>
         <div class="tw"><table id="pl-short" class="cup-tb"></table></div>
         <p class="note" id="pl-short-note" style="margin-top:6px"></p>
       </div>
       <div class="card">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0;flex:1" id="pl-t2">Tramo largo</h2>
-          <label class="note" style="display:flex;gap:6px;align-items:center">Capital para este tramo $ <input type="number" id="pl-cap" step="100000" min="0" style="width:160px"></label></div>
-        <p class="sub" id="pl-long-sub"></p>
-        <div class="plan-add"><input id="pl-q" placeholder="Buscar papel para sumar: TZXD7, YMCXO, AO27…" style="width:320px"><div id="pl-res" class="plan-res"></div></div>
-        <div id="pl-long" style="margin-top:8px"></div>
+        <h2 id="pl-t2">3 · Boncer</h2>
+        <div id="pl-bc-box"></div>
+      </div>
+      <div class="card">
+        <h2>4 · Fondo en dólares</h2>
+        <p class="sub">Lo que el cliente quiera dolarizar, fuera de las necesidades mensuales.</p>
+        <div class="plan-line"><label class="rf-fg"><span class="l">Monto US$</span><input type="number" id="pl-usd" step="1000" min="0" style="width:140px"></label>
+          <label class="rf-fg"><span class="l">Fondo</span><input id="pl-usdn" style="width:110px"></label><span id="pl-usd-box" style="display:contents"></span></div>
       </div>
     </div>
 
@@ -2677,108 +2685,112 @@ $('#cup-clear').onclick=()=>{if(!S.cup.items.length||confirm('¿Vaciar la carter
 $('#cup-pdf').onclick=cupPDF;
 /* ---------- PLAN DE INGRESOS MENSUALES ---------- */
 S.plan=(()=>{let v=null;try{v=JSON.parse(localStorage.getItem('planIng')||'null')}catch(e){}
-  return Object.assign({cli:'',mes:1500000,n:12,k:6,ini:1,tipo:'tf',pick:{},cap:null,long:[]},v||{})})();
+  const d={cli:'',mes:1500000,n:12,ini:1,mm:1,k:4,pick:{},bc:'',usdAmt:0,mmName:'BCMMA',usdName:'ESTRA3'};
+  v=Object.assign(d,v||{});if(v.mm==null)v.mm=1;return v})();
 function planSave(){try{localStorage.setItem('planIng',JSON.stringify(S.plan))}catch(e){}}
 const fmtP=v=>'$ '+fmt(v,0);
-/* letras disponibles: LECAP/BONCAP y duales tasa fija (valor final conocido) + CER de un solo pago (al CER de hoy) */
+/* fondos (argentinadatos / CAFCI): rendimiento aproximado a partir de las dos últimas cuotapartes */
+async function planFunds(){if(S.fci||S.fciTry)return;S.fciTry=1;const B='https://api.argentinadatos.com/v1/finanzas/fci/';const out={};
+  for(const tp of ['mercadoDinero','rentaFija']){try{const [u,p]=await Promise.all([getJ(B+tp+'/ultimo'),getJ(B+tp+'/penultimo')]);const pm={};(p||[]).forEach(x=>pm[x.fondo]=x);out[tp]=(u||[]).map(x=>{const y=pm[x.fondo];let r=null;
+      if(y&&x.vcp>0&&y.vcp>0&&x.fecha&&y.fecha){const d=(new Date(x.fecha)-new Date(y.fecha))/864e5;if(d>0)r=Math.pow(x.vcp/y.vcp,365/d)-1}return {fondo:x.fondo,fecha:x.fecha,vcp:x.vcp,tea:r}})}catch(e){}}
+  S.fci=out;renderRF()}
+function planFund(tp,rx){const L=(S.fci&&S.fci[tp])||[];return L.find(x=>rx.test(x.fondo))||null}
+/* LECAP/BONCAP y duales tasa fija (valor final conocido) */
 function planLetras(){
   const m=rfQuotes(),hoy=rfToday(),out=[];
-  if(S.rfDef)S.rfDef.lecaps.forEach(l=>out.push({t:l.t,fam:l.fam,venc:l.venc,vf:l.vf,k:'tf'}));
-  if(S.rpDef)S.rpDef.bonos.forEach(b=>{const k=rpKind(b);if(b.flows.length!==1)return;const f=b.flows[0];
-    if(k==='tf')out.push({t:b.t,fam:'DUAL TF/T',venc:f[0],vf:f[1]+f[2],k:'tf'});
-    else if(k==='cer'&&b.tipo==='CER')out.push({t:b.t,fam:rpFam(b),venc:f[0],vf:f[1]+f[2],k:'cer'})});
+  if(S.rfDef)S.rfDef.lecaps.forEach(l=>out.push({t:l.t,fam:l.fam,venc:l.venc,vf:l.vf}));
+  if(S.rpDef)S.rpDef.bonos.forEach(b=>{if(rpKind(b)==='tf'&&b.flows.length===1){const f=b.flows[0];out.push({t:b.t,fam:'DUAL TF/T',venc:f[0],vf:f[1]+f[2]})}});
   return out.map(l=>{const q=rfPick(m,[l.t]);const px=q?q.x.c:null;const dias=Math.round((rfPd(l.venc)-hoy)/RF_DAY);
     const r=px&&dias>0?l.vf/px-1:null;return Object.assign(l,{px,dias,rend:r,tem:r!=null?Math.pow(1+r,30/dias)-1:null})}).filter(l=>l.px&&l.dias>1);
 }
+/* Boncer y Lecer con precio, TIR real y vencimiento */
+function planBoncer(){const m=rfQuotes(),st=rfSettle();if(!S.rpDef)return [];
+  return S.rpDef.bonos.filter(b=>b.tipo==='CER'&&!/^(DICP|DIP0|PARP|PAP0|CUAP)$/.test(b.t)).map(b=>{const q=rfPick(m,[b.t]);if(!q)return null;const k=rpCalc(b,q.x.c,st);if(!k)return null;
+    return {t:b.t,fam:rpFam(b),px:q.x.c,tir:k.tir,dur:k.dur,venc:b.flows[b.flows.length-1][0],flows:b.flows}}).filter(Boolean).sort((a,b)=>a.venc<b.venc?-1:1)}
 function planMonths(){const h=rfToday(),P=S.plan,out=[];for(let i=0;i<P.n;i++){const d=new Date(Date.UTC(h.getUTCFullYear(),h.getUTCMonth()+P.ini+i,1));
   const fin=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0));out.push({i,y:d.getUTCFullYear(),m:d.getUTCMonth(),fin:fin.toISOString().slice(0,10),ini:d.toISOString().slice(0,10)})}return out}
+const mLbl=mo=>mo?MESL[mo.m]+' '+mo.y:'';
 function renderPlan(){
   if(!S.rfDef){loadRFDef().then(d=>{if(d)renderRF()});return}
   if(!S.rpDef&&!S.rpTry2){S.rpTry2=1;loadRPDef().then(()=>renderRF())}
-  if(!S.onDef&&!S.onTry2){S.onTry2=1;loadONDef().then(()=>renderRF())}
-  const P=S.plan,MS=planMonths();
-  // entradas
+  planFunds();
+  const P=S.plan,MS=planMonths(),mep=S.ref.mep&&S.ref.mep.v;
   const sel=$('#pl-ini');if(!sel.options.length){sel.innerHTML=[0,1,2,3].map(i=>{const h=rfToday();const d=new Date(Date.UTC(h.getUTCFullYear(),h.getUTCMonth()+i,1));return `<option value="${i}">${MESL[d.getUTCMonth()]} ${d.getUTCFullYear()}</option>`}).join('')}
-  const setv=(id,v)=>{const e=$(id);if(document.activeElement!==e)e.value=v};
-  setv('#pl-cli',P.cli);setv('#pl-mes',P.mes);setv('#pl-n',P.n);setv('#pl-k',P.k);sel.value=P.ini;$('#pl-tipo').value=P.tipo;
-  const K=Math.min(P.k,P.n);
-  // tramo corto
-  const L=planLetras().filter(l=>P.tipo==='all'||l.k===P.tipo);
-  const used={};
-  const rows=MS.slice(0,K).map(mo=>{
+  const setv=(id,v)=>{const e=$(id);if(e&&document.activeElement!==e)e.value=v};
+  setv('#pl-mmn',P.mmName);setv('#pl-usdn',P.usdName);setv('#pl-usd',P.usdAmt||0);setv('#pl-cli',P.cli);setv('#pl-mes',P.mes);setv('#pl-n',P.n);setv('#pl-mm',P.mm);setv('#pl-k',P.k);sel.value=P.ini;
+  const MM=Math.min(P.mm,P.n),K=Math.min(P.k,P.n-MM),NB=Math.max(0,P.n-MM-K);
+  // 1 · money market
+  const fMM=planFund('mercadoDinero',/balanz.*money\s*market/i),mmAmt=MM*P.mes;
+  $('#pl-t0').textContent='1 · Fondo money market '+P.mmName+(MM?' · '+(MM===1?mLbl(MS[0]):mLbl(MS[0])+' a '+mLbl(MS[MM-1])):'');
+  $('#pl-mm-box').innerHTML=MM?`<div class="plan-line"><div><b>${fmtP(mmAmt)}</b> <span class="note">(${MM} × ${fmtP(P.mes)})</span><div class="note">Liquidez inmediata para los primeros ${MM===1?'días':MM+' meses'}: se rescata a medida que se necesita.${fMM&&fMM.tea!=null?` Rinde hoy aprox. <b>${fmt(fMM.tea*100,1)}% anual</b> (${esc(fMM.fondo)}, cuotaparte al ${rfFmtD(String(fMM.fecha).slice(0,10))}).`:''}</div></div></div>`:'<p class="note">Sin tramo en money market (poné al menos 1 mes si querés liquidez inmediata).</p>';
+  // 2 · LECAP
+  const L=planLetras();
+  const rows=MS.slice(MM,MM+K).map(mo=>{
     const cand=L.filter(l=>l.venc<=mo.fin).sort((a,b)=>a.venc<b.venc?1:-1);
     const key=mo.y+'-'+mo.m;let l=cand.find(x=>x.t===P.pick[key]);
-    // por defecto: la de mejor TEM entre las que vencen ese mes; si no hay, la última que vence antes (siempre con rendimiento positivo)
     if(!l){const pos=cand.filter(x=>x.tem>0),inM=pos.filter(x=>x.venc>=mo.ini).sort((a,b)=>b.tem-a.tem);l=inM[0]||pos[0]||cand[0]}
     if(!l)return {mo,cand,l:null};
-    const vn=Math.ceil(P.mes/(l.vf/100));const costo=vn*l.px/100,cobra=vn*l.vf/100;
-    return {mo,cand,l,vn,costo,cobra,ocio:Math.max(0,Math.round((rfPd(mo.fin)-rfPd(l.venc))/RF_DAY))};
-  });
+    const vn=Math.ceil(P.mes/(l.vf/100));return {mo,cand,l,vn,costo:vn*l.px/100,cobra:vn*l.vf/100,ocio:Math.max(0,Math.round((rfPd(mo.fin)-rfPd(l.venc))/RF_DAY))}});
   const totC=rows.reduce((a,r)=>a+(r.costo||0),0),totCobra=rows.reduce((a,r)=>a+(r.cobra||0),0),falt=rows.filter(r=>!r.l).length;
-  $('#pl-t1').textContent='Tramo corto · '+K+' '+(K===1?'mes':'meses')+' con una letra por mes';
+  $('#pl-t1').textContent='2 · LECAP · '+(K?mLbl(MS[MM])+(K>1?' a '+mLbl(MS[MM+K-1]):''):'sin meses');
   $('#pl-short').innerHTML=`<thead><tr><th>Mes</th><th>Letra</th><th class="n">Vence</th><th class="n">Valor final</th><th class="n">Precio hoy</th><th class="n">TEM</th><th class="n">VN a comprar</th><th class="n">Cuesta hoy</th><th class="n">Cobra</th></tr></thead><tbody>`+
-    (rows.length?rows.map(r=>{const key=r.mo.y+'-'+r.mo.m;return `<tr><td><b>${MESL[r.mo.m]} ${r.mo.y}</b></td><td>${r.cand.length?`<select class="pl-pick" data-k="${key}">${r.cand.map(c=>`<option value="${c.t}"${r.l&&c.t===r.l.t?' selected':''}>${c.t} · ${c.fam} · vence ${rfFmtD(c.venc)} · TEM ${fmt(c.tem*100,2)}%</option>`).join('')}</select>`:'<span class="down">No hay letras que venzan antes de este mes</span>'}</td>
-      ${r.l?`<td class="n">${rfFmtD(r.l.venc)}${r.ocio>20?`<div class="note" style="font-size:11px">${r.ocio} días antes</div>`:''}</td><td class="n">${fmt(r.l.vf,2)}</td><td class="n">${fmt(r.l.px,2)}</td><td class="n">${fmt(r.l.tem*100,2)}%</td><td class="n"><b>${fmt(r.vn,0)}</b></td><td class="n"><b>${fmtP(r.costo)}</b></td><td class="n up">${fmtP(r.cobra)}</td>`:'<td colspan="7"></td>'}</tr>`}).join(''):'<tr><td colspan="9" class="note" style="padding:12px">Sin meses con letras (poné al menos 1 en "Meses con letras").</td></tr>')+
-    `</tbody><tfoot><tr><td colspan="7"><b>Total tramo corto</b></td><td class="n"><b>${fmtP(totC)}</b></td><td class="n up"><b>${fmtP(totCobra)}</b></td></tr></tfoot>`;
+    (rows.length?rows.map(r=>{const key=r.mo.y+'-'+r.mo.m;return `<tr><td><b>${mLbl(r.mo)}</b></td><td>${r.cand.length?`<select class="pl-pick" data-k="${key}">${r.cand.map(c=>`<option value="${c.t}"${r.l&&c.t===r.l.t?' selected':''}>${c.t} · ${c.fam} · vence ${rfFmtD(c.venc)} · TEM ${fmt(c.tem*100,2)}%</option>`).join('')}</select>`:'<span class="down">No hay letras que venzan antes de este mes</span>'}</td>
+      ${r.l?`<td class="n">${rfFmtD(r.l.venc)}${r.ocio>20?`<div class="note" style="font-size:11px">${r.ocio} días antes</div>`:''}</td><td class="n">${fmt(r.l.vf,2)}</td><td class="n">${fmt(r.l.px,2)}</td><td class="n">${fmt(r.l.tem*100,2)}%</td><td class="n"><b>${fmt(r.vn,0)}</b></td><td class="n"><b>${fmtP(r.costo)}</b></td><td class="n up">${fmtP(r.cobra)}</td>`:'<td colspan="7"></td>'}</tr>`}).join(''):'<tr><td colspan="9" class="note" style="padding:12px">Sin meses con LECAP.</td></tr>')+
+    `</tbody><tfoot><tr><td colspan="7"><b>Total LECAP</b></td><td class="n"><b>${fmtP(totC)}</b></td><td class="n up"><b>${fmtP(totCobra)}</b></td></tr></tfoot>`;
   $$('#pl-short .pl-pick').forEach(s=>s.onchange=()=>{P.pick[s.dataset.k]=s.value;planSave();renderPlan()});
-  $('#pl-short-note').innerHTML=`Los nominales se redondean hacia arriba, así que cada mes cobra un poco más de lo necesario. ${P.tipo!=='tf'?'Las letras CER se calculan con el CER de hoy (sin inflación futura): en la práctica van a pagar más. ':''}Si una letra vence varias semanas antes del mes, esa plata se puede dejar en caución o en un fondo money market hasta usarla.${falt?` <b class="down">${falt} ${falt===1?'mes queda':'meses quedan'} sin letra disponible.</b>`:''}`;
-  // tramo largo
-  const NL=Math.max(0,P.n-K),need=NL*P.mes;if(P.cap==null)P.cap=need;
-  setv('#pl-cap',P.cap);
-  $('#pl-t2').textContent='Tramo largo · '+NL+' '+(NL===1?'mes':'meses')+(NL?' ('+MESL[MS[K]?.m]+' '+MS[K]?.y+' en adelante)':'');
-  $('#pl-long-sub').innerHTML=NL?`Para estos meses hacen falta <b>${fmtP(need)}</b> en total (${NL} × ${fmtP(P.mes)}). Sumá papeles para cubrirlo: <b>CER</b> que vencen en esa época, <b>ONs</b> o <b>bonos en dólares</b> conservadores. El capital y el % de cada papel los definís vos; de ahí se van vendiendo o cobrando cupones mes a mes.`:'Todo el plan está cubierto con letras.';
-  const U=planUniverse(),byId={};U.forEach(u=>byId[u.id]=u);S.planU=byId;
-  const LR=P.long.map(x=>{const u=byId[x.id];if(!u)return {x,u:null};const monto=P.cap*(+x.pct||0)/100;const vn=Math.floor(monto/(u.pxA/100));return {x,u,monto:vn*u.pxA/100,vn}});
-  const sp=Math.round(P.long.reduce((a,x)=>a+(+x.pct||0),0)*100)/100;
-  $('#pl-long').innerHTML=!P.long.length?'<p class="note" style="padding:10px">Todavía no sumaste papeles para el tramo largo.</p>':`<div class="cup-tot" style="margin-top:4px"><span class="cup-sum ${Math.abs(sp-100)<0.05?'ok':'bad'}">Suma de ponderaciones: <b>${fmt(sp,1)}%</b>${Math.abs(sp-100)<0.05?' ✓':sp<100?' · falta asignar '+fmt(100-sp,1)+'%':' · te pasaste '+fmt(sp-100,1)+'%'}</span><button class="chip" id="pl-eq">Repartir en partes iguales</button></div>
-    <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Tipo</th><th class="n">Ponderación</th><th class="n">Monto $</th><th class="n">VN</th><th class="n">Precio</th><th class="n">Rinde</th><th class="n">Vence</th><th></th></tr></thead><tbody>${LR.map(r=>r.u?`<tr><td><b>${esc(r.u.t)}</b><div class="note">${esc(r.u.nom)}</div></td><td>${esc(r.u.tipo)}</td><td class="n"><span class="cup-pw"><input type="number" class="cup-amt pl-pct" data-id="${r.x.id}" value="${r.x.pct}" step="0.5" min="0" max="100"> %</span></td><td class="n">${fmtP(r.monto)}</td><td class="n"><b>${fmt(r.vn,0)}</b></td><td class="n">${r.u.usd?'US$ '+fmt(r.u.px,2):'$ '+fmt(r.u.px,2)}</td><td class="n">${r.u.tir!=null?fmt(r.u.tir*100,2)+'% '+r.u.tl:'—'}</td><td class="n">${rfFmtD(r.u.venc)}</td><td><button class="chip pl-del" data-id="${r.x.id}">✕</button></td></tr>`:`<tr><td colspan="9" class="note">${esc(r.x.id.slice(2))}: sin precio ahora <button class="chip pl-del" data-id="${r.x.id}">✕</button></td></tr>`).join('')}</tbody></table></div>`;
-  $$('#pl-long .pl-pct').forEach(i=>i.onchange=()=>{const it=P.long.find(x=>x.id===i.dataset.id);if(it){it.pct=Math.min(100,Math.max(0,+i.value||0));planSave();renderPlan()}});
-  $$('#pl-long .pl-del').forEach(b=>b.onclick=()=>{P.long=P.long.filter(x=>x.id!==b.dataset.id);planSave();renderPlan()});
-  if($('#pl-eq'))$('#pl-eq').onclick=()=>{const n=P.long.length,b=Math.floor(1000/n)/10;P.long.forEach(x=>x.pct=b);P.long[0].pct=Math.round((100-b*(n-1))*10)/10;planSave();renderPlan()};
-  planSearch();
+  $('#pl-short-note').innerHTML=`Los nominales se redondean hacia arriba, así que cada mes cobra un poco más de lo necesario. Si una letra vence semanas antes del mes, esa plata puede esperar en el money market.${falt?` <b class="down">${falt} ${falt===1?'mes queda':'meses quedan'} sin letra disponible.</b>`:''}`;
+  // 3 · Boncer
+  const BC=planBoncer(),need=NB*P.mes;let bc=BC.find(b=>b.t===P.bc);
+  const lastNeed=NB?MS[MM+K+NB-1].fin:null;
+  // por defecto: el primero que vence después del último mes a cubrir (así no queda plata sin cubrir); si no hay, el más largo
+  if(!bc&&NB){bc=BC.filter(b=>b.venc>=lastNeed)[0]||BC[BC.length-1]}
+  let bcRow=null;if(bc&&NB){const vn=Math.ceil(need/(bc.px/100));const cobra=bc.flows.filter(f=>f[0]>rfSettle().toISOString().slice(0,10)).reduce((a,f)=>a+f[1]+f[2],0)*vn/100;bcRow={bc,vn,costo:vn*bc.px/100,cobra}}
+  $('#pl-t2').textContent='3 · Boncer · '+(NB?NB+' '+(NB===1?'mes':'meses')+' ('+mLbl(MS[MM+K])+(NB>1?' a '+mLbl(MS[MM+K+NB-1]):'')+')':'sin meses');
+  $('#pl-bc-box').innerHTML=!NB?'<p class="note">Todo el plan está cubierto con money market y LECAP.</p>':`<p class="sub">Para estos meses hacen falta <b>${fmtP(need)}</b> (${NB} × ${fmtP(P.mes)}). Se compra un Boncer que ajusta por inflación y se va vendiendo a medida que se necesita (o se cobra al vencimiento).</p>
+    <div class="plan-line"><label class="rf-fg"><span class="l">Boncer</span><select id="pl-bc" class="pl-pick">${BC.map(b=>`<option value="${b.t}"${bcRow&&b.t===bcRow.bc.t?' selected':''}>${b.t} · ${b.fam} · vence ${rfFmtD(b.venc)} · TIR real ${fmt(b.tir*100,2)}%</option>`).join('')||'<option>Sin precios de Boncer todavía</option>'}</select></label>
+    ${bcRow?`<div class="plan-kv"><span>VN a comprar</span><b>${fmt(bcRow.vn,0)}</b></div><div class="plan-kv"><span>Precio</span><b>${fmt(bcRow.bc.px,2)}</b></div><div class="plan-kv"><span>Invierte hoy</span><b>${fmtP(bcRow.costo)}</b></div><div class="plan-kv"><span>Al vencimiento (al CER de hoy)</span><b class="up">${fmtP(bcRow.cobra)}</b></div>`:''}</div>
+    ${bcRow&&lastNeed&&bcRow.bc.venc>lastNeed?`<p class="note" style="margin-top:6px">Vence después del último mes del plan (${rfFmtD(bcRow.bc.venc)}): las cuotas de esos meses salen de venderlo de a partes en el mercado, a precio de ese momento.</p>`:''}
+    ${bcRow&&bcRow.bc.venc<MS[MM+K].ini?`<p class="note down" style="margin-top:6px">Vence antes de empezar este tramo: la plata queda esperando en el money market.</p>`:''}`;
+  if($('#pl-bc'))$('#pl-bc').onchange=()=>{P.bc=$('#pl-bc').value;planSave();renderPlan()};
+  // 4 · fondo en dólares
+  const fU=planFund('rentaFija',/estrategia\s*(iii|3)/i);
+  $('#pl-usd-box').innerHTML=`<div class="plan-kv"><span>En pesos (MEP)</span><b>${mep&&P.usdAmt?fmtP(P.usdAmt*mep):'—'}</b></div>${fU&&fU.tea!=null?`<div class="plan-kv"><span>Rinde hoy aprox.</span><b>${fmt(fU.tea*100,1)}% anual</b></div>`:''}`;
   // resumen
-  const capL=NL?P.cap:0,tot=totC+capL;
-  $('#pl-kpis').innerHTML=[['Ingreso mensual',fmtP(P.mes)],['Meses cubiertos · '+K+' letras'+(NL?' + '+NL+' largo':''),P.n+' meses'],['Tramo corto hoy',fmtP(totC)],['Tramo largo',fmtP(capL)],['Total a invertir hoy',fmtP(tot)]].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v num" style="text-align:left">${k[1]}</div></div>`).join('');
-  S.planLast={rows,totC,totCobra,NL,need,capL,tot,LR,sp,K,MS};
+  const usdP=mep?(P.usdAmt||0)*mep:0,tot=mmAmt+totC+(bcRow?bcRow.costo:0)+usdP;
+  $('#pl-kpis').innerHTML=[['Ingreso mensual',fmtP(P.mes)],['Meses cubiertos',P.n+' meses'],['Money market',fmtP(mmAmt)],['LECAP',fmtP(totC)],['Boncer',fmtP(bcRow?bcRow.costo:0)],['Total en pesos hoy',fmtP(tot-usdP)],['Fondo US$',P.usdAmt?'US$ '+fmt(P.usdAmt,0):'—'],...(P.usdAmt?[['Total (dólares al MEP)',fmtP(tot)]]:[])].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v num" style="text-align:left">${k[1]}</div></div>`).join('');
+  S.planLast={MM,K,NB,MS,mmAmt,fMM,rows,totC,totCobra,need,bcRow,usdP,fU,tot};
 }
-/* papeles para el tramo largo: CER (pesos), ONs y soberanos en dólares */
-function planUniverse(){
-  const out=[],m=rfQuotes(),st=rfSettle(),mep=S.ref.mep&&S.ref.mep.v;
-  if(S.rpDef)S.rpDef.bonos.filter(b=>rpKind(b)==='cer').forEach(b=>{const q=rfPick(m,[b.t]);if(!q)return;const k=rpCalc(b,q.x.c,st);
-    out.push({id:'C:'+b.t,t:b.t,nom:b.nombre||'',tipo:'CER (pesos)',px:q.x.c,pxA:q.x.c,usd:false,tir:k?k.tir:null,tl:'real',venc:b.flows[b.flows.length-1][0]})});
-  if(mep){if(S.rfDef){const c0=S.rf.cur;S.rf.cur='mep';rfRowsSob().forEach(r=>{if(!r.usd)return;out.push({id:'S:'+r.t,t:r.t,nom:r.fam,tipo:'Soberano US$',px:r.usd,pxA:r.usd*mep,usd:true,tir:r.tir,tl:'US$',venc:r.venc})});S.rf.cur=c0}
-    if(S.onDef&&S.data.corp)onRows('mep').forEach(r=>{if(!r.usd)return;out.push({id:'O:'+r.t,t:r.t+'O',nom:r.emp,tipo:'ON US$',px:r.usd,pxA:r.usd*mep,usd:true,tir:r.tir,tl:'US$',venc:r.venc})})}
-  return out;
-}
-function planSearch(){const q=($('#pl-q').value||'').trim().toUpperCase(),box=$('#pl-res');if(q.length<2){box.innerHTML='';return}
-  const have=new Set(S.plan.long.map(x=>x.id));const R=Object.values(S.planU||{}).filter(u=>!have.has(u.id)&&(u.t.includes(q)||(u.nom||'').toUpperCase().includes(q))).slice(0,12);
-  box.innerHTML=R.length?R.map(u=>`<button class="cup-it" data-id="${u.id}" style="grid-template-columns:70px 110px 1fr 90px"><b>${esc(u.t)}</b><span class="note">${esc(u.tipo)}</span><span class="note">${esc(u.nom)}</span><span>${u.tir!=null?fmt(u.tir*100,1)+'%':''}</span></button>`).join(''):'<p class="note">Sin resultados.</p>';
-  $$('#pl-res .cup-it').forEach(b=>b.onclick=()=>{const P=S.plan,s=P.long.reduce((a,x)=>a+(+x.pct||0),0);P.long.push({id:b.dataset.id,pct:s<100?Math.round((100-s)*10)/10:0});if(s>=100){const n=P.long.length,bb=Math.floor(1000/n)/10;P.long.forEach(x=>x.pct=bb);P.long[0].pct=Math.round((100-bb*(n-1))*10)/10}$('#pl-q').value='';planSave();renderPlan()})}
 function planPDF(){
-  const C=S.planLast,P=S.plan;if(!C){return}
+  const C=S.planLast,P=S.plan;if(!C)return;const mep=S.ref.mep&&S.ref.mep.v;
   const hoy=rfToday().toISOString().slice(0,10).split('-').reverse().join('/'),cli=(P.cli||'').trim();
-  const sh=C.rows.map(r=>`<tr><td>${MESL[r.mo.m]} ${r.mo.y}</td>${r.l?`<td class="tk">${esc(r.l.t)}</td><td>${rfFmtD(r.l.venc)}</td><td class="n">${fmt(r.vn,0)}</td><td class="n">${fmt(r.l.px,2)}</td><td class="n b">${fmtP(r.costo)}</td><td class="n g">${fmtP(r.cobra)}</td>`:'<td colspan="6" class="mu">sin letra disponible</td>'}</tr>`).join('');
-  const lg=C.LR.filter(r=>r.u).map(r=>`<tr><td class="tk">${esc(r.u.t)}</td><td>${esc(r.u.tipo)}</td><td class="n">${fmt(+r.x.pct,1)}%</td><td class="n">${fmt(r.vn,0)}</td><td class="n b">${fmtP(r.monto)}</td><td class="n">${r.u.tir!=null?fmt(r.u.tir*100,2)+'% '+r.u.tl:''}</td><td>${rfFmtD(r.u.venc)}</td></tr>`).join('');
+  const sh=C.rows.map(r=>`<tr><td>${mLbl(r.mo)}</td>${r.l?`<td class="tk">${esc(r.l.t)}</td><td>${rfFmtD(r.l.venc)}</td><td class="n">${fmt(r.vn,0)}</td><td class="n">${fmt(r.l.px,2)}</td><td class="n b">${fmtP(r.costo)}</td><td class="n g">${fmtP(r.cobra)}</td>`:'<td colspan="6" class="mu">sin letra disponible</td>'}</tr>`).join('');
+  const T=[];
+  if(C.MM)T.push(`<tr><td><b>1 · Money market</b></td><td class="tk">${esc(P.mmName)}</td><td>${mLbl(C.MS[0])}${C.MM>1?' a '+mLbl(C.MS[C.MM-1]):''}</td><td class="n b">${fmtP(C.mmAmt)}</td><td>${C.fMM&&C.fMM.tea!=null?'aprox. '+fmt(C.fMM.tea*100,1)+'% anual':''}</td></tr>`);
+  if(C.K)T.push(`<tr><td><b>2 · LECAP</b></td><td class="tk">${[...new Set(C.rows.filter(r=>r.l).map(r=>r.l.t))].join(', ')}</td><td>${mLbl(C.MS[C.MM])}${C.K>1?' a '+mLbl(C.MS[C.MM+C.K-1]):''}</td><td class="n b">${fmtP(C.totC)}</td><td>cobra ${fmtP(C.totCobra)}</td></tr>`);
+  if(C.NB&&C.bcRow)T.push(`<tr><td><b>3 · Boncer</b></td><td class="tk">${esc(C.bcRow.bc.t)}</td><td>${mLbl(C.MS[C.MM+C.K])}${C.NB>1?' a '+mLbl(C.MS[C.MM+C.K+C.NB-1]):''}</td><td class="n b">${fmtP(C.bcRow.costo)}</td><td>${fmt(C.bcRow.vn,0)} VN · TIR real ${fmt(C.bcRow.bc.tir*100,2)}% · vence ${rfFmtD(C.bcRow.bc.venc)}</td></tr>`);
+  if(P.usdAmt)T.push(`<tr><td><b>4 · Fondo en dólares</b></td><td class="tk">${esc(P.usdName)}</td><td>—</td><td class="n b">US$ ${fmt(P.usdAmt,0)}</td><td>${mep?'≈ '+fmtP(P.usdAmt*mep)+' al MEP':''}</td></tr>`);
   const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Plan de ingresos PROSPEI${cli?' - '+esc(cli):''}</title><style>
   @page{size:A4;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#0f1b2d;margin:0;font-size:11px}
   .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #0e9aa7;padding-bottom:8px;margin-bottom:12px}.hd h1{font-size:20px;margin:0}.hd p{margin:2px 0 0;color:#5b6b80}.brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.06em}.brand small{display:block;font-weight:500;letter-spacing:0;color:#5b6b80;font-size:9.5px}
-  .k{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.k div{border:1px solid #e2e8f0;border-radius:8px;padding:8px}.k span{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:#5b6b80}.k b{font-size:15px}
-  h2{font-size:12px;margin:14px 0 6px}table{width:100%;border-collapse:collapse}th{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:#5b6b80;text-align:left;padding:5px 6px;background:#f4f6f9}td{padding:4.5px 6px;border-bottom:1px solid #eef2f6}.n{text-align:right}.tk{font-weight:700;color:#0e7f8a}.g{color:#0f9d58;font-weight:700}.b{font-weight:700}.mu{color:#93a3b8}tfoot td{font-weight:700;border-top:2px solid #0f1b2d}
+  .k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.k div{border:1px solid #e2e8f0;border-radius:8px;padding:8px}.k span{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:#5b6b80}.k b{font-size:15px}
+  h2{font-size:12px;margin:14px 0 6px}table{width:100%;border-collapse:collapse}th{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:#5b6b80;text-align:left;padding:5px 6px;background:#f4f6f9}td{padding:4.5px 6px;border-bottom:1px solid #eef2f6}.n{text-align:right;white-space:nowrap}.tk{font-weight:700;color:#0e7f8a}.g{color:#0f9d58;font-weight:700}.b{font-weight:700}.mu{color:#93a3b8}tfoot td{font-weight:700;border-top:2px solid #0f1b2d}
   .nt{margin-top:8px;color:#5b6b80;font-size:9.5px;line-height:1.45}.ft{margin-top:14px;color:#93a3b8;font-size:8.5px;border-top:1px solid #e2e8f0;padding-top:6px}</style></head><body>
-  <div class="hd"><div><h1>Plan de ingresos mensuales</h1><p>${cli?'Preparado para <b>'+esc(cli)+'</b> · ':''}${fmtP(P.mes)} por mes durante ${P.n} meses</p></div>
+  <div class="hd"><div><h1>Plan de ingresos mensuales</h1><p>${cli?'Preparado para <b>'+esc(cli)+'</b> · ':''}${fmtP(P.mes)} por mes durante ${P.n} meses, desde ${mLbl(C.MS[0])}</p></div>
   <div style="text-align:right"><div class="brand"><svg viewBox="0 0 34 34" width="22" height="22"><rect width="16" height="16" fill="#551CE3"/><rect x="18" width="16" height="16" fill="#798DF7"/><rect y="18" width="16" height="16" fill="#9AA8F9"/><rect x="18" y="18" width="16" height="16" fill="#BCC6FA"/></svg><div>PROSPEI<small>Consultores Financieros</small></div></div><p>${hoy}</p></div></div>
-  <div class="k"><div><span>Ingreso mensual</span><b>${fmtP(P.mes)}</b></div><div><span>Tramo corto (${C.K} meses)</span><b>${fmtP(C.totC)}</b></div><div><span>Tramo largo (${C.NL} meses)</span><b>${fmtP(C.capL)}</b></div><div><span>Total a invertir hoy</span><b style="color:#0e7f8a">${fmtP(C.tot)}</b></div></div>
-  <h2>Tramo corto · una letra por mes</h2><table><thead><tr><th>Mes</th><th>Letra</th><th>Vence</th><th class="n">VN</th><th class="n">Precio</th><th class="n">Invierte hoy</th><th class="n">Cobra</th></tr></thead><tbody>${sh}</tbody><tfoot><tr><td colspan="5">Total</td><td class="n">${fmtP(C.totC)}</td><td class="n">${fmtP(C.totCobra)}</td></tr></tfoot></table>
-  ${C.NL?`<h2>Tramo largo · ${C.NL} meses desde ${MESL[C.MS[C.K].m]} ${C.MS[C.K].y}</h2>${lg?`<table><thead><tr><th>Papel</th><th>Tipo</th><th class="n">Ponder.</th><th class="n">VN</th><th class="n">Monto</th><th class="n">Rinde</th><th>Vence</th></tr></thead><tbody>${lg}</tbody><tfoot><tr><td colspan="4">Capital del tramo largo</td><td class="n">${fmtP(C.capL)}</td><td colspan="2"></td></tr></tfoot></table>`:'<p class="mu">Papeles a definir.</p>'}<div class="nt">Para estos meses hacen falta ${fmtP(C.need)} (${C.NL} × ${fmtP(P.mes)}). Esta parte se va vendiendo o cobrando sus cupones a medida que se necesita; los bonos CER ajustan por inflación y los papeles en dólares protegen frente a una suba del dólar.</div>`:''}
-  <div class="nt">Las letras pagan un monto fijo en pesos al vencimiento: si una vence semanas antes de cuando se necesita la plata, se puede dejar en caución o en un fondo money market. Precios de mercado al ${hoy}; los montos pueden variar con los precios del día de compra.</div>
+  <div class="k"><div><span>Ingreso mensual</span><b>${fmtP(P.mes)}</b></div><div><span>Meses cubiertos</span><b>${P.n}</b></div><div><span>Total en pesos hoy</span><b style="color:#0e7f8a">${fmtP(C.tot-C.usdP)}</b>${P.usdAmt?`<em style="display:block;font-style:normal;font-size:9.5px;color:#5b6b80;margin-top:2px">+ US$ ${fmt(P.usdAmt,0)} en el fondo en dólares</em>`:''}</div></div>
+  <h2>Cómo se arma</h2><table><thead><tr><th>Tramo</th><th>Instrumento</th><th>Cubre</th><th class="n">Monto</th><th>Detalle</th></tr></thead><tbody>${T.join('')}</tbody><tfoot><tr><td colspan="3">Total en pesos</td><td class="n">${fmtP(C.tot-C.usdP)}</td><td>${P.usdAmt?'+ US$ '+fmt(P.usdAmt,0)+' en dólares':''}</td></tr></tfoot></table>
+  ${C.K?`<h2>LECAP · una letra por mes</h2><table><thead><tr><th>Mes</th><th>Letra</th><th>Vence</th><th class="n">VN</th><th class="n">Precio</th><th class="n">Invierte hoy</th><th class="n">Cobra</th></tr></thead><tbody>${sh}</tbody><tfoot><tr><td colspan="5">Total</td><td class="n">${fmtP(C.totC)}</td><td class="n">${fmtP(C.totCobra)}</td></tr></tfoot></table>`:''}
+  <div class="nt">El money market da liquidez inmediata para los primeros días. Cada LECAP paga un monto fijo en pesos al vencimiento, calculado para cubrir el mes; si vence antes de cuando se necesita, esa plata espera en el money market. El Boncer ajusta por inflación (CER) y se vende de a partes a medida que se necesita; el monto al vencimiento está calculado al CER de hoy, así que con inflación va a ser mayor. El fondo en dólares es la parte que se dolariza, fuera de las necesidades mensuales.</div>
+  <div class="nt">Precios de mercado al ${hoy}; los montos pueden variar con los precios del día de compra. Los rendimientos de los fondos son estimaciones a partir de su cuotaparte y no están garantizados.</div>
   <div class="ft">Material con fines informativos; no constituye una recomendación de inversión. PROSPEI Consultores Financieros.</div>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`;
   const w=window.open('','_blank');if(!w){alert('El navegador bloqueó la ventana. Permití ventanas emergentes para este sitio.');return}w.document.open();w.document.write(html);w.document.close();
 }
-[['#pl-cli','cli',0],['#pl-mes','mes',1],['#pl-n','n',1],['#pl-k','k',1],['#pl-cap','cap',1]].forEach(([id,k,n])=>$(id).onchange=()=>{let v=$(id).value;if(n)v=Math.max(0,+v||0);if(k==='n')v=Math.max(1,Math.min(36,v));S.plan[k]=v;if(k==='mes'||k==='n'||k==='k')S.plan.cap=null;planSave();renderPlan()});
+[['#pl-cli','cli',0],['#pl-mes','mes',1],['#pl-n','n',1],['#pl-mm','mm',1],['#pl-k','k',1]].forEach(([id,k,n])=>$(id).onchange=()=>{let v=$(id).value;if(n)v=Math.max(0,+v||0);if(k==='n')v=Math.max(1,Math.min(36,v));S.plan[k]=v;planSave();renderPlan()});
 $('#pl-ini').onchange=()=>{S.plan.ini=+$('#pl-ini').value;S.plan.pick={};planSave();renderPlan()};
-$('#pl-tipo').onchange=()=>{S.plan.tipo=$('#pl-tipo').value;S.plan.pick={};planSave();renderPlan()};
-$('#pl-q').oninput=planSearch;$('#pl-pdf').onclick=planPDF;
+$('#pl-pdf').onclick=planPDF;
+[['#pl-mmn','mmName'],['#pl-usdn','usdName']].forEach(([id,k])=>$(id).onchange=()=>{S.plan[k]=$(id).value.trim()||S.plan[k];planSave();renderPlan()});
+$('#pl-usd').onchange=()=>{S.plan.usdAmt=Math.max(0,+$('#pl-usd').value||0);planSave();renderPlan()};
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- carga ---------- */
 let loading=false;
