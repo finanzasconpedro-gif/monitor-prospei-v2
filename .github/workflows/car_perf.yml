@@ -1,0 +1,38 @@
+name: Rendimiento carteras PROSPEI
+
+on:
+  push:
+    paths:
+      - carteras.json          # cada vez que subís las carteras, se recalcula
+  schedule:
+    - cron: "12 22 * * 1-5"    # lunes a viernes 19:12 hora Argentina (después del cierre de Wall Street)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: carperf
+  cancel-in-progress: false
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pandas yfinance
+      - name: Calcular cuotapartes
+        run: python car_perf.py
+      - name: Guardar
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add carteras_perf.json carteras_px.json 2>/dev/null || true
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualiza rendimiento carteras $(date -u +'%Y-%m-%d %H:%M')"
+          git pull --rebase
+          git push
