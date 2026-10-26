@@ -76,6 +76,8 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 [data-rfs="cup"].on{background:#c98a12!important;border-color:#c98a12!important;color:#fff!important}
 [data-rfs="plan"].on{background:#0e9aa7!important;border-color:#0e9aa7!important;color:#fff!important}.plan-in input,.plan-in select,#pl-cap,#pl-q,.pl-pick{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}.pl-pick{max-width:360px}.plan-line{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.plan-line>div:first-child b{font-size:18px}.plan-kv{display:flex;flex-direction:column;gap:2px}.plan-kv span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.plan-kv b{font-size:16px}#pl-mmn,#pl-usdn,#pl-usd{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}
 .plan-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:4px;margin-top:6px}
+.car-tabs{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}.car-g{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.car-g>.note{text-transform:uppercase;letter-spacing:.05em;font-size:11px;margin-right:2px}
+.car-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}.car-in{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}#car-edit.on{background:#551CE3;border-color:#551CE3;color:#fff}
 .cup-cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:12px}.cup-m{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}.cup-m{border:1px solid #2b4a8a!important;box-shadow:0 2px 8px rgba(0,0,0,.12)}.cup-mh{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:linear-gradient(90deg,#551CE3,#1d4ed8);color:#fff}.cup-mh b{font-size:15px;letter-spacing:.02em}.cup-mh b span{font-weight:500;opacity:.8}.cup-mh small{font-size:11.5px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:10px}
 .cup-ml{max-height:260px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}.cup-it{all:unset;cursor:pointer;display:grid;grid-template-columns:62px 46px 1fr 70px;gap:4px 6px;align-items:center;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}.cup-it>.note{grid-column:3/5;font-size:11px}
 .cup-it:hover{border-color:var(--accent)}.cup-it.in{border-color:#c98a12;background:rgba(201,138,18,.10)}.cup-mon{font-size:10.5px;font-weight:700;color:var(--accent)}.cup-mon.cb{color:#e08a3c}
@@ -290,6 +292,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     <button class="tab" data-t="mep">Dólar MEP por bono</button>
     <button class="tab" data-t="ced">CEDEARs desarbitrados</button>
     <button class="tab" data-t="rf">Renta fija</button>
+    <button class="tab" data-t="car">Carteras sugeridas</button>
     <button class="tab" data-t="pf">Mi cartera</button>
     <button class="tab" data-t="fh">Buscador por valuación</button>
     <button class="tab" data-t="bal">Balances</button>
@@ -760,6 +763,20 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   </section>
 
   <!-- MI CARTERA -->
+  <!-- CARTERAS SUGERIDAS -->
+  <section id="t-car" class="hide">
+    <div class="card">
+      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px"><h2 style="margin:0">Carteras sugeridas</h2><p class="sub" style="margin:4px 0 0">Carteras modelo en dólares de PROSPEI, con precios y rendimientos en vivo. Elegí una y poné el monto para ver cuánto comprar de cada papel.</p></div>
+        <button class="chip" id="car-edit" title="Editar las carteras">✎ Editar</button>
+      </div>
+      <div class="car-tabs" id="car-tabs"></div>
+      <div id="car-draft"></div>
+    </div>
+    <div class="card" id="car-view"></div>
+    <div class="card hide" id="car-editor"></div>
+  </section>
+
   <section id="t-pf" class="hide">
     <div class="card">
       <h2>Mi cartera: ¿vendo o mantengo?</h2>
@@ -842,7 +859,7 @@ function saveFav(){store('fav',[...S.fav])}
 $('#theme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);store('theme',n)};
 
 /* ---------- tabs & filters ---------- */
-$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf','fh','bal','rf'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='rf')renderRF();if(b.dataset.t==='fh')initFHTab();if(b.dataset.t==='bal')initBal();if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));['opo','map','rot','acc','mep','ced','pf','fh','bal','rf','car'].forEach(t=>$('#t-'+t).classList.toggle('hide',t!==b.dataset.t));if(b.dataset.t==='rf')renderRF();if(b.dataset.t==='car')renderCar();if(b.dataset.t==='fh')initFHTab();if(b.dataset.t==='bal')initBal();if(b.dataset.t==='map'){renderHeat();renderSecPerf()}if(b.dataset.t==='pf')renderPf();if(b.dataset.t==='rot'){renderRotSec();renderVM()}});
 function chipGroup(attr,key,fn){$$('[data-'+attr+']').forEach(b=>b.onclick=()=>{$$('[data-'+attr+']').forEach(x=>x.classList.toggle('on',x===b));S[key]=b.dataset[attr];fn()})}
 chipGroup('pa','pa',renderAcc);chipGroup('lq','lq',renderMep);chipGroup('cf','cf',renderCed);
 $('#q-acc').oninput=renderAcc;$('#q-mep').oninput=renderMep;$('#q-ced').oninput=renderCed;
@@ -2689,7 +2706,7 @@ S.plan=(()=>{let v=null;try{v=JSON.parse(localStorage.getItem('planIng')||'null'
   v=Object.assign(d,v||{});if(v.mm==null)v.mm=1;if(!Array.isArray(v.extra))v.extra=[];
   if(v.usdAmt>0&&!v.extra.length)v.extra.push({id:'F:ESTRA3',amt:v.usdAmt});delete v.usdAmt;delete v.usdName;return v})();
 /* fondos en dólares disponibles (nombre en CAFCI para buscar el rendimiento) */
-const PLAN_FUNDS={ESTRA1:{lbl:'ESTRA1 · Balanz (fondo en dólares)',rx:null},ESTRA3:{lbl:'ESTRA3 · Fondo Balanz Latam',rx:/balanz.*latam/i}};
+const PLAN_FUNDS={ESTRA1:{lbl:'ESTRA1 · Balanz Dólar Corto Plazo',rx:/balanz.*d[oó]lar.*corto\s*plazo/i},ESTRA3:{lbl:'ESTRA3 · Fondo Balanz Latam',rx:/balanz.*latam/i}};
 function planSave(){try{localStorage.setItem('planIng',JSON.stringify(S.plan))}catch(e){}}
 const fmtP=v=>'$ '+fmt(v,0);
 /* fondos (argentinadatos / CAFCI): rendimiento aproximado a partir de las dos últimas cuotapartes */
@@ -2817,6 +2834,144 @@ $('#pl-mmn').onchange=()=>{S.plan.mmName=$('#pl-mmn').value.trim()||S.plan.mmNam
 $('#pl-x-add-b').onclick=()=>{const B=planBoncer();if(!B.length){alert('Todavía no hay precios de Boncer.');return}const used=new Set(S.plan.extra.map(x=>x.id));const b=B.slice().reverse().find(z=>!used.has('B:'+z.t))||B[B.length-1];S.plan.extra.push({id:'B:'+b.t,amt:1000000});planSave();renderPlan()};
 $('#pl-x-add-f').onclick=()=>{const used=new Set(S.plan.extra.map(x=>x.id));const k=['ESTRA3','ESTRA1'].find(z=>!used.has('F:'+z));if(!k){alert('Ya están los dos fondos.');return}S.plan.extra.push({id:'F:'+k,amt:10000});planSave();renderPlan()};
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
+/* ---------- CARTERAS SUGERIDAS ---------- */
+const CAR_GRUPOS=[['mixta','Carteras'],['rf','Renta fija']];
+const CAR_TIPO={accion:'Acción / CEDEAR',sob:'Bono soberano',on:'ON',fondo:'Fondo'};
+const CAR_FONDOS={ESTRA1:{n:'Balanz Dólar Corto Plazo',k:'ESTRA1'},ESTRA3:{n:'Fondo Balanz Latam',k:'ESTRA3'}};
+S.car={sel:null,monto:10000,edit:false};
+async function loadCarDef(){if(S.carDef)return S.carDef;try{S.carDef=await getJ('carteras.json?v='+Date.now())}catch(e){S.carDef={carteras:[]}}return S.carDef}
+function carDraft(){try{const v=JSON.parse(localStorage.getItem('carDraft')||'null');return v&&Array.isArray(v.carteras)?v:null}catch(e){return null}}
+function carData(){return carDraft()||S.carDef||{carteras:[]}}
+function carSaveDraft(d){try{localStorage.setItem('carDraft',JSON.stringify(d))}catch(e){}}
+/* busca cada papel en lo que ya tiene cargado el monitor */
+function carLookup(it){
+  const t=String(it.t||'').toUpperCase();
+  if(it.tipo==='accion'){const r=S.scr&&S.scr.rows.find(x=>x.t===t);if(!r)return null;const o=enrich(r);
+    return {t,nom:o.name,px:o.px,sec:o.sector||'',o,ced:o.ced,ind:o.sector||'Acciones'}}
+  if(it.tipo==='sob'){if(!S.rfDef)return null;const c0=S.rf.cur;S.rf.cur='mep';const r=rfRowsSob().find(x=>x.t===t);S.rf.cur=c0;if(!r||!r.usd)return null;
+    return {t,nom:r.fam==='Bopreal'?'BCRA (Bopreal)':'Tesoro Nacional · '+r.fam,px:r.usd,tir:r.tir,dur:r.dur,venc:r.venc,ind:'Soberano',flows:r.def.flows}}
+  if(it.tipo==='on'){if(!S.onDef||!S.data.corp)return null;const b=t.replace(/[ODC]$/,'');const r=onRows('mep').find(x=>x.t===b);if(!r||!r.usd)return null;const d=S.onDef.ons.find(x=>x.t===b);
+    return {t:b+'O',nom:r.emp,px:r.usd,tir:r.tir,dur:r.dur,venc:r.venc,ind:r.ind||'ON',flows:d?d.flows:[],calif:r.calif}}
+  if(it.tipo==='fondo'){const f=CAR_FONDOS[t]||{n:t};const fd=typeof planFund==='function'&&PLAN_FUNDS[t]?planFund(PLAN_FUNDS[t].rx):null;
+    return {t,nom:f.n,px:null,tea:fd&&fd.tea!=null?fd.tea:null,ind:'Fondo en dólares'}}
+  return null;
+}
+function carCalc(c,monto){
+  const R=(c.items||[]).map(it=>{const u=carLookup(it);const m=monto*(+it.pct||0)/100;let q=null,mr=m;
+    if(u&&u.px){if(it.tipo==='accion'){q=Math.floor(m/u.px);mr=q*u.px}else{q=Math.floor(m/(u.px/100));mr=q*u.px/100}}
+    return {it,u,m,mr,q}});
+  const sum=Math.round((c.items||[]).reduce((a,x)=>a+(+x.pct||0),0)*100)/100;
+  const w=k=>R.filter(r=>r.it.tipo===k).reduce((a,r)=>a+(+r.it.pct||0),0);
+  const RF=R.filter(r=>(r.it.tipo==='sob'||r.it.tipo==='on')&&r.u&&r.u.tir!=null),wRF=RF.reduce((a,r)=>a+(+r.it.pct||0),0);
+  const tir=wRF?RF.reduce((a,r)=>a+r.u.tir*(+r.it.pct||0),0)/wRF:null,dur=wRF?RF.reduce((a,r)=>a+r.u.dur*(+r.it.pct||0),0)/wRF:null;
+  const AC=R.filter(r=>r.it.tipo==='accion'&&r.u&&r.u.o.fair_up!=null),wAC=AC.reduce((a,r)=>a+(+r.it.pct||0),0);
+  const up=wAC?AC.reduce((a,r)=>a+r.u.o.fair_up*(+r.it.pct||0),0)/wAC:null;
+  // cupones de la parte de renta fija, próximos 12 meses
+  const st=rfSettle().toISOString().slice(0,10),h=rfToday(),lim=new Date(Date.UTC(h.getUTCFullYear(),h.getUTCMonth()+12,1)).toISOString().slice(0,10);
+  let cup=0,am=0;R.forEach(r=>{if(!r.u||!r.u.flows||!r.q)return;r.u.flows.forEach(f=>{if(f[0]>st&&f[0]<lim){cup+=r.q/100*f[1];am+=r.q/100*f[2]}})});
+  const ind={};R.forEach(r=>{const k=r.u?r.u.ind:'—';ind[k]=(ind[k]||0)+(+r.it.pct||0)});
+  return {R,sum,rv:w('accion'),rf:w('sob')+w('on'),fo:w('fondo'),tir,dur,up,cup,am,ind,inv:R.reduce((a,r)=>a+r.mr,0)};
+}
+function renderCar(){
+  if(!S.carDef){loadCarDef().then(()=>renderCar());return}
+  if(!S.rfDef&&!S.carTry1){S.carTry1=1;loadRFDef().then(()=>renderCar())}
+  if(!S.onDef&&!S.carTry2){S.carTry2=1;loadONDef().then(()=>renderCar())}
+  if(typeof planFunds==='function')planFunds();
+  const D=carData(),L=D.carteras||[];
+  if(!S.car.sel||!L.find(c=>c.id===S.car.sel))S.car.sel=L[0]?L[0].id:null;
+  $('#car-tabs').innerHTML=CAR_GRUPOS.map(([g,lbl])=>{const G=L.filter(c=>c.grupo===g);return G.length?`<div class="car-g"><span class="note">${lbl}</span>${G.map(c=>`<button class="chip${c.id===S.car.sel?' on':''}" data-car="${esc(c.id)}">${esc(c.nombre)}</button>`).join('')}</div>`:''}).join('')||'<p class="note">Todavía no hay carteras cargadas. Tocá ✎ Editar para armarlas.</p>';
+  $$('#car-tabs [data-car]').forEach(b=>b.onclick=()=>{S.car.sel=b.dataset.car;renderCar()});
+  $('#car-draft').innerHTML=carDraft()?`<div class="rf-new" style="margin-top:10px"><b>Estás viendo tu borrador</b> (guardado sólo en este navegador). Para que lo vean todos, en ✎ Editar tocá <b>Descargar carteras.json</b> y subilo a GitHub.</div>`:'';
+  $('#car-edit').classList.toggle('on',S.car.edit);$('#car-editor').classList.toggle('hide',!S.car.edit);
+  const c=L.find(x=>x.id===S.car.sel);
+  if(!c){$('#car-view').innerHTML='';if(S.car.edit)renderCarEd();return}
+  const C=carCalc(c,S.car.monto);S.carLast={c,C};
+  const kp=[['Renta variable',fmt(C.rv,0)+'%'],['Renta fija',fmt(C.rf,0)+'%'],...(C.fo?[['Fondos',fmt(C.fo,0)+'%']]:[]),...(C.tir!=null?[['TIR renta fija',fmt(C.tir*100,2)+'%'],['Duration renta fija',fmt(C.dur,2)]]:[]),...(C.up!=null?[['Recorrido a valor justo (acciones)',pct(C.up,1)]]:[]),...(C.cup?[['Cupones 12 meses','US$ '+fmt(C.cup,0)]]:[])];
+  const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;
+    const ind=!u?'<span class="note">sin datos ahora</span>':it.tipo==='accion'?vdChip(u.o):it.tipo==='fondo'?(u.tea!=null?`rindió ${fmt(u.tea*100,1)}% anual (último mes)`:'—'):`TIR <b class="${u.tir>=0?'up':'down'}">${fmt(u.tir*100,2)}%</b> · dur. ${fmt(u.dur,2)}`;
+    const ext=!u?'':it.tipo==='accion'?cedCell(u.o):it.tipo==='fondo'?'':`vence ${rfFmtD(u.venc)}`;
+    return `<tr${it.tipo==='accion'&&u?` data-t="${esc(u.t)}" style="cursor:pointer"`:''}><td><i class="car-dot" style="background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(u?u.t:it.t)}</b><div class="note">${esc(u?u.nom:'')}</div></td><td>${CAR_TIPO[it.tipo]||it.tipo}</td><td class="n"><b>${fmt(+it.pct||0,1)}%</b></td><td class="n">US$ ${fmt(r.m,0)}</td><td class="n">${r.q!=null?fmt(r.q,0)+(it.tipo==='accion'?' acc.':' VN'):'—'}</td><td class="n">${u&&u.px?fmt(u.px,2):'—'}</td><td>${ind}</td><td>${ext}</td></tr>`}).join('');
+  $('#car-view').innerHTML=`<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:260px"><h2 style="margin:0">${esc(c.nombre)}</h2>${c.desc?`<p class="sub" style="margin:4px 0 0">${esc(c.desc)}</p>`:''}</div>
+    <label class="note" style="display:flex;gap:6px;align-items:center">Monto US$ <input type="number" id="car-monto" value="${S.car.monto}" step="1000" min="0" class="car-in" style="width:130px"></label>
+    <label class="note" style="display:flex;gap:6px;align-items:center">Cliente <input id="car-cli" value="${esc(S.car.cli||'')}" placeholder="opcional" class="car-in" style="width:150px"></label>
+    <button class="chip" id="car-pdf" style="background:#551CE3;border-color:#551CE3;color:#fff">⬇ Descargar PDF</button></div>
+    ${Math.abs(C.sum-100)>=0.05?`<div class="rf-new" style="margin-top:8px;border-color:var(--down)">Los porcentajes de esta cartera suman ${fmt(C.sum,1)}%, no 100%.</div>`:''}
+    <div class="cup-kpis" style="margin-top:12px">${kp.map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v num" style="text-align:left">${k[1]}</div></div>`).join('')}</div>
+    <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th class="n">Monto</th><th class="n">Cantidad</th><th class="n">Precio US$</th><th>Monitor / rendimiento</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="8" class="note" style="padding:14px;text-align:center">Esta cartera todavía no tiene papeles: tocá ✎ Editar para cargarlos.</td></tr>'}</tbody></table></div>
+    <div class="cup-grid"><div><h3 class="cup-h">Composición</h3><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">${cupPie(C.R.map(r=>({w:(+r.it.pct||0)/(C.sum||1)})),70)}<div>${C.R.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin:2px 0"><i style="width:10px;height:10px;border-radius:2px;background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(r.u?r.u.t:r.it.t)}</b><span class="note">${fmt(+r.it.pct||0,1)}%</span></div>`).join('')}</div></div></div>
+      <div><h3 class="cup-h">Por sector / industria</h3>${Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:grid;grid-template-columns:170px 1fr 50px;gap:8px;align-items:center;font-size:12.5px;margin:3px 0"><span>${esc(k)}</span><span style="height:7px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${Math.min(100,v).toFixed(0)}%;background:#551CE3"></i></span><b class="num" style="text-align:right">${fmt(v,1)}%</b></div>`).join('')}</div></div>
+    <p class="note" style="margin-top:10px">Precios en dólares MEP en vivo. Cantidades redondeadas hacia abajo; las acciones se pueden comprar como CEDEAR en Argentina (ver la columna de la derecha) o directo en el exterior. Material informativo; no es una recomendación personalizada.</p>`;
+  $('#car-monto').onchange=()=>{S.car.monto=Math.max(0,+$('#car-monto').value||0);renderCar()};
+  $('#car-cli').oninput=()=>{S.car.cli=$('#car-cli').value};
+  $('#car-pdf').onclick=carPDF;
+  $$('#car-view tr[data-t]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('button'))return;openDetail(tr.dataset.t)});
+  if(S.car.edit)renderCarEd();
+}
+/* ---------- editor ---------- */
+function carUniverse(){
+  const out=[];
+  if(S.scr)S.scr.rows.forEach(r=>out.push({tipo:'accion',t:r.t,nom:r.name||''}));
+  if(S.rfDef)S.rfDef.bonds.forEach(b=>out.push({tipo:'sob',t:b.t,nom:b.fam}));
+  if(S.onDef)S.onDef.ons.forEach(o=>out.push({tipo:'on',t:o.t+'O',nom:o.emp||o.nombre||''}));
+  Object.entries(CAR_FONDOS).forEach(([k,f])=>out.push({tipo:'fondo',t:k,nom:f.n}));
+  return out;
+}
+function renderCarEd(){
+  const el=$('#car-editor'),ae=document.activeElement;if(el.contains(ae)&&/^(INPUT|SELECT)$/.test(ae.tagName)&&ae.id!=='car-q')return; // no pisar lo que se está escribiendo
+  const D=JSON.parse(JSON.stringify(carData()));const c=D.carteras.find(x=>x.id===S.car.sel);
+  const save=()=>{carSaveDraft(D);renderCar()};
+  const sum=c?Math.round(c.items.reduce((a,x)=>a+(+x.pct||0),0)*100)/100:0;
+  el.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h2 style="margin:0;flex:1">✎ Editar carteras</h2>
+      <button class="chip" id="car-new">+ Nueva cartera</button>${c?'<button class="chip" id="car-del">Borrar esta cartera</button>':''}
+      <button class="chip" id="car-dl" style="background:#551CE3;border-color:#551CE3;color:#fff">⬇ Descargar carteras.json</button>${carDraft()?'<button class="chip" id="car-undo">Descartar borrador</button>':''}</div>
+    <p class="note" style="margin:6px 0 10px">Los cambios se guardan en este navegador. Cuando termines, descargá <b>carteras.json</b> y subilo a la raíz del repo en GitHub (reemplazando el anterior) para que lo vean todos.</p>
+    ${c?`<div class="rf-filt"><label class="rf-fg"><span class="l">Nombre</span><input id="ce-nom" class="car-in" value="${esc(c.nombre)}" style="width:170px"></label>
+      <label class="rf-fg"><span class="l">Grupo</span><select id="ce-gru" class="car-in">${CAR_GRUPOS.map(([g,l])=>`<option value="${g}"${c.grupo===g?' selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="rf-fg" style="flex:1;min-width:260px"><span class="l">Descripción</span><input id="ce-desc" class="car-in" value="${esc(c.desc||'')}" style="width:100%"></label></div>
+    <div class="cup-tot" style="margin-top:10px"><span class="cup-sum ${Math.abs(sum-100)<0.05?'ok':'bad'}">Suma: <b>${fmt(sum,1)}%</b>${Math.abs(sum-100)<0.05?' ✓':sum<100?' · falta asignar '+fmt(100-sum,1)+'%':' · te pasaste '+fmt(sum-100,1)+'%'}</span><button class="chip" id="ce-eq">Repartir en partes iguales</button></div>
+    <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th></th></tr></thead><tbody>${c.items.map((it,i)=>`<tr><td><b>${esc(it.t)}</b></td><td>${CAR_TIPO[it.tipo]}</td><td class="n"><span class="cup-pw"><input type="number" class="cup-amt ce-pct" data-i="${i}" value="${it.pct}" step="0.5" min="0" max="100"> %</span></td><td><button class="chip ce-x" data-i="${i}">✕</button></td></tr>`).join('')||'<tr><td colspan="4" class="note">Sin papeles todavía.</td></tr>'}</tbody></table></div>
+    <div style="margin-top:10px"><input id="car-q" class="car-in" placeholder="Sumar papel: KO, AAPL, AO27, YMCXO, ESTRA3…" style="width:340px"><div id="car-res" class="plan-res"></div></div>`:'<p class="note">Creá una cartera con “+ Nueva cartera”.</p>'}`;
+  const nid=()=>'c'+Date.now().toString(36);
+  $('#car-new').onclick=()=>{const id=nid();D.carteras.push({id,nombre:'Nueva cartera',grupo:'mixta',desc:'',items:[]});S.car.sel=id;save()};
+  if($('#car-del'))$('#car-del').onclick=()=>{if(!confirm('¿Borrar la cartera "'+c.nombre+'"?'))return;D.carteras=D.carteras.filter(x=>x.id!==c.id);S.car.sel=null;save()};
+  $('#car-dl').onclick=()=>{const out={updated:rfToday().toISOString().slice(0,10),carteras:D.carteras};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));a.download='carteras.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+  if($('#car-undo'))$('#car-undo').onclick=()=>{if(!confirm('¿Descartar los cambios de este navegador y volver a las carteras publicadas?'))return;try{localStorage.removeItem('carDraft')}catch(e){}renderCar()};
+  if(!c)return;
+  $('#ce-nom').onchange=()=>{c.nombre=$('#ce-nom').value.trim()||c.nombre;save()};
+  $('#ce-gru').onchange=()=>{c.grupo=$('#ce-gru').value;save()};
+  $('#ce-desc').onchange=()=>{c.desc=$('#ce-desc').value.trim();save()};
+  $('#ce-eq').onclick=()=>{const n=c.items.length;if(!n)return;const b=Math.floor(1000/n)/10;c.items.forEach(x=>x.pct=b);c.items[0].pct=Math.round((100-b*(n-1))*10)/10;save()};
+  $$('#car-editor .ce-pct').forEach(e=>e.onchange=()=>{c.items[+e.dataset.i].pct=Math.min(100,Math.max(0,+e.value||0));e.blur();save()});
+  $$('#car-editor .ce-x').forEach(e=>e.onclick=()=>{c.items.splice(+e.dataset.i,1);save()});
+  const q=$('#car-q');q.oninput=()=>{const s=q.value.trim().toUpperCase(),box=$('#car-res');if(s.length<2){box.innerHTML='';return}
+    const have=new Set(c.items.map(x=>x.tipo+':'+x.t));const R=carUniverse().filter(u=>!have.has(u.tipo+':'+u.t)&&(u.t.includes(s)||u.nom.toUpperCase().includes(s))).sort((a,b)=>(a.t===s?-1:0)-(b.t===s?-1:0)).slice(0,12);
+    box.innerHTML=R.map(u=>`<button class="cup-it" data-tp="${u.tipo}" data-t="${esc(u.t)}" style="grid-template-columns:70px 120px 1fr"><b>${esc(u.t)}</b><span class="note">${CAR_TIPO[u.tipo]}</span><span class="note">${esc(u.nom)}</span></button>`).join('')||'<p class="note">Sin resultados.</p>';
+    $$('#car-res .cup-it').forEach(b=>b.onclick=()=>{const s2=c.items.reduce((a,x)=>a+(+x.pct||0),0);c.items.push({t:b.dataset.t,tipo:b.dataset.tp,pct:s2<100?Math.round((100-s2)*10)/10:0});save();setTimeout(()=>{const qq=$('#car-q');if(qq)qq.focus()},0)})};
+}
+$('#car-edit').onclick=()=>{S.car.edit=!S.car.edit;renderCar()};
+function carPDF(){
+  const X=S.carLast;if(!X)return;const {c,C}=X,cli=(S.car.cli||'').trim(),hoy=rfToday().toISOString().slice(0,10).split('-').reverse().join('/');
+  const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;const ind=!u?'':it.tipo==='accion'?(u.o.verdict||''):it.tipo==='fondo'?(u.tea!=null?'rindió '+fmt(u.tea*100,1)+'% anual':''):'TIR '+fmt(u.tir*100,2)+'% · vence '+rfFmtD(u.venc);
+    return `<tr><td><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${CUP_COL[i%CUP_COL.length]};margin-right:5px"></i><b class="tk">${esc(u?u.t:it.t)}</b> <span class="mu">${esc(u?u.nom:'')}</span></td><td>${CAR_TIPO[it.tipo]}</td><td class="n b">${fmt(+it.pct||0,1)}%</td><td class="n">US$ ${fmt(r.m,0)}</td><td class="n">${r.q!=null?fmt(r.q,0):'—'}</td><td class="n">${u&&u.px?fmt(u.px,2):'—'}</td><td>${esc(ind)}</td></tr>`}).join('');
+  const kp=[['Monto','US$ '+fmt(S.car.monto,0)],['Renta variable',fmt(C.rv,0)+'%'],['Renta fija',fmt(C.rf,0)+'%'],...(C.fo?[['Fondos',fmt(C.fo,0)+'%']]:[]),...(C.tir!=null?[['TIR renta fija',fmt(C.tir*100,2)+'%']]:[]),...(C.cup?[['Cupones 12 meses','US$ '+fmt(C.cup,0)]]:[])];
+  const ind=Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="ib"><span>${esc(k)}</span><span class="bar"><i style="width:${Math.min(100,v).toFixed(0)}%"></i></span><b>${fmt(v,1)}%</b></div>`).join('');
+  const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(c.nombre)} · PROSPEI${cli?' - '+esc(cli):''}</title><style>
+  @page{size:A4;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#0f1b2d;margin:0;font-size:11px}
+  .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #551CE3;padding-bottom:8px;margin-bottom:12px}.hd h1{font-size:20px;margin:0}.hd p{margin:2px 0 0;color:#5b6b80}.brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.06em}.brand small{display:block;font-weight:500;letter-spacing:0;color:#5b6b80;font-size:9.5px}
+  .k{display:grid;grid-template-columns:repeat(${kp.length},1fr);gap:8px;margin-bottom:12px}.k div{border:1px solid #e2e8f0;border-radius:8px;padding:8px}.k span{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:#5b6b80}.k b{font-size:14px}
+  table{width:100%;border-collapse:collapse}th{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:#5b6b80;text-align:left;padding:5px 6px;background:#f4f6f9}td{padding:5px 6px;border-bottom:1px solid #eef2f6}.n{text-align:right;white-space:nowrap}.tk{color:#551CE3}.b{font-weight:700}.mu{color:#93a3b8}
+  .grid{display:grid;grid-template-columns:auto 1fr;gap:18px;margin-top:14px;align-items:center}.box{border:1px solid #e2e8f0;border-radius:10px;padding:10px}h3{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:#5b6b80;margin:0 0 8px}
+  .ib{display:grid;grid-template-columns:150px 1fr 40px;gap:6px;align-items:center;margin:3px 0}.bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:#551CE3}.ib b{text-align:right}
+  .ft{margin-top:14px;color:#93a3b8;font-size:8.5px;border-top:1px solid #e2e8f0;padding-top:6px}</style></head><body>
+  <div class="hd"><div><h1>Cartera ${esc(c.nombre)}</h1><p>${c.desc?esc(c.desc):'Cartera modelo en dólares'}${cli?' · Preparada para <b>'+esc(cli)+'</b>':''}</p></div>
+  <div style="text-align:right"><div class="brand"><svg viewBox="0 0 34 34" width="22" height="22"><rect width="16" height="16" fill="#551CE3"/><rect x="18" width="16" height="16" fill="#798DF7"/><rect y="18" width="16" height="16" fill="#9AA8F9"/><rect x="18" y="18" width="16" height="16" fill="#BCC6FA"/></svg><div>PROSPEI<small>Consultores Financieros</small></div></div><p>${hoy}</p></div></div>
+  <div class="k">${kp.map(k=>`<div><span>${k[0]}</span><b>${k[1]}</b></div>`).join('')}</div>
+  <table><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th class="n">Monto</th><th class="n">Cantidad</th><th class="n">Precio US$</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="box grid" style="margin-top:14px"><div>${cupPie(C.R.map(r=>({w:(+r.it.pct||0)/(C.sum||1)})),60)}</div><div><h3>Por sector / industria</h3>${ind}</div></div>
+  <div class="ft">Precios de mercado en dólares MEP al ${hoy}; cantidades redondeadas hacia abajo. Las acciones del exterior se pueden comprar como CEDEAR en Argentina. Material con fines informativos; no constituye una recomendación de inversión personalizada. PROSPEI Consultores Financieros.</div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`;
+  const w=window.open('','_blank');if(!w){alert('El navegador bloqueó la ventana. Permití ventanas emergentes para este sitio.');return}w.document.open();w.document.write(html);w.document.close();
+}
 /* ---------- carga ---------- */
 let loading=false;
 async function load(){
