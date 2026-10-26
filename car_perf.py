@@ -6,7 +6,7 @@ Lee los movimientos de cada cartera (carteras.json → "seguimiento"), arma la c
 y la compara con su vara:
   conservadora → GOVT · moderada → 50% GOVT + 50% SPY · audaz → 20% XLK + 50% SPY + 30% GOVT (rebalanceo mensual).
 Precios en dólares:
-  acciones / CEDEARs / ETFs  → Yahoo (precio + dividendos)
+  acciones / CEDEARs / ETFs  → Yahoo (precio + dividendos); un CEDEAR vale la acción dividida por su ratio
   bonos soberanos             → data912 histórico (especie D, MEP) + cupones/amortizaciones de rentafija.json
   ONs                         → no hay histórico público: se guarda el cierre de cada día desde hoy (carteras_px.json);
                                 antes de eso, se interpola entre el precio de compra que cargaste y el primer cierre guardado
@@ -196,7 +196,7 @@ def simular(c, P, sob_fl, on_fl):
     mi = 0
 
     def precio(clase, t, d):
-        if clase == "accion":
+        if clase in ("accion", "cedear"):
             s = P["acc"].get(t)
             return asof(s[0], d) if s else None
         if clase == "sob":
@@ -207,10 +207,17 @@ def simular(c, P, sob_fl, on_fl):
             return asof(P["fondo"].get(t), d)
         return None
 
-    def valor_unit(clase, t, d, px=None):
-        px = px if px is not None else precio(clase, t, d)
+    def valor_unit(clase, t, d, px=None, ratio=1.0):
+        if px is not None:
+            if clase == "fondo" and FONDOS.get(t, ("", "USD"))[1] == "ARS":   # BCMMA: precio en pesos
+                mep = asof(P["mep"], d)
+                return px / mep if mep else None
+            return px / 100.0 if clase in ("sob", "on") else px   # precio cargado: ya está en la unidad que se compró
+        px = precio(clase, t, d)
         if px is None:
             return None
+        if clase == "cedear":
+            return px / (ratio or 1.0)        # un CEDEAR = 1/ratio acción
         if clase in ("sob", "on"):
             return px / 100.0
         if clase == "fondo" and FONDOS.get(t, ("", "USD"))[1] == "ARS":
@@ -225,10 +232,10 @@ def simular(c, P, sob_fl, on_fl):
             if p["units"] <= 0:
                 continue
             inc = 0.0
-            if p["clase"] == "accion" and P["acc"].get(p["t"]):
+            if p["clase"] in ("accion", "cedear") and P["acc"].get(p["t"]):
                 dv = P["acc"][p["t"]][1]
                 if prev is not None and len(dv):
-                    inc = float(dv[(dv.index > prev) & (dv.index <= d)].sum()) * p["units"]
+                    inc = float(dv[(dv.index > prev) & (dv.index <= d)].sum()) * p["units"] / (p["ratio"] or 1.0)
             elif p["clase"] in ("sob", "on"):
                 fl = (sob_fl if p["clase"] == "sob" else on_fl).get(p["t"], [])
                 for f in fl:
@@ -243,7 +250,7 @@ def simular(c, P, sob_fl, on_fl):
             v = cash
             for p in pos.values():
                 if p["units"] > 0:
-                    u = valor_unit(p["clase"], p["t"], d)
+                    u = valor_unit(p["clase"], p["t"], d, ratio=p["ratio"])
                     v += p["units"] * (u if u is not None else p["last"])
                     if u is not None:
                         p["last"] = u
@@ -263,22 +270,25 @@ def simular(c, P, sob_fl, on_fl):
                 cuotas -= usd / nav
                 continue
             clase, t = m.get("clase"), norm_t(m.get("clase"), m.get("t"))
+            ratio = float(m.get("ratio") or 1.0)
             k = clase + ":" + t
-            u = valor_unit(clase, t, d, float(m["precio"]) if m.get("precio") else None)
+            u = valor_unit(clase, t, d, float(m["precio"]) if m.get("precio") else None, ratio)
             if u is None or u <= 0:
                 avisos.append(f"{m['f']} {tipo} {t}: no hay precio para esa fecha; cargá el precio de compra/venta.")
                 continue
             p = pos.setdefault(k, {"units": 0.0, "cost": 0.0, "inv": 0.0, "rec": 0.0, "inc": 0.0, "clase": clase, "t": t,
-                                   "last": u, "desde": d, "primera": m["f"], "ultima": None})
+                                   "last": u, "desde": d, "primera": m["f"], "ultima": None, "ratio": ratio})
+            cant = float(m.get("cant") or 0)
             if tipo == "compra":
-                n = usd / u
+                n = cant if cant > 0 else usd / u
+                usd = n * u
                 p["units"] += n
                 p["cost"] += usd
                 p["inv"] += usd
                 cash -= usd
                 p["last"] = u
             elif tipo == "venta":
-                n = p["units"] if m.get("todo") or usd <= 0 else min(p["units"], usd / u)
+                n = p["units"] if m.get("todo") or (usd <= 0 and cant <= 0) else min(p["units"], cant if cant > 0 else usd / u)
                 if p["units"] <= 0:
                     avisos.append(f"{m['f']} venta {t}: no había tenencia.")
                     continue
@@ -351,15 +361,15 @@ def simular(c, P, sob_fl, on_fl):
     tot = navs[-1] * cuotas
     abiertas, cerradas = [], []
     for p in pos.values():
-        u = valor_unit(p["clase"], p["t"], dlast)
+        u = valor_unit(p["clase"], p["t"], dlast, ratio=p["ratio"])
         u = u if u is not None else p["last"]
         valor = p["units"] * u
         gan = valor + p["rec"] + p["inc"] - p["inv"]
-        row = {"t": p["t"] + ("O" if p["clase"] == "on" else ""), "clase": p["clase"], "desde": p["primera"],
+        row = {"t": p["t"] + ("O" if p["clase"] == "on" else ""), "clase": p["clase"], "ratio": p["ratio"] if p["clase"] == "cedear" else None, "desde": p["primera"],
                "invertido": round(p["inv"], 2), "cobrado": round(p["rec"] + p["inc"], 2), "ganancia": round(gan, 2),
                "rend": round(gan / p["inv"], 4) if p["inv"] else None, "aporte": round(gan / cap, 4)}
         if p["units"] > 0:
-            px = precio(p["clase"], p["t"], dlast)
+            px = precio(p["clase"], p["t"], dlast) if p["clase"] == "fondo" else u * (100.0 if p["clase"] in ("sob", "on") else 1.0)
             row.update(cantidad=round(p["units"], 4), precio=round(px, 4) if px else None, valor=round(valor, 2),
                        peso=round(valor / tot, 4) if tot else None, costo=round(p["cost"], 2))
             abiertas.append(row)
@@ -389,8 +399,9 @@ def main():
     need = {"accion": set(), "sob": set(), "on": set(), "fondo": set()}
     for c in tr:
         for m in c["seguimiento"]["movs"]:
-            if m.get("clase") in need:
-                need[m["clase"]].add(norm_t(m["clase"], m["t"]))
+            cl = "accion" if m.get("clase") == "cedear" else m.get("clase")
+            if cl in need and m.get("t"):
+                need[cl].add(norm_t(cl, m["t"]))
     P = {}
     bench_t = sorted({t for w in VARAS.values() for t in w})
     yb = yahoo(bench_t, start.isoformat(), adjusted=True)
@@ -427,6 +438,19 @@ def main():
             log("ON sin precio:", t, "— cargá el precio de compra en el movimiento.")
         P["on"][t] = s
     P["fondo"] = fondos_hist(sorted(t for t in need["fondo"] if t in FONDOS), ini.date(), store) if need["fondo"] else {}
+    # CAFCI publica la cuotaparte cada 1.000 cuotapartes; Balanz la muestra por cuotaparte (ESTRA3: 1.079,67 vs 1,0797).
+    # Se lleva a la escala de Balanz salvo que el precio cargado en los movimientos esté en la escala de CAFCI.
+    for t, s in P["fondo"].items():
+        if s.empty:
+            continue
+        ps = [(m["f"], float(m["precio"])) for c in tr for m in c["seguimiento"]["movs"]
+              if m.get("clase") == "fondo" and norm_t("fondo", m.get("t")) == t and m.get("precio")]
+        esc = 1000.0
+        if ps:
+            r = asof(s, ps[0][0]) / ps[0][1]
+            esc = 1000.0 if r > 100 else 1.0
+        P["fondo"][t] = s / esc
+        log("Fondo", t, "escala", esc)
     res = []
     sob_fl, on_fl = flujos_sob(), flujos_on()
     for c in tr:
