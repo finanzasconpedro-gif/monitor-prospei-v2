@@ -2706,13 +2706,15 @@ S.plan=(()=>{let v=null;try{v=JSON.parse(localStorage.getItem('planIng')||'null'
   v=Object.assign(d,v||{});if(v.mm==null)v.mm=1;if(!Array.isArray(v.extra))v.extra=[];
   if(v.usdAmt>0&&!v.extra.length)v.extra.push({id:'F:ESTRA3',amt:v.usdAmt});delete v.usdAmt;delete v.usdName;return v})();
 /* fondos en dólares disponibles (nombre en CAFCI para buscar el rendimiento) */
-const PLAN_FUNDS={ESTRA1:{lbl:'ESTRA1 · Balanz Dólar Corto Plazo',rx:/balanz.*d[oó]lar.*corto\s*plazo/i},ESTRA3:{lbl:'ESTRA3 · Fondo Balanz Latam',rx:/balanz.*latam/i}};
+/* nombres en CAFCI (argentinadatos): ESTRA1 = Balanz Capital Estrategia I USD (comercial: Dólar Corto Plazo), ESTRA3 = Estrategia III USD (comercial: Latam), clase A */
+const PLAN_FUNDS={ESTRA1:{lbl:'ESTRA1 · Balanz Dólar Corto Plazo',rx:/^balanz capital estrategia i usd - clase a/i},ESTRA3:{lbl:'ESTRA3 · Fondo Balanz Latam',rx:/^balanz capital estrategia iii usd - clase a/i}};
+const BCMMA_RX=/^balanz capital money market - clase a/i;
 function planSave(){try{localStorage.setItem('planIng',JSON.stringify(S.plan))}catch(e){}}
 const fmtP=v=>'$ '+fmt(v,0);
 /* fondos (argentinadatos / CAFCI): rendimiento aproximado a partir de las dos últimas cuotapartes */
 /* fondos (argentinadatos / CAFCI): rendimiento anualizado de los últimos ~30 días según la cuotaparte (un solo día da números erráticos) */
 async function planFunds(){if(S.fci||S.fciTry)return;S.fciTry=1;const B='https://api.argentinadatos.com/v1/finanzas/fci/';const out={};
-  const want=[/balanz.*money\s*market/i,...Object.values(PLAN_FUNDS).map(f=>f.rx).filter(Boolean)];
+  const want=[BCMMA_RX,...Object.values(PLAN_FUNDS).map(f=>f.rx).filter(Boolean)];
   for(const tp of ['mercadoDinero','rentaFija','rentaMixta','otros']){try{const u=await getJ(B+tp+'/ultimo');const hit=(u||[]).filter(x=>want.some(r=>r.test(x.fondo)));if(!hit.length)continue;
       let past=null;for(let k=30;k<=36&&!past;k++){const d=new Date(Date.now()-k*864e5);try{const p=await getJ(B+tp+'/'+d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'));if(Array.isArray(p)&&p.length)past=p}catch(e){}}
       const pm={};(past||[]).forEach(x=>pm[x.fondo]=x);
@@ -2744,7 +2746,7 @@ function renderPlan(){
   setv('#pl-mmn',P.mmName);setv('#pl-cli',P.cli);setv('#pl-mes',P.mes);setv('#pl-n',P.n);setv('#pl-mm',P.mm);setv('#pl-k',P.k);sel.value=P.ini;
   const MM=Math.min(P.mm,P.n),K=Math.min(P.k,P.n-MM),NB=Math.max(0,P.n-MM-K);
   // 1 · money market
-  const fMM=planFund(/balanz.*money\s*market/i),mmAmt=MM*P.mes;
+  const fMM=planFund(BCMMA_RX),mmAmt=MM*P.mes;
   $('#pl-t0').textContent='1 · Fondo money market '+P.mmName+(MM?' · '+(MM===1?mLbl(MS[0]):mLbl(MS[0])+' a '+mLbl(MS[MM-1])):'');
   $('#pl-mm-box').innerHTML=MM?`<div class="plan-line"><div><b>${fmtP(mmAmt)}</b> <span class="note">(${MM} × ${fmtP(P.mes)})</span><div class="note">Liquidez inmediata para los primeros ${MM===1?'días':MM+' meses'}: se rescata a medida que se necesita.${fMM&&fMM.tea!=null?` Rindió aprox. <b>${fmt(fMM.tea*100,1)}% anual</b> en el último mes (${esc(fMM.fondo)}, cuotaparte al ${rfFmtD(String(fMM.fecha).slice(0,10))}).`:''}</div></div></div>`:'<p class="note">Sin tramo en money market (poné al menos 1 mes si querés liquidez inmediata).</p>';
   // 2 · LECAP
@@ -2841,7 +2843,7 @@ const CAR_FONDOS={ESTRA1:{n:'Balanz Dólar Corto Plazo',k:'ESTRA1'},ESTRA3:{n:'F
 S.car={sel:null,monto:10000,edit:false};
 async function loadCarDef(){if(S.carDef)return S.carDef;try{S.carDef=await getJ('carteras.json?v='+Date.now())}catch(e){S.carDef={carteras:[]}}return S.carDef}
 function carDraft(){try{const v=JSON.parse(localStorage.getItem('carDraft')||'null');return v&&Array.isArray(v.carteras)?v:null}catch(e){return null}}
-function carData(){return carDraft()||S.carDef||{carteras:[]}}
+function carData(){return (S.car&&S.car.admin&&carDraft())||S.carDef||{carteras:[]}}
 function carSaveDraft(d){try{localStorage.setItem('carDraft',JSON.stringify(d))}catch(e){}}
 /* busca cada papel en lo que ya tiene cargado el monitor */
 function carLookup(it){
@@ -2881,7 +2883,7 @@ function renderCar(){
   if(!S.car.sel||!L.find(c=>c.id===S.car.sel))S.car.sel=L[0]?L[0].id:null;
   $('#car-tabs').innerHTML=CAR_GRUPOS.map(([g,lbl])=>{const G=L.filter(c=>c.grupo===g);return G.length?`<div class="car-g"><span class="note">${lbl}</span>${G.map(c=>`<button class="chip${c.id===S.car.sel?' on':''}" data-car="${esc(c.id)}">${esc(c.nombre)}</button>`).join('')}</div>`:''}).join('')||'<p class="note">Todavía no hay carteras cargadas. Tocá ✎ Editar para armarlas.</p>';
   $$('#car-tabs [data-car]').forEach(b=>b.onclick=()=>{S.car.sel=b.dataset.car;renderCar()});
-  $('#car-draft').innerHTML=carDraft()?`<div class="rf-new" style="margin-top:10px"><b>Estás viendo tu borrador</b> (guardado sólo en este navegador). Para que lo vean todos, en ✎ Editar tocá <b>Descargar carteras.json</b> y subilo a GitHub.</div>`:'';
+  $('#car-draft').innerHTML=S.car.admin&&carDraft()?`<div class="rf-new" style="margin-top:10px"><b>Estás viendo tu borrador</b> (guardado sólo en este navegador). Para que lo vean todos, en ✎ Editar tocá <b>Descargar carteras.json</b> y subilo a GitHub.</div>`:'';
   $('#car-edit').classList.toggle('on',S.car.edit);$('#car-editor').classList.toggle('hide',!S.car.edit);
   const c=L.find(x=>x.id===S.car.sel);
   if(!c){$('#car-view').innerHTML='';if(S.car.edit)renderCarEd();return}
@@ -2948,6 +2950,9 @@ function renderCarEd(){
     box.innerHTML=R.map(u=>`<button class="cup-it" data-tp="${u.tipo}" data-t="${esc(u.t)}" style="grid-template-columns:70px 120px 1fr"><b>${esc(u.t)}</b><span class="note">${CAR_TIPO[u.tipo]}</span><span class="note">${esc(u.nom)}</span></button>`).join('')||'<p class="note">Sin resultados.</p>';
     $$('#car-res .cup-it').forEach(b=>b.onclick=()=>{const s2=c.items.reduce((a,x)=>a+(+x.pct||0),0);c.items.push({t:b.dataset.t,tipo:b.dataset.tp,pct:s2<100?Math.round((100-s2)*10)/10:0});save();setTimeout(()=>{const qq=$('#car-q');if(qq)qq.focus()},0)})};
 }
+/* el editor sólo aparece entrando con ?editar=prospei (una vez abierto, el navegador lo recuerda); los clientes ven las carteras en modo lectura */
+S.car.admin=(()=>{try{const q=new URLSearchParams(location.search).get('editar');if(q!=null){if(q==='prospei')localStorage.setItem('carAdmin','1');else localStorage.removeItem('carAdmin')}return localStorage.getItem('carAdmin')==='1'}catch(e){return false}})();
+$('#car-edit').classList.toggle('hide',!S.car.admin);
 $('#car-edit').onclick=()=>{S.car.edit=!S.car.edit;renderCar()};
 function carPDF(){
   const X=S.carLast;if(!X)return;const {c,C}=X,cli=(S.car.cli||'').trim(),hoy=rfToday().toISOString().slice(0,10).split('-').reverse().join('/');
