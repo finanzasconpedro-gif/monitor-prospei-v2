@@ -1,0 +1,78 @@
+{
+ "updated": "2026-10-26",
+ "carteras": [
+  {
+   "id": "conservadora",
+   "nombre": "Conservadora",
+   "grupo": "mixta",
+   "desc": "Prioriza preservar el capital: mayoría en renta fija en dólares y una parte chica en acciones de calidad.",
+   "items": []
+  },
+  {
+   "id": "moderada",
+   "nombre": "Moderada",
+   "grupo": "mixta",
+   "desc": "Equilibrio entre renta fija en dólares y acciones/CEDEARs.",
+   "items": []
+  },
+  {
+   "id": "audaz",
+   "nombre": "Audaz",
+   "grupo": "mixta",
+   "desc": "Busca crecimiento: mayoría en acciones/CEDEARs, con algo de renta fija.",
+   "items": []
+  },
+  {
+   "id": "rf-cuponera",
+   "nombre": "Cuponera",
+   "grupo": "rf",
+   "desc": "Renta en dólares con cobros de cupón a lo largo del año.",
+   "items": [
+    {
+     "t": "VSCVO",
+     "tipo": "on",
+     "pct": 22.8
+    },
+    {
+     "t": "PLC7O",
+     "tipo": "on",
+     "pct": 17.6
+    },
+    {
+     "t": "OLC7O",
+     "tipo": "on",
+     "pct": 23.0
+    },
+    {
+     "t": "PLC2O",
+     "tipo": "on",
+     "pct": 18.3
+    },
+    {
+     "t": "MCC3O",
+     "tipo": "on",
+     "pct": 9.2
+    },
+    {
+     "t": "YM43O",
+     "tipo": "on",
+     "pct": 9.1
+    }
+   ]
+  },
+  {
+   "id": "rf-conservadora",
+   "nombre": "Conservadora",
+   "grupo": "rf",
+   "desc": "Renta fija en dólares de corto plazo y buena calificación.",
+   "items": []
+  },
+  {
+   "id": "rf-audaz",
+   "nombre": "Audaz",
+   "grupo": "rf",
+   "desc": "Renta fija en dólares con más plazo y más rendimiento.",
+   "items": []
+  }
+ ]
+}
