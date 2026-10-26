@@ -1,0 +1,724 @@
+{
+ "fecha": "2026-10-26",
+ "pruebas": [
+  {
+   "nombre": "bono AL30D",
+   "url": "https://data912.com/historical/bonds/AL30D",
+   "http": 200,
+   "n": 1241,
+   "primero": {
+    "date": "2021-09-23",
+    "o": 37.5,
+    "h": 37.65,
+    "l": 37.5,
+    "c": 37.64,
+    "v": 76658064.0,
+    "dr": -0.0013,
+    "sa": 0.184
+   },
+   "ultimo": {
+    "date": "2026-10-23",
+    "o": 55.0,
+    "h": 55.41,
+    "l": 54.95,
+    "c": 55.08,
+    "v": 101942677.0,
+    "dr": -0.0029,
+    "sa": 0.2559
+   }
+  },
+  {
+   "nombre": "bono AL30",
+   "url": "https://data912.com/historical/bonds/AL30",
+   "http": 200,
+   "n": 1247,
+   "primero": {
+    "date": "2021-09-16",
+    "o": 6567.0,
+    "h": 6594.0,
+    "l": 6532.5,
+    "c": 6579.0,
+    "v": 81488032.0,
+    "dr": 0.0034,
+    "sa": 0.2135
+   },
+   "ultimo": {
+    "date": "2026-10-26",
+    "o": 85960.0,
+    "h": 86230.0,
+    "l": 85450.0,
+    "c": 85490.0,
+    "v": 182715201.0,
+    "dr": -0.0065,
+    "sa": 0.2283
+   }
+  },
+  {
+   "nombre": "bono GD30D",
+   "url": "https://data912.com/historical/bonds/GD30D",
+   "http": 200,
+   "n": 1241,
+   "primero": {
+    "date": "2021-09-24",
+    "o": 38.75,
+    "h": 39.09,
+    "l": 38.3,
+    "c": 38.6,
+    "v": 10541863.0,
+    "dr": -0.0128,
+    "sa": 0.2041
+   },
+   "ultimo": {
+    "date": "2026-10-26",
+    "o": 56.2,
+    "h": 56.6,
+    "l": 55.61,
+    "c": 55.88,
+    "v": 2536702.0,
+    "dr": -0.0104,
+    "sa": 0.2441
+   }
+  },
+  {
+   "nombre": "bono AO27D",
+   "url": "https://data912.com/historical/bonds/AO27D",
+   "http": 200,
+   "json": "{'Error': 'Nahh no tengo ese ticker loko'}"
+  },
+  {
+   "nombre": "ON bonds/YMCXD",
+   "url": "https://data912.com/historical/bonds/YMCXD",
+   "http": 200,
+   "json": "{'Error': 'Nahh no tengo ese ticker loko'}"
+  },
+  {
+   "nombre": "ON corp/YMCXD",
+   "url": "https://data912.com/historical/corp/YMCXD",
+   "http": 404,
+   "json": "{'detail': 'Not Found'}"
+  },
+  {
+   "nombre": "ON bonds/YMCXO",
+   "url": "https://data912.com/historical/bonds/YMCXO",
+   "http": 200,
+   "json": "{'Error': 'Nahh no tengo ese ticker loko'}"
+  },
+  {
+   "nombre": "ON corp/YMCXO",
+   "url": "https://data912.com/historical/corp/YMCXO",
+   "http": 404,
+   "json": "{'detail': 'Not Found'}"
+  },
+  {
+   "nombre": "ON bonds/VSCVD",
+   "url": "https://data912.com/historical/bonds/VSCVD",
+   "http": 200,
+   "json": "{'Error': 'Nahh no tengo ese ticker loko'}"
+  },
+  {
+   "nombre": "ON corp/VSCVD",
+   "url": "https://data912.com/historical/corp/VSCVD",
+   "http": 404,
+   "json": "{'detail': 'Not Found'}"
+  },
+  {
+   "nombre": "ON bonds/TLCTD",
+   "url": "https://data912.com/historical/bonds/TLCTD",
+   "http": 200,
+   "json": "{'Error': 'Nahh no tengo ese ticker loko'}"
+  },
+  {
+   "nombre": "ON corp/TLCTD",
+   "url": "https://data912.com/historical/corp/TLCTD",
+   "http": 404,
+   "json": "{'detail': 'Not Found'}"
+  },
+  {
+   "nombre": "cedear KO",
+   "url": "https://data912.com/historical/cedears/KO",
+   "http": 200,
+   "n": 2987,
+   "primero": {
+    "date": "2012-09-19",
+    "o": 49.8,
+    "h": 49.8,
+    "l": 49.5,
+    "c": 49.5,
+    "v": 2725.0,
+    "dr": -0.006,
+    "sa": 0.5972
+   },
+   "ultimo": {
+    "date": "2026-10-26",
+    "o": 31000.0,
+    "h": 31200.0,
+    "l": 30580.0,
+    "c": 31080.0,
+    "v": 138447.0,
+    "dr": 0.0164,
+    "sa": 0.237
+   }
+  },
+  {
+   "nombre": "accion GGAL",
+   "url": "https://data912.com/historical/stocks/GGAL",
+   "http": 200,
+   "n": 6310,
+   "primero": {
+    "date": "2001-01-02",
+    "o": 1.4091,
+    "h": 1.4184,
+    "l": 1.3904,
+    "c": 1.3998,
+    "v": 296190.0,
+    "dr": 0.0068,
+    "sa": 0.477
+   },
+   "ultimo": {
+    "date": "2026-10-23",
+    "o": 5940.0,
+    "h": 6280.0,
+    "l": 5845.0,
+    "c": 6260.0,
+    "v": 2527187.0,
+    "dr": 0.061,
+    "sa": 0.5314
+   }
+  },
+  {
+   "nombre": "fci mercadoDinero 2026/01/02",
+   "n": 4,
+   "balanz": []
+  },
+  {
+   "nombre": "fci mercadoDinero 2026/03/31",
+   "n": 423,
+   "balanz": [
+    {
+     "fondo": "Balanz Money Market USD - Clase A",
+     "horizonte": "largo",
+     "fecha": "2026-03-31",
+     "vcp": 1022.305,
+     "ccp": 162462478.27,
+     "patrimonio": 166086154.74
+    },
+    {
+     "fondo": "Balanz Money Market USD - Clase B",
+     "horizonte": "largo",
+     "fecha": "2026-03-31",
+     "vcp": 1022.975,
+     "ccp": 62421091.57,
+     "patrimonio": 63855224.06
+    },
+    {
+     "fondo": "Balanz Money Market USD - Clase C",
+     "horizonte": "largo",
+     "fecha": "2026-03-31",
+     "vcp": 1020.863,
+     "ccp": 97845036.11,
+     "patrimonio": 99886383.99
+    },
+    {
+     "fondo": "Balanz Money Market USD - Clase D",
+     "horizonte": "largo",
+     "fecha": "2026-03-31",
+     "vcp": 1014.939,
+     "ccp": 2072239.88,
+     "patrimonio": 2103196.16
+    },
+    {
+     "fondo": "Balanz Money Market USD - Clase E",
+     "horizonte": "largo",
+     "fecha": "2026-03-31",
+     "vcp": 1011.478,
+     "ccp": 4834463.82,
+     "patrimonio": 4889953.2
+    }
+   ]
+  },
+  {
+   "nombre": "fci rentaFija ultimo (balanz)",
+   "balanz": [
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase A",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1429.214,
+     "ccp": 308868510.37,
+     "patrimonio": 441439090.62
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase B",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1611.653,
+     "ccp": 46013149.37,
+     "patrimonio": 74157240.73
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase C",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1469.633,
+     "ccp": 14787611.02,
+     "patrimonio": 21732360.37
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase D",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase E",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1582.235,
+     "ccp": 6441.53,
+     "patrimonio": 10192.01
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase F",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1003.398,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase G",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase H Art. 11 Decreto 99/2019 y mod",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1025.021,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dólares - Clase L Ley Nº 27.743",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1139.741,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares NR D.596 - Clase A",
+     "horizonte": "medio",
+     "fecha": "2020-04-20",
+     "vcp": 1055.858,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares NR D.596 - Clase B",
+     "horizonte": "medio",
+     "fecha": "2020-04-20",
+     "vcp": 1023.184,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares NR D.596 - Clase C",
+     "horizonte": "medio",
+     "fecha": "2020-04-20",
+     "vcp": 1058.244,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares NR D.596 - Clase E",
+     "horizonte": "medio",
+     "fecha": "2020-04-20",
+     "vcp": 1034.542,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares RP D.596 - Clase A",
+     "horizonte": "medio",
+     "fecha": "2020-08-03",
+     "vcp": 443.935,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares RP D.596 - Clase B",
+     "horizonte": "medio",
+     "fecha": "2020-08-03",
+     "vcp": 468.817,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares RP D.596 - Clase C",
+     "horizonte": "medio",
+     "fecha": "2020-08-03",
+     "vcp": 445.543,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Ahorro en Dolares RP D.596 - Clase E",
+     "horizonte": "medio",
+     "fecha": "2020-08-03",
+     "vcp": 434.981,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase A",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 255002.506,
+     "ccp": 1792248058.57,
+     "patrimonio": 457027746077.43
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase B",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 260517.076,
+     "ccp": 468039492.69,
+     "patrimonio": 121932279923.53
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase C",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 92618.272,
+     "ccp": 1088665217.52,
+     "patrimonio": 100830290785.96
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase D",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 19780.06,
+     "ccp": 5886213645.2,
+     "patrimonio": 116429661975.78
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase E",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1791.981,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase F",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase G",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Ahorro - Clase L Ley Nº 27.743",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 2109.766,
+     "ccp": 1240590.12,
+     "patrimonio": 2617354.95
+    },
+    {
+     "fondo": "Balanz Capital Ahorro NR D.596 - Clase A",
+     "horizonte": "corto",
+     "fecha": "2020-04-20",
+     "vcp": 6751.622,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Ahorro NR D.596 - Clase B",
+     "horizonte": "corto",
+     "fecha": "2020-04-20",
+     "vcp": 6648.103,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Ahorro RP D.596 - Clase A",
+     "horizonte": "corto",
+     "fecha": "2020-05-15",
+     "vcp": 9156.037,
+     "ccp": 9191409.05,
+     "patrimonio": 84156882.38
+    },
+    {
+     "fondo": "Balanz Capital Ahorro RP D.596 - Clase B",
+     "horizonte": "corto",
+     "fecha": "2020-05-15",
+     "vcp": 9051.587,
+     "ccp": 6260142.48,
+     "patrimonio": 56664226.41
+    },
+    {
+     "fondo": "Balanz Capital Ahorro RP D.596 - Clase C",
+     "horizonte": "corto",
+     "fecha": "2020-05-15",
+     "vcp": 3120.406,
+     "ccp": 1957803.29,
+     "patrimonio": 6109140.22
+    },
+    {
+     "fondo": "Balanz Capital Ahorro RP D.596 - Clase E",
+     "horizonte": "corto",
+     "fecha": "2020-05-15",
+     "vcp": 1573.329,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Estrategia I USD - Clase A",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1176.329,
+     "ccp": 325994929.72,
+     "patrimonio": 383477185.06
+    },
+    {
+     "fondo": "Balanz Capital Estrategia I USD - Clase B",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1176.124,
+     "ccp": 21853052.21,
+     "patrimonio": 25701890.87
+    },
+    {
+     "fondo": "Balanz Capital Estrategia I USD - Clase C",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1019.862,
+     "ccp": 34973416.71,
+     "patrimonio": 35668055.05
+    },
+    {
+     "fondo": "Balanz Capital Estrategia I USD - Clase D",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Estrategia I USD - Clase E",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Estrategia I USD - Clase L Ley Nº 27.743",
+     "horizonte": "corto",
+     "fecha": "2026-10-22",
+     "vcp": 1115.08,
+     "ccp": 3526.33,
+     "patrimonio": 3932.14
+    },
+    {
+     "fondo": "Balanz Capital Estrategia II USD - Clase A",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Estrategia II USD - Clase B",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Capital Estrategia II USD - Clase C",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1169.386,
+     "ccp": 6291554.68,
+     "patrimonio": 7357252.94
+    }
+   ]
+  },
+  {
+   "nombre": "fci otros ultimo (balanz)",
+   "balanz": []
+  },
+  {
+   "nombre": "fci rentaMixta ultimo (balanz)",
+   "balanz": [
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase A",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 113513.482,
+     "ccp": 13186868.11,
+     "patrimonio": 1496887311.82
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase B",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 55381.967,
+     "ccp": 8662005.04,
+     "patrimonio": 479718877.29
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase C",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 8362.6,
+     "ccp": 89045207.13,
+     "patrimonio": 744649417.62
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase D",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 57259.237,
+     "ccp": 400186389.84,
+     "patrimonio": 22914367338.36
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase E",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase F",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica - Clase G",
+     "horizonte": "medio",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica RP D.596 - Clase A",
+     "horizonte": "largo",
+     "fecha": "2020-05-19",
+     "vcp": 2073.225,
+     "ccp": 105071.59,
+     "patrimonio": 217836.99
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica RP D.596 - Clase C",
+     "horizonte": "largo",
+     "fecha": "2020-05-19",
+     "vcp": 1012.628,
+     "ccp": 16627356.64,
+     "patrimonio": 16837329.42
+    },
+    {
+     "fondo": "Balanz Renta Fija Estrategica RP D.596 - Clase D",
+     "horizonte": "largo",
+     "fecha": "2020-05-19",
+     "vcp": 1012.628,
+     "ccp": 21997914.15,
+     "patrimonio": 22275707.12
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase A",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 748953.133,
+     "ccp": 22868830.59,
+     "patrimonio": 17127682309.5
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase B",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 773964.3,
+     "ccp": 8509372.66,
+     "patrimonio": 6585950657.87
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase C",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 23335.893,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase D",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase E",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 617.807,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase F",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase G",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 1000,
+     "ccp": 0,
+     "patrimonio": 0
+    },
+    {
+     "fondo": "Balanz Retorno Total - Clase L Ley Nº 27.743",
+     "horizonte": "largo",
+     "fecha": "2026-10-22",
+     "vcp": 1644.067,
+     "ccp": 0,
+     "patrimonio": 0
+    }
+   ]
+  },
+  {
+   "nombre": "yahoo GOVT",
+   "n": 205,
+   "primero": "2026-01-02 00:00:00-05:00",
+   "dividendos": 0.629
+  }
+ ]
+}
