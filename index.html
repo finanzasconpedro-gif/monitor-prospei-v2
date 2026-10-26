@@ -77,6 +77,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 [data-rfs="plan"].on{background:#0e9aa7!important;border-color:#0e9aa7!important;color:#fff!important}.plan-in input,.plan-in select,#pl-cap,#pl-q,.pl-pick{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}.pl-pick{max-width:360px}.plan-line{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.plan-line>div:first-child b{font-size:18px}.plan-kv{display:flex;flex-direction:column;gap:2px}.plan-kv span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.plan-kv b{font-size:16px}#pl-mmn,#pl-usdn,#pl-usd{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}
 .plan-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:4px;margin-top:6px}
 .car-tabs{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}.car-g{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.car-g>.note{text-transform:uppercase;letter-spacing:.05em;font-size:11px;margin-right:2px}
+.car-perf{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px}.car-mv{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}.mv-tb td{padding:4px 5px}.mv-tb .car-in{padding:5px 7px}
 .car-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}.car-in{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}#car-edit.on{background:#551CE3;border-color:#551CE3;color:#fff}
 .cup-cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:12px}.cup-m{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}.cup-m{border:1px solid #2b4a8a!important;box-shadow:0 2px 8px rgba(0,0,0,.12)}.cup-mh{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:linear-gradient(90deg,#551CE3,#1d4ed8);color:#fff}.cup-mh b{font-size:15px;letter-spacing:.02em}.cup-mh b span{font-weight:500;opacity:.8}.cup-mh small{font-size:11.5px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:10px}
 .cup-ml{max-height:260px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}.cup-it{all:unset;cursor:pointer;display:grid;grid-template-columns:62px 46px 1fr 70px;gap:4px 6px;align-items:center;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}.cup-it>.note{grid-column:3/5;font-size:11px}
@@ -2838,9 +2839,11 @@ $('#pl-x-add-f').onclick=()=>{const used=new Set(S.plan.extra.map(x=>x.id));cons
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- CARTERAS SUGERIDAS ---------- */
 const CAR_GRUPOS=[['mixta','Carteras'],['rf','Renta fija']];
-const CAR_TIPO={accion:'Acción / CEDEAR',sob:'Bono soberano',on:'ON',fondo:'Fondo'};
-const CAR_FONDOS={ESTRA1:{n:'Balanz Dólar Corto Plazo',k:'ESTRA1'},ESTRA3:{n:'Fondo Balanz Latam',k:'ESTRA3'}};
+const CAR_TIPO={accion:'Acción / CEDEAR',sob:'Bono soberano',on:'ON',fondo:'Fondo',liquidez:'Liquidez'};
+const CAR_FONDOS_ALL=['BCMMA','ESTRA1','ESTRA3'];
+const CAR_FONDOS={BCMMA:{n:'Balanz Money Market (pesos)',k:'BCMMA'},ESTRA1:{n:'Balanz Dólar Corto Plazo',k:'ESTRA1'},ESTRA3:{n:'Fondo Balanz Latam',k:'ESTRA3'}};
 S.car={sel:null,monto:10000,edit:false};
+async function loadCarPerf(){if(S.carPerf||S.carPerfTry)return;S.carPerfTry=1;try{S.carPerf=await getJ('carteras_perf.json?v='+Date.now())}catch(e){S.carPerf=null}renderCar()}
 async function loadCarDef(){if(S.carDef)return S.carDef;try{S.carDef=await getJ('carteras.json?v='+Date.now())}catch(e){S.carDef={carteras:[]}}return S.carDef}
 function carDraft(){try{const v=JSON.parse(localStorage.getItem('carDraft')||'null');return v&&Array.isArray(v.carteras)?v:null}catch(e){return null}}
 function carData(){return (S.car&&S.car.admin&&carDraft())||S.carDef||{carteras:[]}}
@@ -2854,7 +2857,8 @@ function carLookup(it){
     return {t,nom:r.fam==='Bopreal'?'BCRA (Bopreal)':'Tesoro Nacional · '+r.fam,px:r.usd,tir:r.tir,dur:r.dur,venc:r.venc,ind:'Soberano',flows:r.def.flows}}
   if(it.tipo==='on'){if(!S.onDef||!S.data.corp)return null;const b=t.replace(/[ODC]$/,'');const r=onRows('mep').find(x=>x.t===b);if(!r||!r.usd)return null;const d=S.onDef.ons.find(x=>x.t===b);
     return {t:b+'O',nom:r.emp,px:r.usd,tir:r.tir,dur:r.dur,venc:r.venc,ind:r.ind||'ON',flows:d?d.flows:[],calif:r.calif}}
-  if(it.tipo==='fondo'){const f=CAR_FONDOS[t]||{n:t};const fd=typeof planFund==='function'&&PLAN_FUNDS[t]?planFund(PLAN_FUNDS[t].rx):null;
+  if(it.tipo==='liquidez')return {t:'Liquidez',nom:'Dólares sin invertir',px:null,ind:'Liquidez'};
+  if(it.tipo==='fondo'){const f=CAR_FONDOS[t]||{n:t};const fd=typeof planFund==='function'?planFund(t==='BCMMA'?BCMMA_RX:PLAN_FUNDS[t]?PLAN_FUNDS[t].rx:null):null;
     return {t,nom:f.n,px:null,tea:fd&&fd.tea!=null?fd.tea:null,ind:'Fondo en dólares'}}
   return null;
 }
@@ -2878,7 +2882,7 @@ function renderCar(){
   if(!S.carDef){loadCarDef().then(()=>renderCar());return}
   if(!S.rfDef&&!S.carTry1){S.carTry1=1;loadRFDef().then(()=>renderCar())}
   if(!S.onDef&&!S.carTry2){S.carTry2=1;loadONDef().then(()=>renderCar())}
-  if(typeof planFunds==='function')planFunds();
+  if(typeof planFunds==='function')planFunds();loadCarPerf();
   const D=carData(),L=D.carteras||[];
   if(!S.car.sel||!L.find(c=>c.id===S.car.sel))S.car.sel=L[0]?L[0].id:null;
   $('#car-tabs').innerHTML=CAR_GRUPOS.map(([g,lbl])=>{const G=L.filter(c=>c.grupo===g);return G.length?`<div class="car-g"><span class="note">${lbl}</span>${G.map(c=>`<button class="chip${c.id===S.car.sel?' on':''}" data-car="${esc(c.id)}">${esc(c.nombre)}</button>`).join('')}</div>`:''}).join('')||'<p class="note">Todavía no hay carteras cargadas. Tocá ✎ Editar para armarlas.</p>';
@@ -2887,27 +2891,91 @@ function renderCar(){
   $('#car-edit').classList.toggle('on',S.car.edit);$('#car-editor').classList.toggle('hide',!S.car.edit);
   const c=L.find(x=>x.id===S.car.sel);
   if(!c){$('#car-view').innerHTML='';if(S.car.edit)renderCarEd();return}
-  const C=carCalc(c,S.car.monto);S.carLast={c,C};
+  // carteras con seguimiento: la composición sale de las tenencias reales al último cierre
+  const pf=S.carPerf&&(S.carPerf.carteras||[]).find(x=>x.id===c.id);
+  const cv=pf&&pf.abiertas&&pf.abiertas.length?Object.assign({},c,{items:pf.abiertas.map(a=>({t:a.t,tipo:a.clase,pct:Math.round(a.peso*1000)/10})).concat(pf.liquidez_peso>0.001?[{t:'Liquidez',tipo:'liquidez',pct:Math.round(pf.liquidez_peso*1000)/10}]:[])}):c;
+  const C=carCalc(cv,S.car.monto);S.carLast={c:cv,C,pf};
   const kp=[['Renta variable',fmt(C.rv,0)+'%'],['Renta fija',fmt(C.rf,0)+'%'],...(C.fo?[['Fondos',fmt(C.fo,0)+'%']]:[]),...(C.tir!=null?[['TIR renta fija',fmt(C.tir*100,2)+'%'],['Duration renta fija',fmt(C.dur,2)]]:[]),...(C.up!=null?[['Recorrido a valor justo (acciones)',pct(C.up,1)]]:[]),...(C.cup?[['Cupones 12 meses','US$ '+fmt(C.cup,0)]]:[])];
   const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;
-    const ind=!u?'<span class="note">sin datos ahora</span>':it.tipo==='accion'?vdChip(u.o):it.tipo==='fondo'?(u.tea!=null?`rindió ${fmt(u.tea*100,1)}% anual (último mes)`:'—'):`TIR <b class="${u.tir>=0?'up':'down'}">${fmt(u.tir*100,2)}%</b> · dur. ${fmt(u.dur,2)}`;
-    const ext=!u?'':it.tipo==='accion'?cedCell(u.o):it.tipo==='fondo'?'':`vence ${rfFmtD(u.venc)}`;
+    const ind=it.tipo==='liquidez'?'<span class="note">dólares disponibles para la próxima compra</span>':!u?'<span class="note">sin datos ahora</span>':it.tipo==='accion'?vdChip(u.o):it.tipo==='fondo'?(u.tea!=null?`rindió ${fmt(u.tea*100,1)}% anual (último mes)`:'—'):`TIR <b class="${u.tir>=0?'up':'down'}">${fmt(u.tir*100,2)}%</b> · dur. ${fmt(u.dur,2)}`;
+    const ext=!u||it.tipo==='liquidez'?'':it.tipo==='accion'?cedCell(u.o):it.tipo==='fondo'?'':`vence ${rfFmtD(u.venc)}`;
     return `<tr${it.tipo==='accion'&&u?` data-t="${esc(u.t)}" style="cursor:pointer"`:''}><td><i class="car-dot" style="background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(u?u.t:it.t)}</b><div class="note">${esc(u?u.nom:'')}</div></td><td>${CAR_TIPO[it.tipo]||it.tipo}</td><td class="n"><b>${fmt(+it.pct||0,1)}%</b></td><td class="n">US$ ${fmt(r.m,0)}</td><td class="n">${r.q!=null?fmt(r.q,0)+(it.tipo==='accion'?' acc.':' VN'):'—'}</td><td class="n">${u&&u.px?fmt(u.px,2):'—'}</td><td>${ind}</td><td>${ext}</td></tr>`}).join('');
   $('#car-view').innerHTML=`<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:260px"><h2 style="margin:0">${esc(c.nombre)}</h2>${c.desc?`<p class="sub" style="margin:4px 0 0">${esc(c.desc)}</p>`:''}</div>
     <label class="note" style="display:flex;gap:6px;align-items:center">Monto US$ <input type="number" id="car-monto" value="${S.car.monto}" step="1000" min="0" class="car-in" style="width:130px"></label>
     <label class="note" style="display:flex;gap:6px;align-items:center">Cliente <input id="car-cli" value="${esc(S.car.cli||'')}" placeholder="opcional" class="car-in" style="width:150px"></label>
     <button class="chip" id="car-pdf" style="background:#551CE3;border-color:#551CE3;color:#fff">⬇ Descargar PDF</button></div>
-    ${Math.abs(C.sum-100)>=0.05?`<div class="rf-new" style="margin-top:8px;border-color:var(--down)">Los porcentajes de esta cartera suman ${fmt(C.sum,1)}%, no 100%.</div>`:''}
+    ${pf?carPerfHTML(pf):(c.seguimiento?'<p class="note" style="margin-top:8px">El rendimiento de esta cartera se calcula todos los días; va a aparecer acá después de la próxima actualización.</p>':'')}
+    ${pf?'<h3 class="cup-h" style="margin-top:18px">Composición actual · para replicarla</h3>':''}
+    ${Math.abs(C.sum-100)>=(pf?0.6:0.05)?`<div class="rf-new" style="margin-top:8px;border-color:var(--down)">Los porcentajes de esta cartera suman ${fmt(C.sum,1)}%, no 100%.</div>`:''}
     <div class="cup-kpis" style="margin-top:12px">${kp.map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v num" style="text-align:left">${k[1]}</div></div>`).join('')}</div>
-    <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th class="n">Monto</th><th class="n">Cantidad</th><th class="n">Precio US$</th><th>Monitor / rendimiento</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="8" class="note" style="padding:14px;text-align:center">Esta cartera todavía no tiene papeles: tocá ✎ Editar para cargarlos.</td></tr>'}</tbody></table></div>
+    <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th class="n">Monto</th><th class="n">Cantidad</th><th class="n">Precio US$</th><th>Monitor / rendimiento</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="cup-grid"><div><h3 class="cup-h">Composición</h3><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">${cupPie(C.R.map(r=>({w:(+r.it.pct||0)/(C.sum||1)})),70)}<div>${C.R.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin:2px 0"><i style="width:10px;height:10px;border-radius:2px;background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(r.u?r.u.t:r.it.t)}</b><span class="note">${fmt(+r.it.pct||0,1)}%</span></div>`).join('')}</div></div></div>
       <div><h3 class="cup-h">Por sector / industria</h3>${Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:grid;grid-template-columns:170px 1fr 50px;gap:8px;align-items:center;font-size:12.5px;margin:3px 0"><span>${esc(k)}</span><span style="height:7px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${Math.min(100,v).toFixed(0)}%;background:#551CE3"></i></span><b class="num" style="text-align:right">${fmt(v,1)}%</b></div>`).join('')}</div></div>
     <p class="note" style="margin-top:10px">Precios en dólares MEP en vivo. Cantidades redondeadas hacia abajo; las acciones se pueden comprar como CEDEAR en Argentina (ver la columna de la derecha) o directo en el exterior. Material informativo; no es una recomendación personalizada.</p>`;
   $('#car-monto').onchange=()=>{S.car.monto=Math.max(0,+$('#car-monto').value||0);renderCar()};
   $('#car-cli').oninput=()=>{S.car.cli=$('#car-cli').value};
   $('#car-pdf').onclick=carPDF;
+  if(pf)carChart($('#car-chart'),pf);
   $$('#car-view tr[data-t]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('button'))return;openDetail(tr.dataset.t)});
   if(S.car.edit)renderCarEd();
+}
+/* ---------- movimientos (sólo carteras Conservadora / Moderada / Audaz) ---------- */
+const MOV_T={compra:'Compra',venta:'Venta',aporte:'Aporte',retiro:'Retiro'};
+function carMovsHTML(c){const sg=c.seguimiento;
+  if(!sg)return `<div class="car-mv"><h3 class="cup-h">Seguimiento de rendimiento</h3><p class="note">Activalo para cargar las compras y ventas con fecha valor y medir la cartera contra su vara.</p><button class="chip" id="mv-on">Activar seguimiento</button></div>`;
+  const M=sg.movs||[];
+  return `<div class="car-mv"><h3 class="cup-h">Seguimiento de rendimiento · movimientos</h3>
+    <div class="rf-filt"><label class="rf-fg"><span class="l">Inicio</span><input type="date" id="mv-ini" class="car-in" value="${esc(sg.inicio||'2026-01-01')}"></label>
+      <label class="rf-fg"><span class="l">Capital inicial US$</span><input type="number" id="mv-cap" class="car-in" value="${sg.capital||100000}" step="1000" style="width:130px"></label>
+      <label class="rf-fg"><span class="l">Vara</span><select id="mv-vara" class="car-in">${[['conservadora','Bonos del Tesoro (GOVT)'],['moderada','50% GOVT + 50% SPY'],['audaz','20% XLK + 50% SPY + 30% GOVT']].map(([k,l])=>`<option value="${k}"${(sg.vara||c.id)===k?' selected':''}>${l}</option>`).join('')}</select></label>
+      <button class="chip" id="mv-add" style="margin-left:auto">+ Movimiento</button></div>
+    <div class="tw" style="margin-top:8px"><table class="cup-tb mv-tb"><thead><tr><th>Fecha valor</th><th>Tipo</th><th>Clase</th><th>Papel</th><th class="n">Monto US$</th><th class="n">Precio (opcional)</th><th>Todo</th><th></th></tr></thead><tbody>${M.map((m,i)=>`<tr>
+      <td><input type="date" class="car-in mv" data-i="${i}" data-k="f" value="${esc(m.f||'')}"></td>
+      <td><select class="car-in mv" data-i="${i}" data-k="tipo">${Object.entries(MOV_T).map(([k,l])=>`<option value="${k}"${m.tipo===k?' selected':''}>${l}</option>`).join('')}</select></td>
+      <td>${m.tipo==='aporte'||m.tipo==='retiro'?'':`<select class="car-in mv" data-i="${i}" data-k="clase">${['accion','sob','on','fondo'].map(k=>`<option value="${k}"${m.clase===k?' selected':''}>${CAR_TIPO[k]}</option>`).join('')}</select>`}</td>
+      <td>${m.tipo==='aporte'||m.tipo==='retiro'?'':`<input class="car-in mv" data-i="${i}" data-k="t" value="${esc(m.t||'')}" placeholder="${m.clase==='fondo'?'BCMMA / ESTRA1 / ESTRA3':'KO, AL30, YMCXO…'}" style="width:110px;text-transform:uppercase">`}</td>
+      <td class="n">${m.tipo==='venta'&&m.todo?'<span class="note">todo</span>':`<input type="number" class="car-in mv" data-i="${i}" data-k="usd" value="${m.usd||''}" step="100" style="width:110px;text-align:right">`}</td>
+      <td class="n">${m.tipo==='aporte'||m.tipo==='retiro'?'':`<input type="number" class="car-in mv" data-i="${i}" data-k="precio" value="${m.precio||''}" step="0.01" placeholder="${m.clase==='on'?'obligatorio':'cierre del día'}" style="width:110px;text-align:right">`}</td>
+      <td>${m.tipo==='venta'?`<input type="checkbox" class="mv" data-i="${i}" data-k="todo"${m.todo?' checked':''}>`:''}</td>
+      <td><button class="chip mv-x" data-i="${i}">✕</button></td></tr>`).join('')||'<tr><td colspan="8" class="note">Sin movimientos todavía.</td></tr>'}</tbody></table></div>
+    <p class="note" style="margin-top:6px">Las compras salen de la liquidez y las ventas vuelven a la liquidez (con "Todo" se vende toda la tenencia). Si no ponés precio, se usa el cierre de ese día. En las <b>ONs</b> el precio de compra es obligatorio (no hay historia de precios). Precios en dólares MEP: acciones por acción, bonos y ONs cada 100 nominales, fondos por cuotaparte (BCMMA en pesos). Para sumar plata nueva usá "Aporte". Cuando termines, descargá carteras.json y subilo: la cuenta se rehace sola en unos minutos.</p></div>`}
+function carMovsBind(c,save){
+  if($('#mv-on')){$('#mv-on').onclick=()=>{c.seguimiento={inicio:'2026-01-01',capital:100000,vara:['conservadora','moderada','audaz'].includes(c.id)?c.id:'moderada',movs:[]};save()};return}
+  const sg=c.seguimiento;if(!sg)return;
+  $('#mv-ini').onchange=()=>{sg.inicio=$('#mv-ini').value||sg.inicio;save()};
+  $('#mv-cap').onchange=()=>{sg.capital=Math.max(0,+$('#mv-cap').value||0);save()};
+  $('#mv-vara').onchange=()=>{sg.vara=$('#mv-vara').value;save()};
+  $('#mv-add').onclick=()=>{const last=sg.movs[sg.movs.length-1];sg.movs.push({f:last?last.f:sg.inicio,tipo:'compra',clase:'accion',t:'',usd:0});save()};
+  $$('#car-editor .mv').forEach(e=>e.onchange=()=>{const m=sg.movs[+e.dataset.i],k=e.dataset.k;let v=e.type==='checkbox'?e.checked:e.value;
+    if(k==='usd'||k==='precio')v=v===''?null:Math.max(0,+v);if(k==='t')v=String(v).trim().toUpperCase();m[k]=v;if(v===null)delete m[k];
+    if(k==='tipo'&&(v==='aporte'||v==='retiro')){delete m.clase;delete m.t;delete m.precio;delete m.todo}if(k==='tipo'&&v!=='venta')delete m.todo;if(k==='tipo'&&(v==='compra'||v==='venta')&&!m.clase)m.clase='accion';
+    sg.movs.sort((a,b)=>a.f<b.f?-1:a.f>b.f?1:0);e.blur();save()});
+  $$('#car-editor .mv-x').forEach(e=>e.onclick=()=>{sg.movs.splice(+e.dataset.i,1);save()});
+}
+/* ---------- rendimiento (sale de carteras_perf.json, que arma la tarea diaria car_perf.py) ---------- */
+function carPerfHTML(pf){
+  const M=pf.metricas||{},a=M.cartera||{},b=M.vara||{};
+  const cell=(l,x,y)=>{const d=x!=null&&y!=null?x-y:null;return `<div class="kpi"><div class="l">${l}</div><div class="v num" style="text-align:left"><span class="${x>=0?'up':'down'}">${x==null?'—':pct(x,1)}</span></div><div class="s">vara ${y==null?'—':pct(y,1)}${d!=null?` · <b class="${d>=0?'up':'down'}">${d>=0?'+':''}${fmt(d*100,1)} pp</b>`:''}</div></div>`};
+  const ab=(pf.abiertas||[]),ce=(pf.cerradas||[]);
+  const tr=r=>`<tr${r.clase==='accion'?` data-t="${esc(r.t)}"`:''}><td><b>${esc(r.t)}</b><div class="note">${CAR_TIPO[r.clase]||''} · desde ${rfFmtD(r.desde)}${r.hasta?' hasta '+rfFmtD(r.hasta):''}</div></td><td class="n">US$ ${fmt(r.invertido,0)}</td><td class="n">${r.valor!=null?'US$ '+fmt(r.valor,0):'—'}</td><td class="n">${r.cobrado?'US$ '+fmt(r.cobrado,0):'—'}</td><td class="n"><b class="${r.ganancia>=0?'up':'down'}">${r.ganancia>=0?'+':''}US$ ${fmt(r.ganancia,0)}</b></td><td class="n ${r.rend>=0?'up':'down'}">${r.rend==null?'—':pct(r.rend,1)}</td><td class="n">${r.aporte==null?'—':(r.aporte>=0?'+':'')+fmt(r.aporte*100,2)+' pp'}</td></tr>`;
+  return `<div class="car-perf"><div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><h3 class="cup-h" style="margin:0;flex:1">Rendimiento desde el ${rfFmtD(pf.inicio)} · como un fondo (cuotaparte base 100)</h3><span class="note">Vara: ${esc(pf.vara)} · al cierre del ${rfFmtD(pf.al)}</span></div>
+    <div class="cup-kpis" style="margin-top:10px"><div class="kpi"><div class="l">Cuotaparte</div><div class="v num" style="text-align:left">${fmt(pf.cuotaparte,2)}</div><div class="s">patrimonio US$ ${fmt(pf.patrimonio,0)}</div></div>${cell('Desde el inicio',a.inicio,b.inicio)}${cell('En el año',a.anio,b.anio)}${cell('Último mes',a.m1,b.m1)}${cell('Últimos 3 meses',a.m3,b.m3)}
+      <div class="kpi"><div class="l">Caída máxima</div><div class="v num down" style="text-align:left">${a.maxdd!=null?pct(a.maxdd,1):'—'}</div><div class="s">vara ${b.maxdd!=null?pct(b.maxdd,1):'—'}</div></div></div>
+    <div id="car-chart" style="margin-top:6px"></div>
+    <div class="tw" style="margin-top:8px"><table class="cup-tb"><thead><tr><th>Papel</th><th class="n">Invertido</th><th class="n">Valor hoy</th><th class="n">Cobrado</th><th class="n">Ganancia</th><th class="n">Rend.</th><th class="n">Aporte a la cartera</th></tr></thead><tbody>${ab.map(tr).join('')}${ce.length?`<tr><td colspan="7" class="note" style="padding-top:10px"><b>Vendidas</b></td></tr>`+ce.map(tr).join(''):''}</tbody></table></div>
+    <p class="note" style="margin-top:6px">Liquidez: US$ ${fmt(pf.liquidez,0)}${pf.liquidez_peso!=null?' ('+fmt(pf.liquidez_peso*100,1)+'%)':''}. "Cobrado" incluye ventas, dividendos y cupones. "Aporte a la cartera": cuántos puntos sumó o restó cada papel sobre el capital inicial. Rendimientos pasados no garantizan resultados futuros.</p>
+    ${S.car.admin&&pf.avisos&&pf.avisos.length?`<div class="rf-new" style="border-color:var(--down)"><b>Avisos del cálculo (sólo los ves vos):</b><br>${pf.avisos.map(esc).join('<br>')}</div>`:''}</div>`;
+}
+function carChart(el,pf){
+  if(!el)return;const P=(pf.serie||[]).filter(x=>x[1]!=null);if(P.length<2){el.innerHTML='';return}
+  const W=el.clientWidth||900,H=260,L=44,R=12,T=12,B=28;const ys=P.flatMap(x=>[x[1],x[2]]).filter(v=>v!=null);let y0=Math.min(...ys),y1=Math.max(...ys);const pd=(y1-y0)*0.1||1;y0-=pd;y1+=pd;
+  const t0=+new Date(P[0][0]),t1=+new Date(P[P.length-1][0]);const X=d=>L+(+new Date(d)-t0)/(t1-t0||1)*(W-L-R),Y=v=>T+(y1-v)/(y1-y0)*(H-T-B);
+  const line=k=>P.filter(x=>x[k]!=null).map((x,i)=>(i?'L':'M')+X(x[0]).toFixed(1)+','+Y(x[k]).toFixed(1)).join('');
+  let g='';for(let i=0;i<=4;i++){const v=y0+(y1-y0)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/><text x="${L-6}" y="${(Y(v)+3.5).toFixed(1)}" font-size="10.5" fill="var(--muted)" text-anchor="end">${fmt(v,0)}</text>`}
+  const ms=[];let m=null;P.forEach(x=>{const k=x[0].slice(0,7);if(k!==m){m=k;ms.push(x[0])}});
+  g+=ms.map(d=>`<text x="${X(d).toFixed(1)}" y="${H-8}" font-size="10.5" fill="var(--muted)" text-anchor="middle">${MES[+d.slice(5,7)-1]}</text>`).join('');
+  g+=`<line x1="${L}" x2="${W-R}" y1="${Y(100).toFixed(1)}" y2="${Y(100).toFixed(1)}" stroke="var(--muted)" stroke-dasharray="3 3" opacity=".6"/>`;
+  el.innerHTML=`<div class="note" style="margin-bottom:2px"><span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px"><i style="width:14px;height:3px;background:#551CE3;display:inline-block"></i>Cartera</span><span style="display:inline-flex;align-items:center;gap:5px"><i style="width:14px;height:3px;background:#9aa3b2;display:inline-block"></i>Vara</span></div><svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}<path d="${line(2)}" fill="none" stroke="#9aa3b2" stroke-width="2"/><path d="${line(1)}" fill="none" stroke="#551CE3" stroke-width="2.5"/></svg>`;
 }
 /* ---------- editor ---------- */
 function carUniverse(){
@@ -2930,9 +2998,11 @@ function renderCarEd(){
     ${c?`<div class="rf-filt"><label class="rf-fg"><span class="l">Nombre</span><input id="ce-nom" class="car-in" value="${esc(c.nombre)}" style="width:170px"></label>
       <label class="rf-fg"><span class="l">Grupo</span><select id="ce-gru" class="car-in">${CAR_GRUPOS.map(([g,l])=>`<option value="${g}"${c.grupo===g?' selected':''}>${l}</option>`).join('')}</select></label>
       <label class="rf-fg" style="flex:1;min-width:260px"><span class="l">Descripción</span><input id="ce-desc" class="car-in" value="${esc(c.desc||'')}" style="width:100%"></label></div>
-    <div class="cup-tot" style="margin-top:10px"><span class="cup-sum ${Math.abs(sum-100)<0.05?'ok':'bad'}">Suma: <b>${fmt(sum,1)}%</b>${Math.abs(sum-100)<0.05?' ✓':sum<100?' · falta asignar '+fmt(100-sum,1)+'%':' · te pasaste '+fmt(sum-100,1)+'%'}</span><button class="chip" id="ce-eq">Repartir en partes iguales</button></div>
+    ${c.seguimiento?'':`<div class="cup-tot" style="margin-top:10px"><span class="cup-sum ${Math.abs(sum-100)<0.05?'ok':'bad'}">Suma: <b>${fmt(sum,1)}%</b>${Math.abs(sum-100)<0.05?' ✓':sum<100?' · falta asignar '+fmt(100-sum,1)+'%':' · te pasaste '+fmt(sum-100,1)+'%'}</span><button class="chip" id="ce-eq">Repartir en partes iguales</button></div>
     <div class="tw"><table class="cup-tb"><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th></th></tr></thead><tbody>${c.items.map((it,i)=>`<tr><td><b>${esc(it.t)}</b></td><td>${CAR_TIPO[it.tipo]}</td><td class="n"><span class="cup-pw"><input type="number" class="cup-amt ce-pct" data-i="${i}" value="${it.pct}" step="0.5" min="0" max="100"> %</span></td><td><button class="chip ce-x" data-i="${i}">✕</button></td></tr>`).join('')||'<tr><td colspan="4" class="note">Sin papeles todavía.</td></tr>'}</tbody></table></div>
-    <div style="margin-top:10px"><input id="car-q" class="car-in" placeholder="Sumar papel: KO, AAPL, AO27, YMCXO, ESTRA3…" style="width:340px"><div id="car-res" class="plan-res"></div></div>`:'<p class="note">Creá una cartera con “+ Nueva cartera”.</p>'}`;
+    <div style="margin-top:10px"><input id="car-q" class="car-in" placeholder="Sumar papel: KO, AAPL, AO27, YMCXO, ESTRA3…" style="width:340px"><div id="car-res" class="plan-res"></div></div>`}
+    ${c.seguimiento?'<p class="note" style="margin-top:8px">Esta cartera tiene seguimiento: la composición que ven los clientes sale de los movimientos de abajo.</p>':''}
+    ${c.grupo==='mixta'?carMovsHTML(c):''}`:'<p class="note">Creá una cartera con “+ Nueva cartera”.</p>'}`;
   const nid=()=>'c'+Date.now().toString(36);
   $('#car-new').onclick=()=>{const id=nid();D.carteras.push({id,nombre:'Nueva cartera',grupo:'mixta',desc:'',items:[]});S.car.sel=id;save()};
   if($('#car-del'))$('#car-del').onclick=()=>{if(!confirm('¿Borrar la cartera "'+c.nombre+'"?'))return;D.carteras=D.carteras.filter(x=>x.id!==c.id);S.car.sel=null;save()};
@@ -2942,10 +3012,11 @@ function renderCarEd(){
   $('#ce-nom').onchange=()=>{c.nombre=$('#ce-nom').value.trim()||c.nombre;save()};
   $('#ce-gru').onchange=()=>{c.grupo=$('#ce-gru').value;save()};
   $('#ce-desc').onchange=()=>{c.desc=$('#ce-desc').value.trim();save()};
-  $('#ce-eq').onclick=()=>{const n=c.items.length;if(!n)return;const b=Math.floor(1000/n)/10;c.items.forEach(x=>x.pct=b);c.items[0].pct=Math.round((100-b*(n-1))*10)/10;save()};
+  if($('#ce-eq'))$('#ce-eq').onclick=()=>{const n=c.items.length;if(!n)return;const b=Math.floor(1000/n)/10;c.items.forEach(x=>x.pct=b);c.items[0].pct=Math.round((100-b*(n-1))*10)/10;save()};
   $$('#car-editor .ce-pct').forEach(e=>e.onchange=()=>{c.items[+e.dataset.i].pct=Math.min(100,Math.max(0,+e.value||0));e.blur();save()});
   $$('#car-editor .ce-x').forEach(e=>e.onclick=()=>{c.items.splice(+e.dataset.i,1);save()});
-  const q=$('#car-q');q.oninput=()=>{const s=q.value.trim().toUpperCase(),box=$('#car-res');if(s.length<2){box.innerHTML='';return}
+  if(c.grupo==='mixta')carMovsBind(c,save);
+  const q=$('#car-q');if(!q)return;q.oninput=()=>{const s=q.value.trim().toUpperCase(),box=$('#car-res');if(s.length<2){box.innerHTML='';return}
     const have=new Set(c.items.map(x=>x.tipo+':'+x.t));const R=carUniverse().filter(u=>!have.has(u.tipo+':'+u.t)&&(u.t.includes(s)||u.nom.toUpperCase().includes(s))).sort((a,b)=>(a.t===s?-1:0)-(b.t===s?-1:0)).slice(0,12);
     box.innerHTML=R.map(u=>`<button class="cup-it" data-tp="${u.tipo}" data-t="${esc(u.t)}" style="grid-template-columns:70px 120px 1fr"><b>${esc(u.t)}</b><span class="note">${CAR_TIPO[u.tipo]}</span><span class="note">${esc(u.nom)}</span></button>`).join('')||'<p class="note">Sin resultados.</p>';
     $$('#car-res .cup-it').forEach(b=>b.onclick=()=>{const s2=c.items.reduce((a,x)=>a+(+x.pct||0),0);c.items.push({t:b.dataset.t,tipo:b.dataset.tp,pct:s2<100?Math.round((100-s2)*10)/10:0});save();setTimeout(()=>{const qq=$('#car-q');if(qq)qq.focus()},0)})};
@@ -2956,7 +3027,7 @@ $('#car-edit').classList.toggle('hide',!S.car.admin);
 $('#car-edit').onclick=()=>{S.car.edit=!S.car.edit;renderCar()};
 function carPDF(){
   const X=S.carLast;if(!X)return;const {c,C}=X,cli=(S.car.cli||'').trim(),hoy=rfToday().toISOString().slice(0,10).split('-').reverse().join('/');
-  const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;const ind=!u?'':it.tipo==='accion'?(u.o.verdict||''):it.tipo==='fondo'?(u.tea!=null?'rindió '+fmt(u.tea*100,1)+'% anual':''):'TIR '+fmt(u.tir*100,2)+'% · vence '+rfFmtD(u.venc);
+  const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;const ind=!u||it.tipo==='liquidez'?'':it.tipo==='accion'?(u.o.verdict||''):it.tipo==='fondo'?(u.tea!=null?'rindió '+fmt(u.tea*100,1)+'% anual':''):'TIR '+fmt(u.tir*100,2)+'% · vence '+rfFmtD(u.venc);
     return `<tr><td><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${CUP_COL[i%CUP_COL.length]};margin-right:5px"></i><b class="tk">${esc(u?u.t:it.t)}</b> <span class="mu">${esc(u?u.nom:'')}</span></td><td>${CAR_TIPO[it.tipo]}</td><td class="n b">${fmt(+it.pct||0,1)}%</td><td class="n">US$ ${fmt(r.m,0)}</td><td class="n">${r.q!=null?fmt(r.q,0):'—'}</td><td class="n">${u&&u.px?fmt(u.px,2):'—'}</td><td>${esc(ind)}</td></tr>`}).join('');
   const kp=[['Monto','US$ '+fmt(S.car.monto,0)],['Renta variable',fmt(C.rv,0)+'%'],['Renta fija',fmt(C.rf,0)+'%'],...(C.fo?[['Fondos',fmt(C.fo,0)+'%']]:[]),...(C.tir!=null?[['TIR renta fija',fmt(C.tir*100,2)+'%']]:[]),...(C.cup?[['Cupones 12 meses','US$ '+fmt(C.cup,0)]]:[])];
   const ind=Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="ib"><span>${esc(k)}</span><span class="bar"><i style="width:${Math.min(100,v).toFixed(0)}%"></i></span><b>${fmt(v,1)}%</b></div>`).join('');
@@ -2971,6 +3042,7 @@ function carPDF(){
   <div class="hd"><div><h1>Cartera ${esc(c.nombre)}</h1><p>${c.desc?esc(c.desc):'Cartera modelo en dólares'}${cli?' · Preparada para <b>'+esc(cli)+'</b>':''}</p></div>
   <div style="text-align:right"><div class="brand"><svg viewBox="0 0 34 34" width="22" height="22"><rect width="16" height="16" fill="#551CE3"/><rect x="18" width="16" height="16" fill="#798DF7"/><rect y="18" width="16" height="16" fill="#9AA8F9"/><rect x="18" y="18" width="16" height="16" fill="#BCC6FA"/></svg><div>PROSPEI<small>Consultores Financieros</small></div></div><p>${hoy}</p></div></div>
   <div class="k">${kp.map(k=>`<div><span>${k[0]}</span><b>${k[1]}</b></div>`).join('')}</div>
+  ${X.pf?(()=>{const M=X.pf.metricas||{},A=M.cartera||{},B=M.vara||{};const f=v=>v==null?'—':(v>=0?'+':'')+fmt(v*100,1)+'%';return `<div class="k" style="grid-template-columns:repeat(4,1fr)"><div><span>Desde el ${rfFmtD(X.pf.inicio)}</span><b style="color:${A.inicio>=0?'#0f9d58':'#d93025'}">${f(A.inicio)}</b><em style="display:block;font-style:normal;font-size:9px;color:#5b6b80">vara ${f(B.inicio)}</em></div><div><span>En el año</span><b>${f(A.anio)}</b><em style="display:block;font-style:normal;font-size:9px;color:#5b6b80">vara ${f(B.anio)}</em></div><div><span>Último mes</span><b>${f(A.m1)}</b><em style="display:block;font-style:normal;font-size:9px;color:#5b6b80">vara ${f(B.m1)}</em></div><div><span>Caída máxima</span><b>${f(A.maxdd)}</b><em style="display:block;font-style:normal;font-size:9px;color:#5b6b80">vara ${f(B.maxdd)}</em></div></div><p style="margin:-4px 0 10px;color:#5b6b80;font-size:9.5px">Rendimiento en dólares como un fondo (cuotaparte ${fmt(X.pf.cuotaparte,2)}, base 100), al cierre del ${rfFmtD(X.pf.al)}. Vara: ${esc(X.pf.vara)}. Rendimientos pasados no garantizan resultados futuros.</p>`})():''}
   <table><thead><tr><th>Papel</th><th>Tipo</th><th class="n">%</th><th class="n">Monto</th><th class="n">Cantidad</th><th class="n">Precio US$</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="box grid" style="margin-top:14px"><div>${cupPie(C.R.map(r=>({w:(+r.it.pct||0)/(C.sum||1)})),60)}</div><div><h3>Por sector / industria</h3>${ind}</div></div>
   <div class="ft">Precios de mercado en dólares MEP al ${hoy}; cantidades redondeadas hacia abajo. Las acciones del exterior se pueden comprar como CEDEAR en Argentina. Material con fines informativos; no constituye una recomendación de inversión personalizada. PROSPEI Consultores Financieros.</div>
