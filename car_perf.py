@@ -186,7 +186,8 @@ def simular(c, P, sob_fl, on_fl):
     sg = c["seguimiento"]
     ini = pd.Timestamp(sg.get("inicio", "2026-01-01"))
     cap = float(sg.get("capital", 100000))
-    movs = sorted(sg.get("movs", []), key=lambda m: (m["f"], {"aporte": 0, "retiro": 1, "venta": 2, "compra": 3}.get(m["tipo"], 9)))
+    movs = sorted(sg.get("movs", []), key=lambda m: (m["f"], {"aporte": 0, "retiro": 1, "venta": 2, "compra": 3, "caucion": 4}.get(m["tipo"], 9)))
+    caus = []        # cauciones: dict(mon, cap, tna, dias, ini, fin, usd0, hecha, usd1)
     dias = [d for d in P["cal"] if d >= ini]
     if not dias:
         return None
@@ -246,8 +247,16 @@ def simular(c, P, sob_fl, on_fl):
                 cash += inc
                 p["inc"] += inc
 
+        def cau_val(cu, d):
+            dd = min(max((d - cu["ini"]).days, 0), cu["dias"])
+            m = cu["cap"] * (1 + cu["tna"] * dd / 365.0)
+            if cu["mon"] == "ARS":
+                mep = asof(P["mep"], d)
+                return m / mep if mep else cu["usd0"]
+            return m
+
         def V():
-            v = cash
+            v = cash + sum(cau_val(cu, d) for cu in caus if not cu["hecha"])
             for p in pos.values():
                 if p["units"] > 0:
                     u = valor_unit(p["clase"], p["t"], d, ratio=p["ratio"])
@@ -255,6 +264,47 @@ def simular(c, P, sob_fl, on_fl):
                     if u is not None:
                         p["last"] = u
             return v
+
+        def fondo_pos(code, d, u):
+            return pos.setdefault("fondo:" + code, {"units": 0.0, "cost": 0.0, "inv": 0.0, "rec": 0.0, "inc": 0.0, "clase": "fondo",
+                                                     "t": code, "last": u, "desde": d, "primera": d.date().isoformat(), "ultima": None, "ratio": 1.0})
+
+        def vender_fondo(code, d, usd_max):
+            # rescata hasta usd_max dólares del fondo; devuelve los dólares obtenidos
+            p = pos.get("fondo:" + code)
+            u = valor_unit("fondo", code, d)
+            if not p or p["units"] <= 0 or not u:
+                return 0.0
+            n = min(p["units"], usd_max / u)
+            p["cost"] -= p["cost"] * n / p["units"]
+            p["units"] -= n
+            p["rec"] += n * u
+            p["ultima"] = d.date().isoformat()
+            return n * u
+
+        def tomar_usd(need, d):
+            # asegura 'need' dólares en la liquidez: si falta, rescata ESTRA1 y después BCMMA
+            nonlocal cash
+            for code in ("ESTRA1", "BCMMA"):
+                if cash >= need - 0.005:
+                    return
+                cash += vender_fondo(code, d, need - cash)
+
+        # vencimientos de cauciones: el capital + interés va al BCMMA (pesos) o al ESTRA1 (dólares); si no hay precio del fondo, a la liquidez
+        for cu in caus:
+            if not cu["hecha"] and cu["fin"] <= d:
+                cu["hecha"] = True
+                usd1 = cau_val(cu, cu["fin"])
+                cu["usd1"] = usd1
+                code = "BCMMA" if cu["mon"] == "ARS" else "ESTRA1"
+                u = valor_unit("fondo", code, d)
+                if u:
+                    p = fondo_pos(code, d, u)
+                    p["units"] += usd1 / u
+                    p["cost"] += usd1
+                    p["inv"] += usd1
+                else:
+                    cash += usd1
 
         nav = V() / cuotas
         while mi < len(movs) and pd.Timestamp(movs[mi]["f"]) <= d:
@@ -266,8 +316,36 @@ def simular(c, P, sob_fl, on_fl):
                 cuotas += usd / nav
                 continue
             if tipo == "retiro":
+                tomar_usd(usd, d)
                 cash -= usd
                 cuotas -= usd / nav
+                continue
+            if tipo == "caucion":
+                mon, monto = m.get("mon", "ARS"), float(m.get("monto") or 0)
+                tna, dd = float(m.get("tna") or 0) / 100.0, int(m.get("dias") or 1)
+                if monto <= 0:
+                    continue
+                if mon == "ARS":
+                    mep = asof(P["mep"], d)
+                    if not mep:
+                        avisos.append(f"{m['f']} caución en pesos: falta el dólar MEP de ese día.")
+                        continue
+                    pesos_bcmma = 0.0
+                    pb = pos.get("fondo:BCMMA")
+                    ub = valor_unit("fondo", "BCMMA", d)
+                    if pb and pb["units"] > 0 and ub:   # primero se usan los pesos del BCMMA
+                        pesos_bcmma = vender_fondo("BCMMA", d, monto / mep) * mep
+                    falta = monto - pesos_bcmma
+                    if falta > 0:
+                        tomar_usd(falta / mep, d)
+                        cash -= falta / mep
+                    usd0 = monto / mep
+                else:
+                    tomar_usd(monto, d)
+                    cash -= monto
+                    usd0 = monto
+                caus.append({"mon": mon, "cap": monto, "tna": tna, "dias": dd, "ini": d, "fin": d + pd.Timedelta(days=dd),
+                             "usd0": usd0, "hecha": False, "usd1": None, "f": m["f"]})
                 continue
             clase, t = m.get("clase"), norm_t(m.get("clase"), m.get("t"))
             ratio = float(m.get("ratio") or 1.0)
@@ -282,6 +360,7 @@ def simular(c, P, sob_fl, on_fl):
             if tipo == "compra":
                 n = cant if cant > 0 else usd / u
                 usd = n * u
+                tomar_usd(usd, d)
                 p["units"] += n
                 p["cost"] += usd
                 p["inv"] += usd
@@ -376,6 +455,19 @@ def simular(c, P, sob_fl, on_fl):
         else:
             row.update(hasta=p["ultima"])
             cerradas.append(row)
+    for cu in caus:
+        nom = f"Caución {'$' if cu['mon'] == 'ARS' else 'US$'} {cu['dias']} días al {cu['tna'] * 100:.1f}%"
+        vf = cu["usd1"] if cu["hecha"] else cau_val(cu, dlast)
+        gan = vf - cu["usd0"]
+        row = {"t": nom, "clase": "caucion", "desde": cu["f"], "invertido": round(cu["usd0"], 2), "ganancia": round(gan, 2),
+               "rend": round(gan / cu["usd0"], 4) if cu["usd0"] else None, "aporte": round(gan / cap, 4),
+               "monto": cu["cap"], "mon": cu["mon"], "vence": cu["fin"].date().isoformat()}
+        if cu["hecha"]:
+            row.update(cobrado=round(vf, 2), hasta=cu["fin"].date().isoformat())
+            cerradas.append(row)
+        else:
+            row.update(cobrado=0, valor=round(vf, 2), peso=round(vf / tot, 4) if tot else None)
+            abiertas.append(row)
     abiertas.sort(key=lambda r: -(r.get("valor") or 0))
     paso = max(1, len(serie) // 260)
     puntos = [[f.date().isoformat(), round(n, 4), round(b, 4) if b else None] for i, (f, n, b) in
@@ -437,6 +529,8 @@ def main():
         if s.empty:
             log("ON sin precio:", t, "— cargá el precio de compra en el movimiento.")
         P["on"][t] = s
+    if any(m.get("tipo") == "caucion" for c in tr for m in c["seguimiento"]["movs"]):
+        need["fondo"] |= {"BCMMA", "ESTRA1"}   # al vencer, la caución se pasa a estos fondos
     P["fondo"] = fondos_hist(sorted(t for t in need["fondo"] if t in FONDOS), ini.date(), store) if need["fondo"] else {}
     # CAFCI publica la cuotaparte cada 1.000 cuotapartes; Balanz la muestra por cuotaparte (ESTRA3: 1.079,67 vs 1,0797).
     # Se lleva a la escala de Balanz salvo que el precio cargado en los movimientos esté en la escala de CAFCI.
