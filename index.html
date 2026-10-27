@@ -2839,7 +2839,7 @@ $('#pl-x-add-f').onclick=()=>{const used=new Set(S.plan.extra.map(x=>x.id));cons
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- CARTERAS SUGERIDAS ---------- */
 const CAR_GRUPOS=[['mixta','Carteras'],['rf','Renta fija']];
-const CAR_TIPO={accion:'Acción / CEDEAR',sob:'Bono soberano',on:'ON',fondo:'Fondo',liquidez:'Liquidez'};
+const CAR_TIPO={accion:'Acción / CEDEAR',cedear:'CEDEAR',sob:'Bono soberano',on:'ON',fondo:'Fondo',liquidez:'Liquidez',caucion:'Caución'};
 const CAR_FONDOS_ALL=['BCMMA','ESTRA1','ESTRA3'];
 const CAR_FONDOS={BCMMA:{n:'Balanz Money Market (pesos)',k:'BCMMA'},ESTRA1:{n:'Balanz Dólar Corto Plazo',k:'ESTRA1'},ESTRA3:{n:'Fondo Balanz Latam',k:'ESTRA3'}};
 S.car={sel:null,monto:10000,edit:false};
@@ -2858,25 +2858,27 @@ function carLookup(it){
   if(it.tipo==='on'){if(!S.onDef||!S.data.corp)return null;const b=t.replace(/[ODC]$/,'');const r=onRows('mep').find(x=>x.t===b);if(!r||!r.usd)return null;const d=S.onDef.ons.find(x=>x.t===b);
     return {t:b+'O',nom:r.emp,px:r.usd,tir:r.tir,dur:r.dur,venc:r.venc,ind:r.ind||'ON',flows:d?d.flows:[],calif:r.calif}}
   if(it.tipo==='liquidez')return {t:'Liquidez',nom:'Dólares sin invertir',px:null,ind:'Liquidez'};
+  if(it.tipo==='caucion')return {t:it.t,nom:'',px:null,ind:'Liquidez',venc:it.vence};
+  if(it.tipo==='cedear'){const r=S.scr&&S.scr.rows.find(x=>x.t===t);if(!r)return null;const o=enrich(r);return {t,nom:o.name,px:o.px,sec:o.sector||'',o,ced:o.ced,ind:o.sector||'Acciones'}}
   if(it.tipo==='fondo'){const f=CAR_FONDOS[t]||{n:t};const fd=typeof planFund==='function'?planFund(t==='BCMMA'?BCMMA_RX:PLAN_FUNDS[t]?PLAN_FUNDS[t].rx:null):null;
     return {t,nom:f.n,px:null,tea:fd&&fd.tea!=null?fd.tea:null,ind:'Fondo en dólares'}}
   return null;
 }
 function carCalc(c,monto){
   const R=(c.items||[]).map(it=>{const u=carLookup(it);const m=monto*(+it.pct||0)/100;let q=null,mr=m;
-    if(u&&u.px){if(it.tipo==='accion'){q=Math.floor(m/u.px);mr=q*u.px}else{q=Math.floor(m/(u.px/100));mr=q*u.px/100}}
+    if(u&&u.px){if(it.tipo==='accion'||it.tipo==='cedear'){q=Math.floor(m/u.px);mr=q*u.px}else{q=Math.floor(m/(u.px/100));mr=q*u.px/100}}
     return {it,u,m,mr,q}});
   const sum=Math.round((c.items||[]).reduce((a,x)=>a+(+x.pct||0),0)*100)/100;
   const w=k=>R.filter(r=>r.it.tipo===k).reduce((a,r)=>a+(+r.it.pct||0),0);
   const RF=R.filter(r=>(r.it.tipo==='sob'||r.it.tipo==='on')&&r.u&&r.u.tir!=null),wRF=RF.reduce((a,r)=>a+(+r.it.pct||0),0);
   const tir=wRF?RF.reduce((a,r)=>a+r.u.tir*(+r.it.pct||0),0)/wRF:null,dur=wRF?RF.reduce((a,r)=>a+r.u.dur*(+r.it.pct||0),0)/wRF:null;
-  const AC=R.filter(r=>r.it.tipo==='accion'&&r.u&&r.u.o.fair_up!=null),wAC=AC.reduce((a,r)=>a+(+r.it.pct||0),0);
+  const AC=R.filter(r=>(r.it.tipo==='accion'||r.it.tipo==='cedear')&&r.u&&r.u.o&&r.u.o.fair_up!=null),wAC=AC.reduce((a,r)=>a+(+r.it.pct||0),0);
   const up=wAC?AC.reduce((a,r)=>a+r.u.o.fair_up*(+r.it.pct||0),0)/wAC:null;
   // cupones de la parte de renta fija, próximos 12 meses
   const st=rfSettle().toISOString().slice(0,10),h=rfToday(),lim=new Date(Date.UTC(h.getUTCFullYear(),h.getUTCMonth()+12,1)).toISOString().slice(0,10);
   let cup=0,am=0;R.forEach(r=>{if(!r.u||!r.u.flows||!r.q)return;r.u.flows.forEach(f=>{if(f[0]>st&&f[0]<lim){cup+=r.q/100*f[1];am+=r.q/100*f[2]}})});
   const ind={};R.forEach(r=>{const k=r.u?r.u.ind:'—';ind[k]=(ind[k]||0)+(+r.it.pct||0)});
-  return {R,sum,rv:w('accion'),rf:w('sob')+w('on'),fo:w('fondo'),tir,dur,up,cup,am,ind,inv:R.reduce((a,r)=>a+r.mr,0)};
+  return {R,sum,rv:w('accion')+w('cedear'),rf:w('sob')+w('on'),fo:w('fondo')+w('caucion')+w('liquidez'),tir,dur,up,cup,am,ind,inv:R.reduce((a,r)=>a+r.mr,0)};
 }
 function renderCar(){
   if(!S.carDef){loadCarDef().then(()=>renderCar());return}
@@ -2893,15 +2895,15 @@ function renderCar(){
   if(!c){$('#car-view').innerHTML='';if(S.car.edit)renderCarEd();return}
   // carteras con seguimiento: la composición sale de las tenencias reales al último cierre
   const pf=S.carPerf&&(S.carPerf.carteras||[]).find(x=>x.id===c.id);
-  const cv=pf&&pf.abiertas&&pf.abiertas.length?Object.assign({},c,{items:pf.abiertas.map(a=>({t:a.t,tipo:a.clase,pct:Math.round(a.peso*1000)/10})).concat(pf.liquidez_peso>0.001?[{t:'Liquidez',tipo:'liquidez',pct:Math.round(pf.liquidez_peso*1000)/10}]:[])}):c;
+  const cv=pf&&pf.abiertas&&pf.abiertas.length?Object.assign({},c,{items:pf.abiertas.map(a=>({t:a.t,tipo:a.clase,pct:Math.round(a.peso*1000)/10,vence:a.vence})).concat(pf.liquidez_peso>0.001?[{t:'Liquidez',tipo:'liquidez',pct:Math.round(pf.liquidez_peso*1000)/10}]:[])}):c;
   if(!pf&&c.seguimiento&&!(c.items||[]).length){const n=(c.seguimiento.movs||[]).length;
     $('#car-view').innerHTML=`<h2 style="margin:0">${esc(c.nombre)}</h2>${c.desc?`<p class="sub" style="margin:4px 0 0">${esc(c.desc)}</p>`:''}<p class="note" style="margin-top:10px">${n?`Esta cartera tiene ${n} operaciones cargadas. Su rendimiento y su composición aparecen acá unos minutos después de subir <b>carteras.json</b> a GitHub (la cuenta se hace en GitHub, no en el navegador).`:'Todavía no hay operaciones cargadas.'}</p>`;
     if(S.car.edit)renderCarEd();return}
   const C=carCalc(cv,S.car.monto);S.carLast={c:cv,C,pf};
   const kp=[['Renta variable',fmt(C.rv,0)+'%'],['Renta fija',fmt(C.rf,0)+'%'],...(C.fo?[['Fondos',fmt(C.fo,0)+'%']]:[]),...(C.tir!=null?[['TIR renta fija',fmt(C.tir*100,2)+'%'],['Duration renta fija',fmt(C.dur,2)]]:[]),...(C.up!=null?[['Recorrido a valor justo (acciones)',pct(C.up,1)]]:[]),...(C.cup?[['Cupones 12 meses','US$ '+fmt(C.cup,0)]]:[])];
   const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;
-    const ind=it.tipo==='liquidez'?'<span class="note">dólares disponibles para la próxima compra</span>':!u?'<span class="note">sin datos ahora</span>':it.tipo==='accion'?vdChip(u.o):it.tipo==='fondo'?(u.tea!=null?`rindió ${fmt(u.tea*100,1)}% anual (último mes)`:'—'):`TIR <b class="${u.tir>=0?'up':'down'}">${fmt(u.tir*100,2)}%</b> · dur. ${fmt(u.dur,2)}`;
-    const ext=!u||it.tipo==='liquidez'?'':it.tipo==='accion'?cedCell(u.o):it.tipo==='fondo'?'':`vence ${rfFmtD(u.venc)}`;
+    const ind=it.tipo==='liquidez'?'<span class="note">dólares disponibles para la próxima compra</span>':it.tipo==='caucion'?`<span class="note">vence ${rfFmtD(it.vence)}; después pasa al ${/\$ /.test(it.t)&&!/US\$/.test(it.t)?'BCMMA':'ESTRA1'}</span>`:!u?'<span class="note">sin datos ahora</span>':it.tipo==='accion'?vdChip(u.o):it.tipo==='fondo'?(u.tea!=null?`rindió ${fmt(u.tea*100,1)}% anual (último mes)`:'—'):`TIR <b class="${u.tir>=0?'up':'down'}">${fmt(u.tir*100,2)}%</b> · dur. ${fmt(u.dur,2)}`;
+    const ext=!u||it.tipo==='liquidez'||it.tipo==='caucion'?'':it.tipo==='accion'||it.tipo==='cedear'?cedCell(u.o):it.tipo==='fondo'?'':`vence ${rfFmtD(u.venc)}`;
     return `<tr${it.tipo==='accion'&&u?` data-t="${esc(u.t)}" style="cursor:pointer"`:''}><td><i class="car-dot" style="background:${CUP_COL[i%CUP_COL.length]}"></i><b>${esc(u?u.t:it.t)}</b><div class="note">${esc(u?u.nom:'')}</div></td><td>${CAR_TIPO[it.tipo]||it.tipo}</td><td class="n"><b>${fmt(+it.pct||0,1)}%</b></td><td class="n">US$ ${fmt(r.m,0)}</td><td class="n">${r.q!=null?fmt(r.q,0)+(it.tipo==='accion'?' acc.':' VN'):'—'}</td><td class="n">${u&&u.px?fmt(u.px,2):'—'}</td><td>${ind}</td><td>${ext}</td></tr>`}).join('');
   $('#car-view').innerHTML=`<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:260px"><h2 style="margin:0">${esc(c.nombre)}</h2>${c.desc?`<p class="sub" style="margin:4px 0 0">${esc(c.desc)}</p>`:''}</div>
     <label class="note" style="display:flex;gap:6px;align-items:center">Monto US$ <input type="number" id="car-monto" value="${S.car.monto}" step="1000" min="0" class="car-in" style="width:130px"></label>
@@ -2923,7 +2925,7 @@ function renderCar(){
   if(S.car.edit)renderCarEd();
 }
 /* ---------- movimientos (sólo carteras Conservadora / Moderada / Audaz) ---------- */
-const MOV_T={compra:'Compra',venta:'Venta',aporte:'Aporte',retiro:'Retiro'};
+const MOV_T={compra:'Compra',venta:'Venta',caucion:'Caución',aporte:'Aporte',retiro:'Retiro'};
 const MOV_CL={cedear:'CEDEAR',accion:'Acción EE.UU.',sob:'Bono soberano',on:'ON',fondo:'Fondo'};
 const MOV_PH={cedear:'US$ por CEDEAR',accion:'US$ por acción',sob:'US$ c/100 VN',on:'US$ c/100 VN',fondo:'cuotaparte'};
 /* reconoce el papel y sugiere la clase (y el ratio si es CEDEAR) */
@@ -2945,18 +2947,24 @@ function carMovsHTML(c){const sg=c.seguimiento||{inicio:'2026-01-01',capital:100
     <div class="tw" style="margin-top:8px"><table class="cup-tb mv-tb"><thead><tr><th>Fecha</th><th>Operación</th><th>Papel</th><th>Tipo</th><th class="n">Cantidad</th><th class="n">Precio US$</th><th class="n">Monto US$</th><th></th></tr></thead><tbody>${M.map((m,i)=>{const fl=m.tipo==='aporte'||m.tipo==='retiro',mt=movMonto(m);return `<tr>
       <td><input type="date" class="car-in mv" data-i="${i}" data-k="f" value="${esc(m.f||'')}"></td>
       <td><select class="car-in mv mv-op ${m.tipo}" data-i="${i}" data-k="tipo">${Object.entries(MOV_T).map(([k,l])=>`<option value="${k}"${m.tipo===k?' selected':''}>${l}</option>`).join('')}</select></td>
+      ${m.tipo==='caucion'?(()=>{const mo=+m.monto||0,tn=+m.tna||0,dd=+m.dias||0,fin=new Date(+rfPd(m.f||'2026-01-01')+dd*864e5).toISOString().slice(0,10),it=mo*tn/100*dd/365,sy=m.mon==='USD'?'US$ ':'$ ';
+        return `<td><select class="car-in mv" data-i="${i}" data-k="mon"><option value="ARS"${m.mon!=='USD'?' selected':''}>en pesos</option><option value="USD"${m.mon==='USD'?' selected':''}>en dólares</option></select></td>
+        <td><span class="cup-pw">TNA <input type="number" class="car-in mv" data-i="${i}" data-k="tna" value="${m.tna||''}" step="0.5" style="width:70px;text-align:right"> %</span></td>
+        <td class="n"><span class="cup-pw"><input type="number" class="car-in mv" data-i="${i}" data-k="dias" value="${m.dias||''}" step="1" min="1" style="width:60px;text-align:right"> días</span></td>
+        <td class="n"><input type="number" class="car-in mv" data-i="${i}" data-k="monto" value="${m.monto||''}" step="1000" placeholder="monto ${m.mon==='USD'?'US$':'$'}" style="width:120px;text-align:right"></td>
+        <td class="n">${mo&&tn&&dd?`<b>${sy}${fmt(mo+it,0)}</b><div class="note" style="font-size:11px">interés ${sy}${fmt(it,0)} · vence ${rfFmtD(fin)}<br>después → ${m.mon==='USD'?'ESTRA1':'BCMMA'}</div>`:'<span class="note">—</span>'}</td>`})():`
       <td>${fl?'<span class="note">—</span>':`<input class="car-in mv" data-i="${i}" data-k="t" value="${esc(m.t||'')}" placeholder="KO, AL30, YMCXO…" style="width:100px;text-transform:uppercase">`}</td>
       <td>${fl?'':`<select class="car-in mv" data-i="${i}" data-k="clase">${Object.entries(MOV_CL).map(([k,l])=>`<option value="${k}"${m.clase===k?' selected':''}>${l}</option>`).join('')}</select>${m.clase==='cedear'?`<div class="note" style="font-size:11px">ratio <input type="number" class="car-in mv" data-i="${i}" data-k="ratio" value="${m.ratio||''}" step="0.5" style="width:56px;padding:2px 5px"> : 1</div>`:''}`}</td>
       <td class="n">${fl?'':m.tipo==='venta'&&m.todo?'<span class="note">toda la tenencia</span>':`<input type="number" class="car-in mv" data-i="${i}" data-k="cant" value="${m.cant||''}" step="1" placeholder="${m.clase==='sob'||m.clase==='on'?'nominales':m.clase==='fondo'?'cuotapartes':'cantidad'}" style="width:110px;text-align:right">`}${m.tipo==='venta'?`<div class="note" style="font-size:11px"><label><input type="checkbox" class="mv" data-i="${i}" data-k="todo"${m.todo?' checked':''}> vender todo</label></div>`:''}</td>
       <td class="n">${fl?'':`<input type="number" class="car-in mv" data-i="${i}" data-k="precio" value="${m.precio||''}" step="0.01" placeholder="${MOV_PH[m.clase]||''}" style="width:110px;text-align:right">`}</td>
-      <td class="n">${fl?`<input type="number" class="car-in mv" data-i="${i}" data-k="usd" value="${m.usd||''}" step="1000" style="width:120px;text-align:right">`:mt!=null?'<b>'+fmt(mt,2)+'</b>'+(m.clase==='fondo'&&m.t==='BCMMA'?' <span class="note">en $</span>':''):'<span class="note">—</span>'}</td>
+      <td class="n">${fl?`<input type="number" class="car-in mv" data-i="${i}" data-k="usd" value="${m.usd||''}" step="1000" style="width:120px;text-align:right">`:mt!=null?'<b>'+fmt(mt,2)+'</b>'+(m.clase==='fondo'&&m.t==='BCMMA'?' <span class="note">en $</span>':''):'<span class="note">—</span>'}</td>`}
       <td><button class="chip mv-x" data-i="${i}">✕</button></td></tr>`}).join('')||'<tr><td colspan="8" class="note" style="padding:12px">Todavía no hay operaciones. Tocá "+ Operación" para cargar la primera compra.</td></tr>'}</tbody></table></div>
     ${(()=>{const H={},err=[];M.forEach(m=>{if(m.tipo!=='compra'&&m.tipo!=='venta'||!m.t)return;const k=m.t,h=H[k]||(H[k]={q:0,cl:m.clase});const q=+m.cant||0;
         if(m.tipo==='compra')h.q+=q;else{if(m.todo)h.q=0;else{if(q>h.q+1e-6)err.push(`${rfFmtD(m.f)}: venta de ${fmt(q,0)} ${k} y había ${fmt(h.q,0)}`);h.q=Math.max(0,h.q-q)}}});
       const un=cl=>cl==='sob'||cl==='on'?'VN':cl==='fondo'?'cuotapartes':cl==='cedear'?'CEDEARs':'acciones';
       const L=Object.entries(H).filter(([k,h])=>h.q>1e-6);
       return `<div class="mv-hold"><b>Tenencia después de estas operaciones:</b> ${L.length?L.map(([k,h])=>`<span class="tag">${esc(k)} · ${fmt(h.q,h.q%1?2:0)} ${un(h.cl)}</span>`).join(' '):'<span class="note">ninguna</span>'}${err.length?`<div class="down" style="margin-top:4px">⚠ ${err.map(esc).join(' · ')}</div>`:''}<div class="note" style="margin-top:4px">✓ Cada cambio se guarda solo al salir del casillero (no hace falta confirmar). Para publicarlo: <b>Descargar carteras.json</b> y subirlo a GitHub.</div></div>`})()}
-    <p class="note" style="margin-top:6px"><b>Cómo cargar:</b> fecha valor, operación, papel (al escribirlo se reconoce si es CEDEAR, bono, ON o fondo), cantidad y precio tal como figuran en la boleta. Precios en <b>dólares MEP</b>: CEDEARs por CEDEAR, acciones del exterior por acción, bonos y ONs <b>cada 100 nominales</b>, fondos por cuotaparte (BCMMA en pesos, como lo muestra Balanz). Si dejás el precio vacío se usa el cierre de ese día (en ONs es obligatorio). Las compras salen de la liquidez y las ventas vuelven a ella; para sumar plata nueva usá "Aporte". Cuando termines: <b>Descargar carteras.json</b> y subirlo a GitHub.</p></div>`}
+    <p class="note" style="margin-top:6px"><b>Cómo cargar:</b> fecha valor, operación, papel (al escribirlo se reconoce si es CEDEAR, bono, ON o fondo), cantidad y precio tal como figuran en la boleta. Precios en <b>dólares MEP</b>: CEDEARs por CEDEAR, acciones del exterior por acción, bonos y ONs <b>cada 100 nominales</b>, fondos por cuotaparte (BCMMA en pesos, como lo muestra Balanz). Si dejás el precio vacío se usa el cierre de ese día (en ONs es obligatorio). Las compras salen de la liquidez y las ventas vuelven a ella (si falta liquidez se rescata solo del ESTRA1 y después del BCMMA); para sumar plata nueva usá "Aporte". <b>Caución:</b> moneda, TNA, días y monto; al vencer, capital + interés pasan solos al <b>BCMMA</b> (pesos) o al <b>ESTRA1</b> (dólares). La caución en pesos usa primero los pesos del BCMMA y, si no alcanzan, dólares al MEP del día. Cuando termines: <b>Descargar carteras.json</b> y subirlo a GitHub.</p></div>`}
 function carMovsBind(c,save){
   const ensure=()=>{if(!c.seguimiento)c.seguimiento={inicio:'2026-01-01',capital:100000,vara:['conservadora','moderada','audaz'].includes(c.id)?c.id:'moderada',movs:[]};return c.seguimiento};
   $('#mv-ini').onchange=()=>{ensure().inicio=$('#mv-ini').value||'2026-01-01';save()};
@@ -2965,11 +2973,13 @@ function carMovsBind(c,save){
   $('#mv-add').onclick=()=>{const sg=ensure(),last=sg.movs[sg.movs.length-1];sg.movs.push({f:last?last.f:sg.inicio,tipo:'compra',clase:'cedear',t:''});save()};
   const sg=c.seguimiento;if(!sg)return;
   $$('#car-editor .mv').forEach(e=>e.onchange=()=>{const m=sg.movs[+e.dataset.i],k=e.dataset.k;let v=e.type==='checkbox'?e.checked:e.value;
-    if(['usd','precio','cant','ratio'].includes(k))v=v===''?null:Math.max(0,+v);if(k==='t')v=String(v).trim().toUpperCase();
+    if(['usd','precio','cant','ratio','tna','dias','monto'].includes(k))v=v===''?null:Math.max(0,+v);if(k==='t')v=String(v).trim().toUpperCase();
     if(v===null||v==='')delete m[k];else m[k]=v;
     if(k==='t'&&v){const g=carGuess(v);if(g){m.clase=g.clase;if(g.t)m.t=g.t;if(g.ratio)m.ratio=g.ratio;else if(g.clase!=='cedear')delete m.ratio}}
     if(k==='clase'&&v==='cedear'&&!m.ratio&&m.t){const g=carGuess(m.t);if(g&&g.ratio)m.ratio=g.ratio}
-    if(k==='tipo'&&(v==='aporte'||v==='retiro')){['clase','t','precio','todo','cant','ratio'].forEach(x=>delete m[x])}
+    if(k==='tipo'&&(v==='aporte'||v==='retiro'||v==='caucion')){['clase','t','precio','todo','cant','ratio'].forEach(x=>delete m[x])}
+    if(k==='tipo'&&v==='caucion'){m.mon=m.mon||'ARS';m.dias=m.dias||1;delete m.usd}
+    if(k==='tipo'&&v!=='caucion'){['mon','tna','dias','monto'].forEach(x=>delete m[x])}
     if(k==='tipo'&&v!=='venta')delete m.todo;if(k==='tipo'&&(v==='compra'||v==='venta')&&!m.clase)m.clase='cedear';
     sg.movs.sort((a,b)=>a.f<b.f?-1:a.f>b.f?1:0);e.blur();save()});
   $$('#car-editor .mv-x').forEach(e=>e.onclick=()=>{sg.movs.splice(+e.dataset.i,1);save()});
@@ -3048,7 +3058,7 @@ $('#car-edit').classList.toggle('hide',!S.car.admin);
 $('#car-edit').onclick=()=>{S.car.edit=!S.car.edit;renderCar()};
 function carPDF(){
   const X=S.carLast;if(!X)return;const {c,C}=X,cli=(S.car.cli||'').trim(),hoy=rfToday().toISOString().slice(0,10).split('-').reverse().join('/');
-  const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;const ind=!u||it.tipo==='liquidez'?'':it.tipo==='accion'?(u.o.verdict||''):it.tipo==='fondo'?(u.tea!=null?'rindió '+fmt(u.tea*100,1)+'% anual':''):'TIR '+fmt(u.tir*100,2)+'% · vence '+rfFmtD(u.venc);
+  const rows=C.R.map((r,i)=>{const u=r.u,it=r.it;const ind=!u||it.tipo==='liquidez'?'':it.tipo==='caucion'?'vence '+rfFmtD(it.vence):it.tipo==='accion'||it.tipo==='cedear'?(u.o.verdict||''):it.tipo==='fondo'?(u.tea!=null?'rindió '+fmt(u.tea*100,1)+'% anual':''):'TIR '+fmt(u.tir*100,2)+'% · vence '+rfFmtD(u.venc);
     return `<tr><td><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${CUP_COL[i%CUP_COL.length]};margin-right:5px"></i><b class="tk">${esc(u?u.t:it.t)}</b> <span class="mu">${esc(u?u.nom:'')}</span></td><td>${CAR_TIPO[it.tipo]}</td><td class="n b">${fmt(+it.pct||0,1)}%</td><td class="n">US$ ${fmt(r.m,0)}</td><td class="n">${r.q!=null?fmt(r.q,0):'—'}</td><td class="n">${u&&u.px?fmt(u.px,2):'—'}</td><td>${esc(ind)}</td></tr>`}).join('');
   const kp=[['Monto','US$ '+fmt(S.car.monto,0)],['Renta variable',fmt(C.rv,0)+'%'],['Renta fija',fmt(C.rf,0)+'%'],...(C.fo?[['Fondos',fmt(C.fo,0)+'%']]:[]),...(C.tir!=null?[['TIR renta fija',fmt(C.tir*100,2)+'%']]:[]),...(C.cup?[['Cupones 12 meses','US$ '+fmt(C.cup,0)]]:[])];
   const ind=Object.entries(C.ind).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="ib"><span>${esc(k)}</span><span class="bar"><i style="width:${Math.min(100,v).toFixed(0)}%"></i></span><b>${fmt(v,1)}%</b></div>`).join('');
