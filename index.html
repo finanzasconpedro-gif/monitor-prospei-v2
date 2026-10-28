@@ -77,6 +77,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 [data-rfs="plan"].on{background:#0e9aa7!important;border-color:#0e9aa7!important;color:#fff!important}.plan-in input,.plan-in select,#pl-cap,#pl-q,.pl-pick{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}.pl-pick{max-width:360px}.plan-line{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.plan-line>div:first-child b{font-size:18px}.plan-kv{display:flex;flex-direction:column;gap:2px}.plan-kv span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.plan-kv b{font-size:16px}#pl-mmn,#pl-usdn,#pl-usd{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}
 .plan-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:4px;margin-top:6px}
 .car-tabs{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}.car-g{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.car-g>.note{text-transform:uppercase;letter-spacing:.05em;font-size:11px;margin-right:2px}
+.rf-tip{position:fixed;z-index:200;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:2px}.rf-tip span{color:var(--muted)}.rf-tip em{font-style:normal;font-size:11px;color:var(--accent)}.rf-tip.hide{display:none}.rf-dot:hover circle{stroke:var(--ink);stroke-width:2.5}
 .car-perf{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px}.car-mv{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}.mv-tb td{padding:4px 5px;vertical-align:top}.mv-hold{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;line-height:1.9}.mv-op.compra{color:var(--up)}.mv-op.venta{color:var(--down)}.mv-tb .car-in{padding:5px 7px}
 .car-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}.car-in{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit}#car-edit.on{background:#551CE3;border-color:#551CE3;color:#fff}
 .cup-cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:12px}.cup-m{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}.cup-m{border:1px solid #2b4a8a!important;box-shadow:0 2px 8px rgba(0,0,0,.12)}.cup-mh{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:linear-gradient(90deg,#551CE3,#1d4ed8);color:#fff}.cup-mh b{font-size:15px;letter-spacing:.02em}.cup-mh b span{font-weight:500;opacity:.8}.cup-mh small{font-size:11.5px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:10px}
@@ -2341,9 +2342,10 @@ function rfChart(el,pts,opt){
   let c='';(opt.fits||[]).forEach(f=>{const PP=f==='*'?pts:pts.filter(p=>p.g===f);const fn=rfFit(PP);if(!fn)return;let d='';const fx0=Math.max(0.12,Math.min(...PP.map(p=>p.x))*0.85),fx1=Math.max(...PP.map(p=>p.x))*1.03;
     for(let i=0;i<=40;i++){const v=fx0+(fx1-fx0)*i/40,yy=fn(v);if(yy<y0||yy>y1)continue;d+=(d?'L':'M')+X(v).toFixed(1)+','+Y(yy).toFixed(1)}
     if(d)c+=`<path d="${d}" fill="none" stroke="${RF_COL[f]||'var(--muted)'}" stroke-width="1.5" stroke-dasharray="5 4" opacity=".8"/>`});
-  const dots=pts.map(p=>`<g><circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${p.g==='Simulado'?7:(pts.length>40?4.5:6)}" fill="${RF_COL[p.g]||'#888'}" stroke="var(--card)" stroke-width="2"><title>${esc(p.t)} · ${opt.tip(p)}</title></circle>${pts.length<=(opt.maxLbl||40)||p.g==='Simulado'?`<text x="${X(p.x).toFixed(1)}" y="${(Y(p.y)-9).toFixed(1)}" font-size="10.5" font-weight="600" fill="${RF_COL[p.g]||'var(--ink)'}" text-anchor="middle">${esc(p.t)}</text>`:''}</g>`).join('');
+  const dots=pts.map(p=>`<g class="rf-dot" data-rt="${esc(p.t)}" data-tip="${esc(p.t+' · '+opt.tip(p))}"${opt.kind&&p.g!=='Simulado'?` data-rk="${opt.kind}" style="cursor:pointer"`:''}><circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${p.g==='Simulado'?7:(pts.length>40?4.5:6)}" fill="${RF_COL[p.g]||'#888'}" stroke="var(--card)" stroke-width="2"><title>${esc(p.t)} · ${opt.tip(p)}</title></circle>${pts.length<=(opt.maxLbl||40)||p.g==='Simulado'?`<text x="${X(p.x).toFixed(1)}" y="${(Y(p.y)-9).toFixed(1)}" font-size="10.5" font-weight="600" fill="${RF_COL[p.g]||'var(--ink)'}" text-anchor="middle">${esc(p.t)}</text>`:''}</g>`).join('');
   const leg=Object.keys(opt.leg||{}).map(k=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><i style="width:10px;height:10px;border-radius:50%;background:${RF_COL[k]};display:inline-block"></i>${esc(k)}</span>`).join('');
   el.innerHTML=`<div class="note" style="margin:2px 0 4px">${leg}${opt.legNote||''}</div><svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}${c}${dots}</svg>`;
+  rfDotsBind(el);
 }
 function rfHeat(v,mx){mx=mx||0.3;if(v>=0){const a=Math.min(1,v/mx);return `hsl(${55+65*a} 62% ${90-28*a}%)`}const a=Math.min(1,-v/(mx*0.4));return `hsl(${45-45*a} 85% ${86-22*a}%)`}
 function renderRF(){
@@ -2365,7 +2367,7 @@ function renderRF(){
   // curva con precio MEP siempre (comparable con Balanz)
   const cur0=S.rf.cur;S.rf.cur='mep';const rm=rfRowsSob();S.rf.cur=cur0;
   const pts=rm.filter(inF).map(r=>({t:r.t,x:r.dur,y:r.tir,g:r.fam})).concat(S.rf.sim.map(s=>({t:s.t,x:s.d,y:s.y,g:'Simulado'})));
-  rfChart($('#rf-curve'),pts,{fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['Bonares','Globales'],leg:{Bonares:1,Globales:1,Bopreal:1,...(S.rf.sim.length?{Simulado:1}:{})},tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
+  rfChart($('#rf-curve'),pts,{kind:'sob',fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['Bonares','Globales'],leg:{Bonares:1,Globales:1,Bopreal:1,...(S.rf.sim.length?{Simulado:1}:{})},tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
   // spread por legislación
   const bm={};rm.forEach(r=>bm[r.t]=r);
   const sp=rm.filter(r=>r.fam==='Bonares'&&r.pair&&bm[r.pair]).map(r=>({a:r,g:bm[r.pair]})).filter(x=>x.a.tir!=null&&x.g.tir!=null);
@@ -2395,7 +2397,7 @@ function renderRF(){
     {k:'dnext',h:'Próx. pago',n:1,f:o=>o.dnext==null?'—':o.dnext+'d'},
     {k:'ley',h:'Ley',f:o=>esc(o.ley)},
     {k:'vol',h:'Volumen',n:1,f:o=>fmtC(o.vol)}];
-  table($('#tb-rfs'),'rfs',cols,T);
+  table($('#tb-rfs'),'rfs',cols,T);rfRowsBind('#tb-rfs','sob');
   $('#rf-n').textContent=T.length+' instrumentos';
   $('#rf-foot').textContent=cur==='ars'?'Precios en pesos; la TIR se calcula sobre el precio en pesos pasado a dólares al MEP de referencia.':'Precios en dólares '+(cur==='mep'?'MEP':'cable')+' por cada 100 de valor nominal. Fecha de liquidación: '+rfFmtD(rfSettle().toISOString().slice(0,10))+'.';
   S.rfLastRows=T;
@@ -2415,7 +2417,7 @@ function renderRFTasa(){
   const R=rows.filter(r=>!S.rf.tfH||r.venc.slice(0,7)<=S.rf.tfH);
   const V=R.filter(r=>r.tem!=null);
   $('#rf-tem').textContent=V.length?fmt(V.reduce((a,r)=>a+r.tem,0)/V.length*100,2)+'%':'—';
-  rfChart($('#rf-tf-curve'),V.map(r=>({t:r.t,x:r.dias,y:r.tem,g:r.fam})),{x0:0,fy:v=>fmt(v*100,2)+'%',fx:v=>fmt(v,0)+'d',xl:'Días al vencimiento',fits:['*'],leg:{LECAP:1,BONCAP:1},
+  rfChart($('#rf-tf-curve'),V.map(r=>({t:r.t,x:r.dias,y:r.tem,g:r.fam})),{kind:'tf',x0:0,fy:v=>fmt(v*100,2)+'%',fx:v=>fmt(v,0)+'d',xl:'Días al vencimiento',fits:['*'],leg:{LECAP:1,BONCAP:1},
     tip:p=>`TEM ${fmt(p.y*100,2)}% · ${fmt(p.x,0)} días`});
   // curva de ajuste única (todas las letras)
   // carry trade
@@ -2431,7 +2433,7 @@ function renderRFTasa(){
     {k:'vf',h:'Valor final',n:1,f:o=>fmt(o.vf,2)},{k:'tem',h:'TEM',n:1,f:o=>o.tem==null?'—':`<b>${fmt(o.tem*100,2)}%</b>`},
     {k:'tna',h:'TNA',n:1,f:o=>o.tna==null?'—':fmt(o.tna*100,2)+'%'},{k:'tea',h:'TEA',n:1,f:o=>o.tea==null?'—':fmt(o.tea*100,2)+'%'},
     {k:'rend',h:'Rend. directo',n:1,f:o=>o.rend==null?'—':fmt(o.rend*100,2)+'%'},{k:'vol',h:'Volumen',n:1,f:o=>fmtC(o.vol)}];
-  table($('#tb-rfl'),'rfl',cols,T);$('#rf-tf-n').textContent=T.length+' instrumentos';S.rfLastTF=T;
+  table($('#tb-rfl'),'rfl',cols,T);rfRowsBind('#tb-rfl','tf');$('#rf-tf-n').textContent=T.length+' instrumentos';S.rfLastTF=T;
 }
 function rfCSV(rows,cols,name){
   const esc2=v=>{const s=v==null?'':String(v);return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
@@ -2493,7 +2495,7 @@ function renderON(){
   const inT=r=>r.tir!=null&&(tmin==null||r.tir*100>=tmin)&&(tmax==null||r.tir*100<=tmax)&&(dmin==null||r.dur>=dmin)&&(dmax==null||r.dur<=dmax);
   const rm=cur==='mep'?rows:onRows('mep');
   const pts=rm.filter(r=>inF(r)&&inT(r)&&r.dur>0.05).map(r=>({t:r.t,x:r.dur,y:r.tir,g:r.g})).concat(S.rf.onSim.map(s=>({t:s.t,x:s.d,y:s.y,g:'Simulado'})));
-  rfChart($('#on-curve'),pts,{fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['*'],maxLbl:45,leg:{'Ley Arg.':1,'Ley NY':1,...(S.rf.onSim.length?{Simulado:1}:{})},
+  rfChart($('#on-curve'),pts,{kind:'on',fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['*'],maxLbl:45,leg:{'Ley Arg.':1,'Ley NY':1,...(S.rf.onSim.length?{Simulado:1}:{})},
     legNote:pts.length>45?' <span class="note">· pasá el mouse por un punto para ver el ticker</span>':'',tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
   const q=($('#on-q').value||'').trim().toUpperCase(),sym=cur==='ars'?'$ ':'US$ ';
   const T=rows.filter(r=>inF(r)&&(r.tir==null||inT(r)||(tmin==null&&tmax==null&&dmin==null&&dmax==null))&&(!q||r.t.includes(q)||(r.sym||'').includes(q)||(r.emp||'').toUpperCase().includes(q)));
@@ -2515,7 +2517,7 @@ function renderON(){
     {k:'ley',h:'Ley',f:o=>esc(o.ley||'—')},
     {k:'lam',h:'Lámina mín.',n:1,f:o=>o.lam?esc(o.lam):'—'},
     {k:'vol',h:'Volumen',n:1,f:o=>fmtC(o.vol)}];
-  table($('#tb-rfo'),'rfo',cols,T);
+  table($('#tb-rfo'),'rfo',cols,T);rfRowsBind('#tb-rfo','on');
   $('#on-n').textContent=T.length+' instrumentos';
   $('#on-foot').textContent=(cur==='ars'?'Precios en pesos; la TIR se calcula pasándolos a dólares al MEP de referencia. ':'Precios en dólares '+(cur==='mep'?'MEP':'cable')+' por cada 100 de valor nominal. ')+'Flujos de pago según la ficha de cada ON (Rava), actualizados el '+rfFmtD(S.onDef.updated)+'. Liquidación: '+rfFmtD(rfSettle().toISOString().slice(0,10))+'.';
   S.onLast=T;
@@ -2568,7 +2570,7 @@ function renderRFP(kind){
   const inF=r=>S.rf.rpFam[r.fam]&&(r.tir==null||((tmin==null||r.tir*100>=tmin)&&(tmax==null||r.tir*100<=tmax)&&(dmin==null||r.dur>=dmin)&&(dmax==null||r.dur<=dmax)));
   const pts=rows.filter(r=>inF(r)&&r.tir!=null&&r.dur>0.02&&Math.abs(r.tir)<(TM?1.5:0.6)).map(r=>({t:r.t,x:r.dur,y:r.tir,g:r.fam}));
   const lg={};fams.forEach(f=>lg[f]=1);
-  rfChart($('#rp-curve'),pts,{fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['*'],leg:lg,tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
+  rfChart($('#rp-curve'),pts,{kind:kind,fy:v=>fmt(v*100,1)+'%',fx:v=>fmt(v,1),xl:'Duration (años)',fits:['*'],leg:lg,tip:p=>`TIR ${fmt(p.y*100,2)}% · duration ${fmt(p.x,2)}`});
   const q=($('#rp-q').value||'').trim().toUpperCase();const T=rows.filter(r=>inF(r)&&(!q||r.t.includes(q)));
   const cols=[{k:'t',h:'Ticker',f:o=>`<b title="${esc(o.nombre||'')}">${o.t}</b>`},{k:'fam',h:'Familia',f:o=>`<span class="rf-tag" style="color:${RF_COL[o.fam]};border-color:${RF_COL[o.fam]}">${esc(o.fam)}</span>`},
     {k:'px',h:'Precio',n:1,f:o=>o.px?'$ '+fmt(o.px,2):'—'},{k:'chg',h:'Var %',n:1,f:o=>o.chg==null?'—':`<span class="${cls(o.chg)}">${pct(o.chg,2)}</span>`},
@@ -2576,7 +2578,7 @@ function renderRFP(kind){
     {k:'tir',h:{cer:'TIR real',dl:'TIR USD',tamar:'TIR (TEA)'}[kind],n:1,f:o=>o.tir==null?'—':`<b>${fmt(o.tir*100,2)}%</b>`},
     ...(TM?[{k:'tem',h:'TEM',n:1,f:o=>o.tem==null?'—':fmt(o.tem*100,2)+'%'}]:[{k:'vt',h:'Valor téc.',n:1,f:o=>o.vt==null?'—':fmt(o.vt,2)},{k:'par',h:'Paridad',n:1,f:o=>o.par==null?'—':fmt(o.par*100,2)+'%'}]),
     {k:'dur',h:'Duration',n:1,f:o=>o.dur==null?'—':fmt(o.dur,2)},{k:'md',h:'MD',n:1,f:o=>o.md==null?'—':fmt(o.md,2)},{k:'vol',h:'Volumen',n:1,f:o=>fmtC(o.vol)}];
-  table($('#tb-rfp'),'rfp',cols,T);$('#rp-n').textContent=T.length+' instrumentos';
+  table($('#tb-rfp'),'rfp',cols,T);rfRowsBind('#tb-rfp',kind);$('#rp-n').textContent=T.length+' instrumentos';
   $('#rp-foot').textContent='Precios en pesos por cada 100 de valor nominal. Flujos de pago según la ficha de cada bono (Rava), actualizados el '+rfFmtD(D.updated)+'. Liquidación: '+rfFmtD(st.toISOString().slice(0,10))+'.';
   S.rpLast=T;
 }
@@ -2836,6 +2838,58 @@ $('#pl-pdf').onclick=planPDF;
 $('#pl-mmn').onchange=()=>{S.plan.mmName=$('#pl-mmn').value.trim()||S.plan.mmName;planSave();renderPlan()};
 $('#pl-x-add-b').onclick=()=>{const B=planBoncer();if(!B.length){alert('Todavía no hay precios de Boncer.');return}const used=new Set(S.plan.extra.map(x=>x.id));const b=B.slice().reverse().find(z=>!used.has('B:'+z.t))||B[B.length-1];S.plan.extra.push({id:'B:'+b.t,amt:1000000});planSave();renderPlan()};
 $('#pl-x-add-f').onclick=()=>{const used=new Set(S.plan.extra.map(x=>x.id));const k=['ESTRA3','ESTRA1'].find(z=>!used.has('F:'+z));if(!k){alert('Ya están los dos fondos.');return}S.plan.extra.push({id:'F:'+k,amt:10000});planSave();renderPlan()};
+/* ---------- FICHA DE UN BONO / ON / LETRA (clic en la curva o en la tabla) ---------- */
+function rfTipEl(){let t=document.getElementById('rf-tip');if(!t){t=document.createElement('div');t.id='rf-tip';t.className='rf-tip hide';document.body.appendChild(t)}return t}
+function rfDotsBind(el){const tip=rfTipEl();
+  el.querySelectorAll('.rf-dot').forEach(g=>{
+    g.onmouseenter=e=>{tip.innerHTML=`<b>${esc(g.dataset.rt)}</b><span>${esc(g.dataset.tip.split(' · ').slice(1).join(' · '))}</span>${g.dataset.rk?'<em>clic para ver la ficha</em>':''}`;tip.classList.remove('hide')};
+    g.onmousemove=e=>{tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+12)+'px'};
+    g.onmouseleave=()=>tip.classList.add('hide');
+    if(g.dataset.rk)g.onclick=()=>{tip.classList.add('hide');rfFicha(g.dataset.rk,g.dataset.rt)};
+  })}
+function rfRowsBind(sel,kind){$$(sel+' tbody tr[data-t]').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('button,input,select,a'))return;rfFicha(kind,tr.dataset.t)};tr.style.cursor='pointer'})}
+S.rfVN=100;
+function rfFicha(kind,t){
+  const st=rfSettle(),sts=st.toISOString().slice(0,10),hoy=rfToday();let d=null;
+  // datos de cada tipo: encabezado, métricas con el precio en vivo y flujo futuro [fecha, interés, amortización] cada 100 VN
+  if(kind==='sob'){const r=rfRowsSob().find(x=>x.t===t);if(!r)return;const b=r.def;
+    d={t,nom:(b.fam==='Bopreal'?'BOPREAL · BCRA':b.fam+' · Tesoro Nacional'),tags:[b.ley==='NY'?'Ley NY':'Ley Arg.',b.freq,b.cpn?'Cupón '+b.cpn:null],cur:S.rf.cur==='ars'?'$ ':'US$ ',px:r.px,
+      kp:[['TIR',r.tir!=null?fmt(r.tir*100,2)+'%':'—'],['Duration',r.dur!=null?fmt(r.dur,2):'—'],['MD',r.md!=null?fmt(r.md,2):'—'],['Paridad',r.par!=null?fmt(r.par*100,1)+'%':'—'],['Vencimiento',rfFmtD(b.venc)]],
+      fl:b.flows.filter(f=>f[0]>sts).map(f=>[f[0],f[1],f[2]]),flCur:'US$ ',note:'Flujo cada 100 nominales originales, en dólares.'}}
+  else if(kind==='on'){const r=onRows(S.rf.onCur).find(x=>x.t===t);const o=S.onDef&&S.onDef.ons.find(x=>x.t===t);if(!r||!o)return;
+    d={t:t+'O',nom:(o.emp||'')+(o.nombre?' · '+o.nombre:''),tags:[o.ley==='NY'?'Ley NY':o.ley?'Ley Arg.':null,o.mon?'Paga en '+o.mon:null,o.frec,o.cup!=null?'Cupón '+fmt(o.cup,2)+'%':null,o.calif||null,o.lam?'Lámina mín. '+o.lam:null,o.ind||null],
+      cur:S.rf.onCur==='ars'?'$ ':'US$ ',px:r.px,
+      kp:[['TIR',r.tir!=null?fmt(r.tir*100,2)+'%':'—'],['Duration',r.dur!=null?fmt(r.dur,2):'—'],['MD',r.md!=null?fmt(r.md,2):'—'],['Paridad',r.par!=null?fmt(r.par*100,1)+'%':'—'],['Vencimiento',rfFmtD(o.venc)]],
+      fl:o.flows.filter(f=>f[0]>sts).map(f=>[f[0],f[1],f[2]]),flCur:'US$ ',note:'Flujo cada 100 nominales, en dólares, según la ficha de la ON (Rava). Orientativo: verificá las condiciones de emisión.'}}
+  else if(kind==='tf'){const l=(S.rfDef.lecaps||[]).find(x=>x.t===t)||(S.rpDef?S.rpDef.bonos.filter(b=>rpKind(b)==='tf').map(b=>({t:b.t,fam:'DUAL TF/T',venc:b.flows[0][0],vf:b.flows[0][1]+b.flows[0][2]})).find(x=>x.t===t):null);if(!l)return;
+    const q=rfPick(rfQuotes(),[l.t]),px=q?q.x.c:null,dias=Math.round((rfPd(l.venc)-hoy)/RF_DAY),r=px?l.vf/px-1:null,tem=r!=null?Math.pow(1+r,30/dias)-1:null;
+    d={t,nom:l.fam,tags:['Tasa fija','Paga todo al vencimiento'],cur:'$ ',px,
+      kp:[['TEM',tem!=null?fmt(tem*100,2)+'%':'—'],['TNA',r!=null?fmt(r*365/dias*100,2)+'%':'—'],['TEA',tem!=null?fmt((Math.pow(1+tem,12)-1)*100,2)+'%':'—'],['Rend. directo',r!=null?fmt(r*100,2)+'%':'—'],['Vencimiento',rfFmtD(l.venc)+' ('+dias+'d)']],
+      fl:[[l.venc,l.vf-100,100]],flCur:'$ ',note:'Valor final cada 100 nominales (capital + intereses capitalizados).'}}
+  else{const b=S.rpDef&&S.rpDef.bonos.find(x=>x.t===t);if(!b)return;const q=rfPick(rfQuotes(),[t]),px=q?q.x.c:null,k=px?rpCalc(b,px,st):null;
+    const lab={cer:'TIR real',dl:'TIR en dólares',tamar:'TIR (TEA)'}[kind]||'TIR';
+    d={t,nom:b.nombre||'',tags:[rpFam(b),{cer:'Ajusta por CER',dl:'Dólar linked',tamar:'Tasa TAMAR'}[kind]||null],cur:'$ ',px,
+      kp:[[lab,k?fmt(k.tir*100,2)+'%':'—'],['Duration',k?fmt(k.dur,2):'—'],['MD',k?fmt(k.md,2):'—'],...(kind==='tamar'?[]:[['Valor técnico',k&&k.vt!=null?fmt(k.vt,2):'—'],['Paridad',k&&k.par!=null?fmt(k.par*100,1)+'%':'—']]),['Vencimiento',rfFmtD(b.flows[b.flows.length-1][0])]],
+      fl:b.flows.filter(f=>f[0]>sts).map(f=>[f[0],f[1],f[2]]),flCur:'$ ',note:{cer:'Flujo cada 100 nominales en pesos, ajustado por el CER de hoy (sin proyectar inflación).',dl:'Flujo cada 100 nominales en pesos, al tipo de cambio de hoy (sin proyectar devaluación).',tamar:'Flujo cada 100 nominales en pesos, con la TAMAR de hoy constante.'}[kind]||''}}
+  if(!d)return;S.rfFichaD=d;rfFichaRender();
+  $('#modal').classList.remove('hide');document.body.style.overflow='hidden';
+}
+function rfFichaRender(){const d=S.rfFichaD,vn=S.rfVN||100,k=vn/100,hoy=rfToday();
+  let res=d.fl.reduce((a,f)=>a+f[2],0);let ti=0,ta=0;
+  const rows=d.fl.map(f=>{const r0=res;res-=f[2];ti+=f[1]*k;ta+=f[2]*k;const dd=Math.round((rfPd(f[0])-hoy)/RF_DAY);
+    return `<tr><td>${rfFmtD(f[0])}</td><td class="n note">${dd}d</td><td class="n">${fmt(f[1]*k,2)}</td><td class="n">${f[2]?fmt(f[2]*k,2):'—'}</td><td class="n"><b>${fmt((f[1]+f[2])*k,2)}</b></td><td class="n note">${fmt(Math.max(0,res)*k,2)}</td></tr>`}).join('');
+  const costo=d.px?d.px*k:null;
+  $('#mbody').innerHTML=`<div class="rf-ficha"><div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><h2 style="margin:0">${esc(d.t)}</h2><span class="note">${esc(d.nom||'')}</span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${d.tags.filter(Boolean).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
+    <div class="cup-kpis"><div class="kpi"><div class="l">Precio</div><div class="v num" style="text-align:left">${d.px?d.cur+fmt(d.px,2):'—'}</div></div>${d.kp.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v num" style="text-align:left">${x[1]}</div></div>`).join('')}</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0 6px"><h3 class="cup-h" style="margin:0;flex:1">Flujo de pagos</h3>
+      <label class="note" style="display:flex;gap:6px;align-items:center">Simular <input type="number" id="rf-vn" value="${vn}" step="100" min="1" class="car-in" style="width:110px;text-align:right"> nominales</label></div>
+    <div class="tw"><table class="cup-tb"><thead><tr><th>Fecha</th><th class="n">Faltan</th><th class="n">Interés</th><th class="n">Amortización</th><th class="n">Total</th><th class="n">Capital que queda</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="note">Sin pagos futuros cargados.</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="2"><b>Total a cobrar (${d.flCur.trim()})</b></td><td class="n"><b>${fmt(ti,2)}</b></td><td class="n"><b>${fmt(ta,2)}</b></td><td class="n"><b>${fmt(ti+ta,2)}</b></td><td></td></tr></tfoot></table></div>
+    <div class="cup-kpis" style="margin-top:10px"><div class="kpi"><div class="l">Invertís hoy (${fmt(vn,0)} VN)</div><div class="v num" style="text-align:left">${costo!=null?d.cur+fmt(costo,2):'—'}</div></div><div class="kpi"><div class="l">Cobrás en total</div><div class="v num up" style="text-align:left">${d.flCur}${fmt(ti+ta,2)}</div></div>${costo!=null&&d.cur===d.flCur?`<div class="kpi"><div class="l">Ganancia sin reinvertir</div><div class="v num ${ti+ta-costo>=0?'up':'down'}" style="text-align:left">${d.cur}${fmt(ti+ta-costo,2)} <span class="note">(${pct((ti+ta)/costo-1,1)})</span></div></div>`:''}</div>
+    <p class="note" style="margin-top:8px">${esc(d.note)} Precio para liquidación ${rfFmtD(rfSettle().toISOString().slice(0,10))}.</p></div>`;
+  $('#rf-vn').onchange=()=>{S.rfVN=Math.max(1,+$('#rf-vn').value||100);setTimeout(rfFichaRender,0)};
+}
 window.addEventListener('resize',()=>{clearTimeout(S.rfRz);S.rfRz=setTimeout(renderRF,200)});
 /* ---------- CARTERAS SUGERIDAS ---------- */
 const CAR_GRUPOS=[['mixta','Carteras'],['rf','Renta fija']];
