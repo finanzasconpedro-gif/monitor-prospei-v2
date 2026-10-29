@@ -772,6 +772,11 @@ CTY_K = {}                # ajuste vigente por país y familia (se exporta en da
 VAL_REGION = {"MELI": "Brasil"}
 # Empresas que se comparan siempre contra su industria aunque tenga menos de 5 pares (su sector no se le parece)
 FORCE_IND = {"MELI"}
+# Grupos de pares a medida. Alphabet y Meta caen en "Comunicaciones", que mezcla telefónicas y cable (Verizon,
+# AT&T, Comcast: P/E de 6-8x y casi sin crecimiento). Su industria tiene pocas empresas, así que la mediana
+# salía del sector y las mostraba "caras" sin serlo. Se comparan contra las grandes tecnológicas.
+PEER_SET = {"GOOGL": "megatech", "GOOG": "megatech", "META": "megatech"}
+PEER_GRP = {"megatech": ({"GOOGL", "GOOG", "META", "AMZN", "MSFT", "AAPL", "NVDA", "NFLX"}, "las grandes tecnológicas")}
 
 
 def val_region(df):
@@ -904,6 +909,18 @@ def build(universe, prices, infos, hist=None):
                                                                           ps_pos.groupby(df.sector).transform("median"))
     df["peer_lbl"] = np.where(use_ind | (force & (ps_ind_n >= 2)), "su industria", "su sector")
     df["peer_grp"] = np.where(use_ind, df.industry, df.sector)
+    for g, (miembros, lbl) in PEER_GRP.items():
+        en = df.t.isin(miembros)
+        quien = df.t.map(PEER_SET).eq(g)
+        if not quien.any():
+            continue
+        f = df.fpe.where(en & (df.fpe > 0))
+        v = df.ps.where(en & (df.ps > 0))
+        if f.count() >= 4:
+            df.loc[quien, "sec_fpe"] = float(f.median())
+            df.loc[quien, "peer_ps"] = float(v.median()) if v.count() >= 4 else df.loc[quien, "peer_ps"]
+            df.loc[quien, "peer_lbl"] = lbl
+            df.loc[quien, "peer_grp"] = lbl
     # ---- tres miradas de valuación (negativo = más barata)
     m = df.val_model
     df["v_peer"] = peer_gap(df)
