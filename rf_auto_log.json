@@ -1,8 +1,23 @@
 {
- "fecha": "2026-10-26",
+ "fecha": "2026-10-29",
  "cargados": [],
  "vencidas_quitadas": 0,
  "detalle": [
+  {
+   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-16",
+   "t": "S26F7",
+   "tipo": "NUEVA",
+   "venc_txt": "26 DE FEBRERO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 26 DE FEBRERO DE 2027 (S26F7 - nueva) $ 3.783.368 $ 2.078.224 $ 2.078.224 2,10% (**) 28,32% $ 2.078.224 (*) Montos expresados en millones. (**) Representa la tasa efectiva mensual capitalizable desde la fecha de emisión hasta el vencimiento. b) Instrumentos licitados en pesos con ajuste por CER: INSTRUMENTOS AJUSTADOS POR CER VNO Ofertado (*) VNO Adjudicado (",
+   "venc": "2027-02-26",
+   "tem": 0.021,
+   "fam": "LECAP",
+   "estado": "datos incompletos: no se carga"
+  },
+  {
+   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-15",
+   "nota": "sin LECAP/BONCAP reconocibles"
+  },
   {
    "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-para-la-conversion-de-la-lelink-d30o6-en-el-marco-del-articulo",
    "nota": "sin LECAP/BONCAP reconocibles"
@@ -120,50 +135,6 @@
    "venc": "2027-05-31",
    "fam": "BONCAP",
    "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-11",
-   "t": "S30N6",
-   "tipo": "REAPERTURA",
-   "venc_txt": "30 DE NOVIEMBRE DE 2026",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE NOVIEMBRE DE 2026 (S30N6 - reapertura); b. LETRA DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 29 DE ENERO DE 2027 (nueva); c. BONO DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 31 DE MAYO DE 2027 (T31Y7 - reapertura); forma parte del programa de licitaciones de letras a tasa fija con frecuencia quincenal; Instrumento a licitar",
-   "venc": "2026-11-30",
-   "fam": "LECAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-11",
-   "t": "T31Y7",
-   "tipo": "REAPERTURA",
-   "venc_txt": "31 DE MAYO DE 2027",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 31 DE MAYO DE 2027 (T31Y7 - reapertura); forma parte del programa de licitaciones de letras a tasa fija con frecuencia quincenal; Instrumento a licitar en pesos con ajuste por CER: d. LETRA DEL TESORO NACIONAL EN PESOS AJUSTADA POR CER A DESCUENTO VENCIMIENTO 29 DE ENERO DE 2027 (X29E7 - reapertura); y Instrumento a licitar Dólar Linked: e. LETRA DEL TESORO N",
-   "venc": "2027-05-31",
-   "fam": "BONCAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-11",
-   "t": "S30N6",
-   "tipo": "REAPERTURA",
-   "venc_txt": "30 DE NOVIEMBRE DE 2026",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE NOVIEMBRE DE 2026 (S30N6 - reapertura) 30/11/2026 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa vigente LETRA DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 29 DE ENERO DE 2027 (nueva) 29/01/2027 Tasa efectiva Mensual que capitalizará la LECAP $ 1.000,00 Hasta el monto máximo autorizado por la nor",
-   "venc": "2026-11-30",
-   "fam": "LECAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-11",
-   "t": "T31Y7",
-   "tipo": "REAPERTURA",
-   "venc_txt": "31 DE MAYO DE 2027",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 31 DE MAYO DE 2027 (T31Y7 - reapertura) 31/05/2027 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa vigente Instrumento a licitar en pesos con ajuste por CER: Instrumento a Licitar Fecha de Vencimiento Parámetro a licitar Precio de colocación por cada VNO $ 1.000 Monto Máximo a Colocar LETRA DEL TESORO NACIONAL EN PES",
-   "venc": "2027-05-31",
-   "fam": "BONCAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-para-la-conversion-de-la-lelink-d31g6-con-vencimiento-31-de",
-   "nota": "sin LECAP/BONCAP reconocibles"
   }
  ]
 }
