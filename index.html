@@ -370,7 +370,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
         <div style="flex:1;min-width:240px"><h2>Rendimiento por sector</h2><p class="sub" style="margin:0">Variación de cada sector del S&amp;P 500 (medido con su ETF) en el período elegido. La línea punteada es el S&amp;P 500: los que la superan están liderando. Tocá un sector para ver su ficha.</p></div>
         <div class="bar" style="margin:0">
           <select id="sp-mode" title="Forma de las barras"><option value="center">Centrada en 0</option><option value="left">Todas a la derecha</option></select>
-          <button class="chip" data-sp="1">Día</button><button class="chip on" data-sp="5">Semana</button><button class="chip" data-sp="21">Mes</button><button class="chip" data-sp="63">3 meses</button><button class="chip" data-sp="126">6 meses</button><button class="chip" data-sp="252">12 meses</button>
+          <button class="chip" data-sp="1">Día</button><button class="chip on" data-sp="5">Semana</button><button class="chip" data-sp="21">Mes</button><button class="chip" data-sp="63">3 meses</button><button class="chip" data-sp="126">6 meses</button><button class="chip" data-sp="252">12 meses</button><button class="chip" data-sp="ytd" title="Desde el último cierre del año pasado">YTD</button>
         </div>
       </div>
       <div id="secperf" style="margin-top:10px"></div>
@@ -1692,7 +1692,25 @@ function scoreFv(v){return v==null?'#414554':fvCol((v-50)/50,1)}
 S.hm='r1d';S.hu='us';
 /* ---------- rendimiento por sector (barras) ---------- */
 S.sp=5;
-const SPK={1:'r1d',5:'r1w',21:'r1m',63:'r3m',126:'r6m',252:'r12m'},SPL={1:'del día',5:'de la semana',21:'del último mes',63:'de los últimos 3 meses',126:'de los últimos 6 meses',252:'de los últimos 12 meses'};
+const SPK={1:'r1d',5:'r1w',21:'r1m',63:'r3m',126:'r6m',252:'r12m'},SPL={1:'del día',5:'de la semana',21:'del último mes',63:'de los últimos 3 meses',126:'de los últimos 6 meses',252:'de los últimos 12 meses',ytd:'en lo que va del año'};
+/* YTD: ruedas de la Bolsa de Nueva York desde el 1/1 hasta 'fin' (feriados de la NYSE calculados para cualquier año) */
+function nyseHolidays(y){
+  const f=(m,d)=>new Date(Date.UTC(y,m,d)),k=x=>x.toISOString().slice(0,10);
+  const nth=(m,wd,n)=>{const d=f(m,1);d.setUTCDate(1+((wd-d.getUTCDay()+7)%7)+7*(n-1));return d};
+  const last=(m,wd)=>{const d=f(m+1,0);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()-wd+7)%7));return d};
+  const obs=d=>{const w=d.getUTCDay();if(w===6)d.setUTCDate(d.getUTCDate()-1);else if(w===0)d.setUTCDate(d.getUTCDate()+1);return d};
+  const a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,g=Math.floor((8*b+13)/25),h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),kk=c%4,
+        l=(32+2*e+2*i-h-kk)%7,mm=Math.floor((a+11*h+19*l)/433),mes=Math.floor((h+l-7*mm+90)/25),dia=(h+l-7*mm+33*mes+19)%32;
+  const gf=f(mes-1,dia);gf.setUTCDate(gf.getUTCDate()-2);
+  const ny=f(0,1);const hs=[nth(0,1,3),nth(1,1,3),gf,last(4,1),obs(f(5,19)),obs(f(6,4)),nth(8,1,1),nth(10,4,4),obs(f(11,25))];
+  if(ny.getUTCDay()!==6)hs.push(obs(ny));   // si el 1/1 cae sábado no se compensa el viernes anterior
+  return new Set(hs.map(k));
+}
+function ytdN(fin){
+  const y=+fin.slice(0,4),H=nyseHolidays(y),d=new Date(Date.UTC(y,0,1)),end=new Date(fin+'T00:00:00Z');let n=0;
+  while(d<=end){const w=d.getUTCDay(),k=d.toISOString().slice(0,10);if(w&&w<6&&!H.has(k))n++;d.setUTCDate(d.getUTCDate()+1)}
+  return n;
+}
 /* Hora de Nueva York (el mercado abre 9:30 y cierra 16:00; así no importa el cambio de horario de EE.UU.) */
 function nyNow(){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,weekday:'short'})
   .formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return {day:`${p.year}-${p.month}-${p.day}`,min:(+p.hour%24)*60+(+p.minute),wd:p.weekday}}
@@ -1738,22 +1756,23 @@ function etfRet(e,n){
 function renderSecPerf(){
   const el=$('#secperf');if(!el)return;const E=S.scr&&S.scr.etfs;if(!E||!E.length){el.innerHTML='<p class="note">Cargando…</p>';return}
   S.spLive=spLiveMap();const L=S.spLive;
-  const n=S.sp,rows=E.map(e=>({e,v:etfRet(e,n),est:!!(L&&L[e.etf]&&L[e.etf].est)})).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
-  let spy=S.scr.spy&&S.scr.spy[SPK[n]];
-  if(L&&L.SPY){const r=retN(S.scr.spy.closes,n,L.SPY);if(r!=null)spy=r}
+  const ytd=S.sp==='ytd',n=ytd?ytdN(L?nyNow().day:(S.scr.spy&&S.scr.spy.asof)||nyNow().day):S.sp,rows=E.map(e=>({e,v:etfRet(e,n),est:!!(L&&L[e.etf]&&L[e.etf].est)})).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
+  let spy=ytd?null:S.scr.spy&&S.scr.spy[SPK[n]];
+  if(ytd&&S.scr.spy){const r=retN(S.scr.spy.closes,n,L&&L.SPY);if(r!=null)spy=r}
+  else if(L&&L.SPY){const r=retN(S.scr.spy.closes,n,L.SPY);if(r!=null)spy=r}
   const nEst=rows.filter(x=>x.est).length;
   const mx=Math.max(0.005,...rows.map(x=>Math.abs(x.v)),spy!=null?Math.abs(spy):0);
   const cen=S.spMode!=='left',W=v=>Math.abs(v)/mx*(cen?50:100);
   const col=v=>{const a=Math.min(1,Math.abs(v)/mx);return v>=0?`hsl(140 ${40+25*a}% ${52-12*a}%)`:`hsl(4 ${50+25*a}% ${58-10*a}%)`};
-  el.innerHTML=`<div class="sp-chart">${rows.map(x=>{const v=x.v,lead=spy!=null&&v>spy;return `<div class="sp-row" data-etf="${esc(x.e.etf)}" title="${esc(x.e.sector)} (${esc(x.e.etf)}): ${pct(v,2)} ${SPL[n]}${spy!=null?' · S&P 500 '+pct(spy,2):''}">
+  el.innerHTML=`<div class="sp-chart">${rows.map(x=>{const v=x.v,lead=spy!=null&&v>spy;return `<div class="sp-row" data-etf="${esc(x.e.etf)}" title="${esc(x.e.sector)} (${esc(x.e.etf)}): ${pct(v,2)} ${SPL[S.sp]}${spy!=null?' · S&P 500 '+pct(spy,2):''}">
       <div class="sp-lbl">${esc(x.e.sector)} <span class="note">${esc(x.e.etf)}</span></div>
       <div class="sp-track">${cen?'<i class="sp-zero"></i>':''}${spy!=null?`<i class="sp-ref" style="left:${cen?50+(spy>=0?1:-1)*W(spy):W(spy)}%;border-color:${spy>=0?'var(--muted)':'var(--down)'}"></i>`:''}<b style="${cen?(v>=0?'left:50%':'right:50%'):'left:0'};width:${W(v)}%;background:${col(v)}"></b></div>
       <div class="sp-val ${cls(v)}">${x.est?'<span class="note" title="Estimado con las acciones del sector que cotizan en vivo">≈</span>':''}${pct(v,2)}${lead?' <span class="note">▲</span>':''}</div></div>`}).join('')}</div>
-    <p class="note" style="margin:8px 0 0">${spy!=null?`S&amp;P 500 ${SPL[n]}: <b class="${cls(spy)}">${pct(spy,2)}</b> (línea punteada${spy<0?', en rojo porque el índice bajó':''}). ▲ = le ganó al índice. ${cen?'Vista centrada: lo que queda a la derecha de la línea le ganó al S&amp;P. ':'Vista alineada: el largo es cuánto se movió; la línea sirve para comparar las verdes. '}`:''}${L?`Incluye la rueda de hoy en vivo (se actualiza cada 60 segundos${n>1?'; el período son las últimas ruedas cerradas más la de hoy':''})${nEst?'. ≈ = estimado con las acciones del sector que cotizan en vivo, ponderadas por capitalización, porque la fuente en vivo no publica ese ETF':''}${L.SPY&&L.SPY.est?'. El S&amp;P 500 también es estimado así':''}`:`Con el cierre del último análisis diario${S.scr.spy&&S.scr.spy.asof?` (rueda del ${new Date(S.scr.spy.asof+'T12:00:00').toLocaleDateString('es-AR')})`:''}${sessionLive()?'; los precios en vivo no están disponibles en este momento':''}`}.</p>`;
+    <p class="note" style="margin:8px 0 0">${spy!=null?`S&amp;P 500 ${SPL[S.sp]}: <b class="${cls(spy)}">${pct(spy,2)}</b> (línea punteada${spy<0?', en rojo porque el índice bajó':''}). ▲ = le ganó al índice. ${cen?'Vista centrada: lo que queda a la derecha de la línea le ganó al S&amp;P. ':'Vista alineada: el largo es cuánto se movió; la línea sirve para comparar las verdes. '}`:''}${L?`Incluye la rueda de hoy en vivo (se actualiza cada 60 segundos${n>1?'; el período son las últimas ruedas cerradas más la de hoy':''})${nEst?'. ≈ = estimado con las acciones del sector que cotizan en vivo, ponderadas por capitalización, porque la fuente en vivo no publica ese ETF':''}${L.SPY&&L.SPY.est?'. El S&amp;P 500 también es estimado así':''}`:`Con el cierre del último análisis diario${S.scr.spy&&S.scr.spy.asof?` (rueda del ${new Date(S.scr.spy.asof+'T12:00:00').toLocaleDateString('es-AR')})`:''}${sessionLive()?'; los precios en vivo no están disponibles en este momento':''}`}.</p>`;
   el.querySelectorAll('[data-etf]').forEach(r=>r.onclick=()=>openEtf(r.dataset.etf));
 }
 S.spMode=store('spMode')||'center';$('#sp-mode').value=S.spMode;$('#sp-mode').onchange=e=>{S.spMode=e.target.value;store('spMode',S.spMode);renderSecPerf()};
-$$('[data-sp]').forEach(b=>b.onclick=()=>{$$('[data-sp]').forEach(x=>x.classList.toggle('on',x===b));S.sp=+b.dataset.sp;renderSecPerf()});
+$$('[data-sp]').forEach(b=>b.onclick=()=>{$$('[data-sp]').forEach(x=>x.classList.toggle('on',x===b));S.sp=b.dataset.sp==='ytd'?'ytd':+b.dataset.sp;renderSecPerf()});
 function renderHeat(){
   const el=$('#heat');if(!el)return;
   if(!S.scr){el.innerHTML='<p class="note" style="color:#ccc;padding:20px">Todavía no hay análisis generado.</p>';return}
