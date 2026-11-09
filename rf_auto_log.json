@@ -1,8 +1,48 @@
 {
- "fecha": "2026-11-05",
+ "fecha": "2026-11-09",
  "cargados": [],
  "vencidas_quitadas": 0,
  "detalle": [
+  {
+   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-16",
+   "t": "S29E7",
+   "tipo": "REAPERTURA",
+   "venc_txt": "29 DE ENERO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 29 DE ENERO DE 2027 (S29E7 - reapertura); b. BONO DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE JUNIO DE 2027 (T30J7 - reapertura); Instrumentos a licitar en pesos con ajuste por CER: c. BONO DEL TESORO NACIONAL EN PESOS CERO CUPÓN CON AJUSTE POR CER VENCIMIENTO 30 DE JUNIO DE 2028 (TZX28 - reapertura); Instrumento a licitar en pesos a tasa",
+   "venc": "2027-01-29",
+   "fam": "LECAP",
+   "estado": "ya cargado"
+  },
+  {
+   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-16",
+   "t": "T30J7",
+   "tipo": "REAPERTURA",
+   "venc_txt": "30 DE JUNIO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE JUNIO DE 2027 (T30J7 - reapertura); Instrumentos a licitar en pesos con ajuste por CER: c. BONO DEL TESORO NACIONAL EN PESOS CERO CUPÓN CON AJUSTE POR CER VENCIMIENTO 30 DE JUNIO DE 2028 (TZX28 - reapertura); Instrumento a licitar en pesos a tasa variable: d. LETRA DEL TESORO NACIONAL EN PESOS A TASA TAMAR CON VENCIMIENTO 30 DE ABRIL DE 2027 (nueva); In",
+   "venc": "2027-06-30",
+   "fam": "BONCAP",
+   "estado": "ya cargado"
+  },
+  {
+   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-16",
+   "t": "S29E7",
+   "tipo": "REAPERTURA",
+   "venc_txt": "29 DE ENERO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 29 DE ENERO DE 2027 (S29E7 - reapertura); 29/01/2027 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa vigente BONO DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE JUNIO DE 2027 (T30J7 - reapertura); 30/06/2027 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa v",
+   "venc": "2027-01-29",
+   "fam": "LECAP",
+   "estado": "ya cargado"
+  },
+  {
+   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-16",
+   "t": "T30J7",
+   "tipo": "REAPERTURA",
+   "venc_txt": "30 DE JUNIO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE JUNIO DE 2027 (T30J7 - reapertura); 30/06/2027 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa vigente Instrumentos a licitar en pesos con ajuste por CER: Instrumento a Licitar Fecha de Vencimiento Parámetro a licitar Precio de colocación por cada VNO $ 1.000 Monto Máximo a Colocar BONO DEL TESORO NACIONAL EN P",
+   "venc": "2027-06-30",
+   "fam": "BONCAP",
+   "estado": "ya cargado"
+  },
   {
    "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-16",
    "t": "S26F7",
@@ -114,26 +154,6 @@
    "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 13 DE NOVIEMBRE DE 2026 (S13N6 - reapertura); 13/11/2026 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa vigente Instrumento a licitar en pesos con ajuste por CER: Instrumento a Licitar Fecha de Vencimiento Parámetro a licitar Precio de colocación por cada VNO $ 1.000 Monto Máximo a Colocar LETRA DEL TESORO NACIONAL ",
    "venc": "2026-11-13",
    "fam": "LECAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-11",
-   "t": "S30N6",
-   "tipo": "REAPERTURA",
-   "venc_txt": "30 DE NOVIEMBRE DE 2026",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE NOVIEMBRE DE 2026 (S30N6 - reapertura) $ 5.401.182 $ 5.000.000 (***) $ 6.085.000 $ 1.217,00 29,75% $ 11.504.491 LETRA DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 29 DE ENERO DE 2027 (nueva) $ 2.441.533 $ 2.379.233 $ 2.379.233 2,25% (**) 30,60% $ 2.379.233 BONO DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 31 DE MAYO DE 2027 (",
-   "venc": "2026-11-30",
-   "fam": "LECAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-11",
-   "t": "T31Y7",
-   "tipo": "REAPERTURA",
-   "venc_txt": "31 DE MAYO DE 2027",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 31 DE MAYO DE 2027 (T31Y7 - reapertura) $ 2.166.202 $ 1.974.600 $ 2.448.505 $ 1.240,00 30,69% $ 8.940.732 (*) Montos expresados en millones. (**) Representa la tasa efectiva mensual capitalizable desde la fecha de emisión hasta el vencimiento. (***) A las ofertas adjudicadas al precio de corte se les aplicó un factor de prorrateo de 51,4590990050494% b) Instr",
-   "venc": "2027-05-31",
-   "fam": "BONCAP",
    "estado": "ya cargado"
   }
  ]
