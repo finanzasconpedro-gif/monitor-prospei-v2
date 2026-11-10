@@ -385,7 +385,7 @@ def lights(r):
         e = 0
     elif pd.notna(r.earn_days) and 0 <= r.earn_days <= 21:
         e = 1
-    elif pd.notna(r.earn_days) and r.earn_days >= 0:
+    elif pd.notna(r.earn_days) and r.earn_days >= -45:     # sin balance cercano, o ya presentó (balance reciente)
         e = 2
     else:
         e = None
@@ -393,6 +393,18 @@ def lights(r):
 
 
 # ---------------------------------------------------------------- textos
+def debt_eq(inf):
+    """Deuda/patrimonio. Yahoo no informa el dato cuando la empresa no tiene deuda (Arista): si tampoco informa deuda
+    total y tiene caja, se toma como cero en lugar de "sin dato" (que dejaba la solidez en el puntaje neutro)."""
+    de = num(inf.get("debtToEquity"))
+    if de is not None:
+        return de
+    td, cash = num(inf.get("totalDebt")), num(inf.get("totalCash"))
+    if (td is None or td == 0) and cash and cash > 0 and num(inf.get("bookValue")):
+        return 0.0
+    return None
+
+
 def fx(x, d=1):
     return f"{x:.{d}f}".replace(".", ",")
 
@@ -735,6 +747,7 @@ def audit_and_model(df):
     ntm = np.sqrt(e * f)
     df.loc[g, "fwd_eps"] = ntm[g]
     df.loc[g, "fpe"] = (df.p / ntm)[g]
+    df.loc[g, "fwd_eps_g"] = (ntm / e - 1)[g]          # el crecimiento se informa sobre la misma base (12 meses)
     model = []
     for i, r in df.iterrows():
         if r.t in HOLDINGS or r.industry in BOOK_INDUSTRIES:
@@ -760,11 +773,11 @@ def audit_and_model(df):
             df.at[i, "audit"].append(f"Ganancia no comparable: la de 12 meses y la esperada difieren {r.eps_gap*100:.0f}%. "
                                      "Para pares se usa precio/ventas y el P/E no entra en el valor justo.")
         if mdl == "pe" and df.at[i, "eps_grow"]:
-            df.at[i, "audit"].append(f"Ganancia en fuerte crecimiento: la esperada es {r.eps_gap*100:.0f}% mayor que la de 12 meses, con ventas "
+            df.at[i, "audit"].append(f"Ganancia en fuerte crecimiento: la del próximo ejercicio es {r.eps_gap*100:.0f}% mayor que la de 12 meses, con ventas "
                                      f"creciendo {r.rev_g*100:.0f}%. Contra su industria se compara el P/E esperado (precio/ventas castigaría su "
                                      "margen) y contra su historia el precio/ventas (el P/E histórico de 12 meses exageraría el descuento). "
-                                     f"Se usa la ganancia de los próximos 12 meses (US$ {r.fwd_eps:.2f}, P/E {r.fpe:.1f}x) y no la del "
-                                     f"próximo ejercicio completo (P/E {r.fpe_fy:.1f}x), que exageraría el descuento.")
+                                     f"Se usa la ganancia de los próximos 12 meses (US$ {fx(r.fwd_eps, 2)}, {f_pct(r.fwd_eps / r.eps - 1)} sobre la de 12 meses; "
+                                     f"P/E {fx(r.fpe, 1)}x) y no la del próximo ejercicio completo (P/E {fx(r.fpe_fy, 1)}x), que exageraría el descuento.")
     df["val_model"] = model
     return df
 
@@ -790,6 +803,9 @@ CTY_K = {}                # ajuste vigente por país y familia (se exporta en da
 VAL_REGION = {"MELI": "Brasil"}
 # Empresas que se comparan siempre contra su industria aunque tenga menos de 5 pares (su sector no se le parece)
 FORCE_IND = {"MELI"}
+# Industria corregida: Yahoo pone a Arista en "Computer Hardware" (Dell, HP, discos y memorias, con P/E de 3-14x).
+# Es una empresa de equipos de redes: se compara contra "Communication Equipment" (Cisco, Ciena, Motorola, HPE).
+IND_OVERRIDE = {"ANET": "Communication Equipment"}
 # Grupos de pares a medida. Alphabet y Meta caen en "Comunicaciones", que mezcla telefónicas y cable (Verizon,
 # AT&T, Comcast: P/E de 6-8x y casi sin crecimiento). Su industria tiene pocas empresas, así que la mediana
 # salía del sector y las mostraba "caras" sin serlo. Se comparan contra las grandes tecnológicas.
@@ -877,7 +893,7 @@ def build(universe, prices, infos, hist=None):
                          eps=eps, fwd_eps=fwd_eps,
                          fwd_eps_g=(fwd_eps / eps - 1) if eps and fwd_eps and eps > 0 else None,
                          roe=num(inf.get("returnOnEquity")), margin=num(inf.get("profitMargins")),
-                         op_margin=num(inf.get("operatingMargins")), de=num(inf.get("debtToEquity")),
+                         op_margin=num(inf.get("operatingMargins")), de=debt_eq(inf),
                          div=num(inf.get("dividendYield")), div5=num(inf.get("fiveYearAvgDividendYield")),
                          ps=num(inf.get("priceToSalesTrailing12Months")), bvps=num(inf.get("bookValue")),
                          pe_hist=hist.get(sym, {}).get("pe_hist"), ps_hist=hist.get(sym, {}).get("ps_hist"),
@@ -892,6 +908,7 @@ def build(universe, prices, infos, hist=None):
                          earn_days=days_to(inf.get("earningsTimestampStart") or inf.get("earningsTimestamp")),
                          closes=c[-450:]))
     df = pd.DataFrame(rows)
+    df["industry"] = df.t.map(IND_OVERRIDE).fillna(df.industry)
     num_cols = ["pe", "fpe", "peg", "pb", "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin",
                 "op_margin", "de", "div", "target", "upside", "rec", "mcap", "vol_ratio", "r1m", "r6m", "fcf", "earn_days",
                 "div5", "ps", "pe_hist", "ps_hist", "hist_n", "bvps", "pb_hist"]
@@ -1246,7 +1263,8 @@ def vm_status(pts):
         if zp == "Compra":
             st = "Perdió impulso: volvió de Compra a Vigilar"
         else:
-            st = "Girando: el momentum mejora" if dy > 8 else "Barata pero sigue débil"
+            st = ("Girando: el momentum mejora" if dy > 8 else
+                  "En su valor justo, con momentum débil" if x > -0.05 else "Barata pero sigue débil")
     elif z == "Mantener":
         st = "Alcanzó su valor justo" if zp == "Compra" else "Sin margen, tendencia alcista"
     else:
@@ -1640,7 +1658,9 @@ def verdict(r, mkt_up=True):
             # validado en el track récord: con el mercado bajista las señales fallan más (2022)
             return "Comprar en partes", (f"Cumple los 5 criterios ({ent.lower()}), pero el S&P 500 está debajo de su media de 200 días: "
                                          "mercado bajista. Entrada escalonada de a tercios, con stop.")
-        return "Comprar", (f"Cumple los criterios de su sector: técnico {r.at:.0f}, fundamental {r.af:.0f}, recorrido {up_txt}, {ent.lower()}"
+        val_txt = (f"recorrido {up_txt}" if P["val"] == "full" else
+                   f"sin superar su valor justo (recorrido {up_txt}; en su sector la valuación pesa poco)")
+        return "Comprar", (f"Cumple los criterios de su sector: técnico {r.at:.0f}, fundamental {r.af:.0f}, {val_txt}, {ent.lower()}"
                            + (", con momentum" if P["mom"] else "") + (", ganancias creciendo" if P["growth"] else "")
                            + f", y lo confirma: {conf_txt}. En 10 años, las compras así rindieron una mediana de ~14% a 12 meses "
                            "(contra ~12% de cualquier día) y fueron las que menos cayeron.")
@@ -1798,7 +1818,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
         d["rank"] = int(r.rank) if r.rank is not None and r.rank == r.rank else None
         d["lights"] = lights(r)
         P_ = profile(r)
-        d["perfil"] = {"fam": P_["fam"], "txt": profile_txt(r), "edge": P_["edge"]}
+        d["perfil"] = {"fam": P_["fam"], "txt": profile_txt(r), "edge": P_["edge"], "val": P_["val"]}
         d["audit"] = list(r.audit) if isinstance(r.audit, list) else []
         if getattr(r, "verdict", None):
             vp = r.verdict_prev if isinstance(r.verdict_prev, str) else None
