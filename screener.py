@@ -218,7 +218,14 @@ def early_turn(c, v):
     macd = ser.ewm(span=12, adjust=False).mean() - ser.ewm(span=26, adjust=False).mean()
     rs_now, rs_10 = rsi_s[-1], rsi_s[-11]
     sig["et_mom"] = bool(macd.values[-1] > 0 or (rs_now > 50 and np.isfinite(rs_10) and rs_10 < 50))
-    sig.update(et_low=L2, et_high=H)
+    # stop: debajo del último mínimo que siga por DEBAJO del precio. Si el precio ya perforó los mínimos recientes
+    # (cae a mínimos nuevos), el último mínimo quedó arriba y no sirve de stop: se usa el mínimo de las últimas 10 ruedas.
+    below = [float(cw[i]) for i in lows if cw[i] < p]
+    if below and look - 1 - [i for i in lows if cw[i] < p][-1] <= 60:
+        stop, stop_src = below[-1], "min"
+    else:
+        stop, stop_src = float(cw[-10:].min()), "rec"
+    sig.update(et_low=L2, et_high=H, et_stop=round(stop * 0.98, 2), et_stop_src=stop_src)
     return sig
 
 
@@ -719,6 +726,15 @@ def audit_and_model(df):
             & ~df.sector.isin(GROW_EXCL))
     df["eps_grow"] = grow.fillna(False).astype(bool)
     df["eps_gap_flag"] = (gap > EPS_GAP).fillna(False).astype(bool) & ~df.eps_grow
+    # La "ganancia esperada" de Yahoo es la del PRÓXIMO ejercicio fiscal completo (para NVDA en noviembre de 2026, el que
+    # cierra en enero de 2028: 15 meses adelante). Con crecimientos de 100% eso exagera mucho el descuento (P/E 11x contra
+    # 20x que muestran otras fuentes con el ejercicio en curso). En esos casos se usa la ganancia de los próximos 12 meses,
+    # aproximada como el punto medio (geométrico) entre la de los últimos 12 meses y la del próximo ejercicio.
+    df["fpe_fy"] = df.fpe
+    g = df.eps_grow & (e > 0) & (f > 0)
+    ntm = np.sqrt(e * f)
+    df.loc[g, "fwd_eps"] = ntm[g]
+    df.loc[g, "fpe"] = (df.p / ntm)[g]
     model = []
     for i, r in df.iterrows():
         if r.t in HOLDINGS or r.industry in BOOK_INDUSTRIES:
@@ -746,7 +762,9 @@ def audit_and_model(df):
         if mdl == "pe" and df.at[i, "eps_grow"]:
             df.at[i, "audit"].append(f"Ganancia en fuerte crecimiento: la esperada es {r.eps_gap*100:.0f}% mayor que la de 12 meses, con ventas "
                                      f"creciendo {r.rev_g*100:.0f}%. Contra su industria se compara el P/E esperado (precio/ventas castigaría su "
-                                     "margen) y contra su historia el precio/ventas (el P/E histórico de 12 meses exageraría el descuento).")
+                                     "margen) y contra su historia el precio/ventas (el P/E histórico de 12 meses exageraría el descuento). "
+                                     f"Se usa la ganancia de los próximos 12 meses (US$ {r.fwd_eps:.2f}, P/E {r.fpe:.1f}x) y no la del "
+                                     f"próximo ejercicio completo (P/E {r.fpe_fy:.1f}x), que exageraría el descuento.")
     df["val_model"] = model
     return df
 
@@ -1773,7 +1791,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
             "sma200", "hi52", "lo52", "dd", "volat", "vol_ratio", "macd_h", "macd_cross", "pe", "fpe", "peg", "pb",
             "rev_g", "eps_g", "eps", "fwd_eps", "fwd_eps_g", "roe", "margin", "op_margin", "de", "div", "target",
             "upside", "rec", "n_an", "at", "af", "score", "f_val", "f_gro", "f_qua", "f_sol", "f_ana", "sec_fpe",
-            "setup", "elig", "rank", "val_model", "eps_gap", "eps_grow", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
+            "setup", "elig", "rank", "val_model", "eps_gap", "eps_grow", "bvps", "pb_hist", "peer_pb", "peer_ps", "et_hl", "et_div", "et_acc", "et_brk", "et_mom", "et_rs", "et_n", "et_ctx", "et_low", "et_high", "et_stop", "et_stop_src", "fpe_fy", "cross", "cross_days", "cross_eta", "gap50", "slope200", "slope200_pct", "peer_lbl", "v_peer", "v_hist", "v_an", "val_verdict", "val_cheap", "val_n",
             "div5", "ps", "pe_hist", "ps_hist", "hist_n", "dd3", "hi3_age", "rebound", "pb_vol", "recovery", "trend", "trend_n", "run200", "dist200", "sma40w", "sma200w", "w_above", "d200w", "industry", "fcf", "fcf_y", "earn_days", "cyc", "one_off", "cty_k", "cty_lbl", "volat_y", "pe5_med", "pe5_r", "beta", "mdd3", "risk", "ck", "ck_n", "ck_m", "ck_list", "dq_q", "dq", "dq_yrs", "cons", "extra"]
     for r in df.itertuples():
         d = {k: r2(getattr(r, k)) for k in keep}
