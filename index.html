@@ -1904,7 +1904,7 @@ function openDetail(t){
         ${kv('MACD',o.macd_h>0?'Positivo':'Negativo')}
       </div></div>
       <div><h4 style="margin:0 0 6px">Análisis fundamental</h4><div class="kv">
-        ${kv('P/E histórico',o.pe>0?fmt(o.pe,1)+'x':'—')}${kv('P/E esperado',o.fpe>0?fmt(o.fpe,1)+'x':'—')}${o.val_model==='book'?kv('P/VL de '+(o.peer_lbl||'pares')+(o.cty_lbl?' (aj. riesgo país)':''),o.peer_pb?fmt(o.peer_pb,2)+'x':'—'):kv('P/E esperado '+(o.peer_lbl==='su industria'?'industria':'sector')+(o.cty_lbl?' (aj. riesgo país)':''),o.sec_fpe?fmt(o.sec_fpe,1)+'x':'—')}${kv('P/E promedio histórico',o.pe_hist?fmt(o.pe_hist,1)+'x ('+(o.hist_n||'')+' años)':'—')}${kv('Precio / ventas (hoy · histórico)',o.ps?fmt(o.ps,1)+'x · '+(o.ps_hist?fmt(o.ps_hist,1)+'x':'—'):'—')}${kv('Dividendo promedio 5 años',o.div5?fmt(o.div5,2)+'%':'—')}
+        ${kv('P/E histórico',o.pe>0?fmt(o.pe,1)+'x':'—')}${kv(o.eps_grow&&o.fpe_fy>0&&Math.abs(o.fpe_fy-o.fpe)>0.5?'P/E esperado (próx. 12 meses · próx. ejercicio)':'P/E esperado',o.fpe>0?fmt(o.fpe,1)+'x'+(o.eps_grow&&o.fpe_fy>0&&Math.abs(o.fpe_fy-o.fpe)>0.5?' · '+fmt(o.fpe_fy,1)+'x':''):'—')}${o.val_model==='book'?kv('P/VL de '+(o.peer_lbl||'pares')+(o.cty_lbl?' (aj. riesgo país)':''),o.peer_pb?fmt(o.peer_pb,2)+'x':'—'):kv('P/E esperado '+(o.peer_lbl==='su industria'?'industria':'sector')+(o.cty_lbl?' (aj. riesgo país)':''),o.sec_fpe?fmt(o.sec_fpe,1)+'x':'—')}${kv('P/E promedio histórico',o.pe_hist?fmt(o.pe_hist,1)+'x ('+(o.hist_n||'')+' años)':'—')}${kv('Precio / ventas (hoy · histórico)',o.ps?fmt(o.ps,1)+'x · '+(o.ps_hist?fmt(o.ps_hist,1)+'x':'—'):'—')}${kv('Dividendo promedio 5 años',o.div5?fmt(o.div5,2)+'%':'—')}
         ${kv('PEG',o.val_model!=='pe'||o.eps_gap>0.4?'no aplica':o.peg>0?fmt(o.peg,2):'—')}${kv('Precio / valor libros (hoy · histórico)',o.pb>0?fmt(o.pb,2)+'x'+(o.pb_hist?' · '+fmt(o.pb_hist,2)+'x':''):'—')}
         ${kv('Crec. ventas (a/a)',pct(o.rev_g,1))}${kv('Crec. ganancias (a/a)',pct(o.eps_g,1))}
         ${kv('ROE',o.roe==null?'—':fmt(o.roe*100,1)+'%')}${kv('Margen neto',o.margin==null?'—':fmt(o.margin*100,1)+'%')}
@@ -2205,7 +2205,9 @@ function earlyHtml(o){
   const n=o.et_n,col=n>=4?'up':n>=3?'warn':'';
   const lv=[];
   if(o.et_high&&o.p<o.et_high)lv.push(`<div><span>Nivel a superar (último máximo)</span><b>US$ ${fmt(o.et_high)} (${pct(o.et_high/o.p-1,1)})</b></div>`);
-  if(o.et_low)lv.push(`<div><span>Stop sugerido (debajo del último mínimo)</span><b>US$ ${fmt(o.et_low*0.98)} (${pct(o.et_low*0.98/o.p-1,1)})</b></div>`);
+  {const st=o.et_stop!=null?o.et_stop:(o.et_low&&o.et_low<o.p?o.et_low*0.98:null);   // el stop siempre debajo del precio
+   if(st&&st<o.p)lv.push(`<div><span>Stop sugerido (${o.et_stop_src==='rec'?'debajo del mínimo de las últimas 10 ruedas: perforó su último mínimo':'debajo del último mínimo'})</span><b>US$ ${fmt(st)} (${pct(st/o.p-1,1)})</b></div>`);
+   if(o.et_low&&o.et_low>o.p)lv.push(`<div><span>Último mínimo perforado (dejó de ser soporte)</span><b>US$ ${fmt(o.et_low)} (${pct(o.et_low/o.p-1,1)})</b></div>`);}
   lv.push(`<div><span>Media de 200 (confirmación)</span><b>US$ ${fmt(o.sma200)} (${pct(o.sma200/o.p-1,1)})</b></div>`);
   return `<div class="lensbox"><div class="lens-h"><b>Giro temprano</b> <span class="fase" style="${col==='up'?'background:var(--upbg);color:var(--up)':col==='warn'?'background:var(--warnbg);color:var(--warn)':''}">${n} de 6 señales</span></div>
    <div class="et-g">${S6.map(([k,t,d])=>`<div title="${esc(d)}"><span class="${o[k]?'up':'note'}">${o[k]?'✓':'○'}</span> ${t}</div>`).join('')}</div>
