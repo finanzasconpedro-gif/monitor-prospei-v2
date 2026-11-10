@@ -1299,7 +1299,7 @@ function renderTop(){
     {k:'t',h:'Papel',f:o=>`<b>${esc(o.t)}</b><div class="note" style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.name)}</div>`},
     {k:'verdict',h:'Veredicto',f:vdChip},
     {k:'setup',h:'Señal',f:o=>`${setupChip(o.setup)}${alertTags(o)?'<div>'+alertTags(o)+'</div>':''}`},
-    {k:'lights',h:'Cal · Val · Téc · Evt',f:o=>lightsHtml(o.lights)},
+    {k:'lights',h:'Cal · Val · Téc · Evt',f:o=>lightsHtml(o.lights,o)},
     {k:'score',h:'Puntaje',f:o=>sbar(o.score)},
     {k:'at',h:'AT',n:1,f:o=>Math.round(o.at)},
     {k:'af',h:'AF',n:1,f:o=>Math.round(o.af)},
@@ -1330,7 +1330,7 @@ function renderUni(){
     {k:'rsi',h:'RSI',n:1,f:o=>fmt(o.rsi,0)},
     {k:'fpe',h:'P/E fwd',n:1,f:o=>o.fpe>0?fmt(o.fpe,1)+'x':'—'},
     {k:'sector',h:'Sector',f:o=>esc(o.sector)},
-    {k:'lights',h:'Semáforo',f:o=>lightsHtml(o.lights)},
+    {k:'lights',h:'Semáforo',f:o=>lightsHtml(o.lights,o)},
     {k:'region',h:'Región',f:o=>esc(o.region)},
     {k:'hasCed',h:'Argentina',f:cedCell}
   ];
@@ -1877,7 +1877,7 @@ function openDetail(t){
     </div>
     ${o.verdict?`<div class="verdict-box"><span class="${vdCls(o.verdict)}">${esc(o.verdict)}</span>${o.cons?CONS:''}<div><div style="font-size:13.5px">${esc(o.verdict_why)}</div>${o.verdict_prev&&o.verdict_prev!==o.verdict?`<div class="note">Ayer: ${esc(o.verdict_prev)}</div>`:''}</div></div>`:''}
     ${o.perfil&&o.perfil.txt?`<div class="note" style="margin:-2px 0 10px">🧭 Perfil del sector · <b>${esc(o.perfil.fam)}</b> — ${esc(o.perfil.txt)}${o.perfil.edge?'':' El veredicto máximo en este sector es Vigilar.'}</div>`:''}
-    ${o.lights?`<div class="semaf">${['cal','val','tec','evt'].map(k=>{const v=o.lights[k];return `<div><i class="l${v==null?'null':v}"></i><span><b>${LIGHTN[k]}</b><br><span class="note">${v==null?'sin dato':lightTxt[k][v]}</span></span></div>`}).join('')}</div>`:''}
+    ${o.lights?`<div class="semaf">${['cal','val','tec','evt'].map(k=>{const v=o.lights[k];return `<div><i class="l${v==null?'null':v}"></i><span><b>${LIGHTN[k]}</b><br><span class="note">${lightLbl(o,k,v)}</span></span></div>`}).join('')}</div>`:''}
     ${alertTags(o)?`<div style="margin-bottom:6px">${alertTags(o)}</div>`:''}
     <div class="pillars">
       ${pill('Técnico (AT)',o.at)}${pill('Fundamental (AF)',o.af)}
@@ -1887,7 +1887,7 @@ function openDetail(t){
     ${earlyHtml(o)}
     ${valLensHtml(o)}
     <div class="fh" id="fh-box" data-t="${esc(o.t)}"><p class="note">Cargando historia de ganancias y valuación…</p></div>
-    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
+    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.perfil&&o.perfil.val==='low'?` <span class="note">(en ${esc(o.sector)} para comprar solo se exige no superar su valor justo: en 10 años, filtrar por valuación le restó rendimiento al sector)</span>`:o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
     <div class="lists">
       <div class="pro"><h4>Por qué aparece como oportunidad</h4><ul>${li(o.pro)}</ul></div>
       <div class="gro"><h4>Perspectiva de crecimiento</h4><ul>${li(o.grow)}</ul></div>
@@ -1898,7 +1898,7 @@ function openDetail(t){
     <div class="grid2">
       <div><h4 style="margin:0 0 6px">Análisis técnico</h4><div class="kv">
         ${trendKv(o,kv)}${kv('RSI (14)',fmt(o.rsi,0))}${kv('vs media 50',pct(o.p/o.sma50-1,1))}${kv('vs media 200',pct(o.p/o.sma200-1,1))}
-        ${kv('Desde máx. 52 sem.',pct(o.dd,1))}${kv('Máx. / mín. 52 sem.',fmt(o.hi52)+' / '+fmt(o.lo52))}
+        ${kv('Desde máx. 52 sem.',pct(o.dd,1))}${kv('Máx. / mín. 52 sem. (cierres)',fmt(o.hi52)+' / '+fmt(o.lo52))}
         ${kv('Var. 1 mes',pct(o.r1m,1))}${kv('Var. 3 meses',pct(o.r3m,1))}${kv('Var. 6 meses',pct(o.r6m,1))}${kv('Var. 12 meses',pct(o.r12m,1))}
         ${kv('Volatilidad anual',o.volat==null?'—':fmt(o.volat*100,0)+'%')}${kv('Volumen relativo',o.vol_ratio==null?'—':fmt(o.vol_ratio,2)+'x')}
         ${kv('MACD',o.macd_h>0?'Positivo':'Negativo')}
@@ -2074,7 +2074,7 @@ async function renderFH(o){
     h+=`<div class="fh-card"><div class="fh-t">Calidad de las ganancias: caja vs. ganancia contable</div>
       ${fhChart({W:CW,title:'Flujo de caja libre vs ganancia neta',labels:F.lab,zero:true,series:[{v:F.ni,c:'var(--accent)',w:2},{v:F.fcf,c:'var(--up)',w:2}],yf:v=>mill(v).replace('US$ ',''),
         legend:[{t:'Ganancia neta de 12 meses',c:'var(--accent)'},{t:'Flujo de caja libre de 12 meses',c:'var(--up)'}]})}
-      <p class="fh-s">${ratio!=null?`En los últimos 3 años, por cada dólar de ganancia generó <b>US$ ${fmt(ratio,2)}</b> de caja libre: ${ratio>=0.9?'<span class="up">ganancias respaldadas por caja</span>.':ratio>=0.6?'respaldo parcial (invierte buena parte de lo que gana).':'<span class="down">la caja queda bastante por debajo de la ganancia</span>: mirar inversiones, capital de trabajo o ajustes contables.'}`:'Sin datos suficientes.'}</p></div>`;
+      <p class="fh-s">${ratio!=null?`En los últimos 3 años, por cada dólar de ganancia generó <b>US$ ${fmt(ratio,2)}</b> de caja libre: ${ratio>=0.9?'<span class="up">ganancias respaldadas por caja</span>.':ratio>=0.6?'respaldo parcial (invierte buena parte de lo que gana).':'<span class="down">la caja queda bastante por debajo de la ganancia</span>: mirar inversiones, capital de trabajo o ajustes contables.'}`:'Sin datos suficientes.'}${(()=>{const f1=fhLast(F.fcf),n1=fhLast(F.ni);if(f1==null||!(n1>0))return '';const r1=f1/n1;return ` En los últimos 12 meses: <b>US$ ${fmt(r1,2)}</b> por dólar (${mill(f1)} de caja libre contra ${mill(n1)} de ganancia)${ratio!=null&&r1<ratio-0.25?' <span class="down">: la conversión en caja empeoró</span>':''}.`})()}</p></div>`;
   }
   // 5) acciones en circulación
   if(F.sh.filter(v=>v>0).length>12){
@@ -2229,14 +2229,15 @@ function valLensHtml(o){
     (o.fpe>0&&o.sec_fpe?`P/E esp. ${fmt(o.fpe,1)}x vs ${fmt(o.sec_fpe,1)}x`:'');
   if(M==='book'&&o.pb&&o.pb_hist)hd.unshift(`P/VL ${fmt(o.pb,2)}x vs ${fmt(o.pb_hist,2)}x`);
   return `<div class="lensbox"><div class="lens-h"><b>Valuación: tres miradas</b> <span class="note">· método: ${esc(VMODEL[M]||M)}</span> <span class="fase" style="${verdict[0]==='up'?'background:var(--upbg);color:var(--up)':verdict[0]==='down'?'background:var(--downbg);color:var(--down)':''}">${esc(verdict[1])}</span></div>
-    <div class="lens-g">${cell('vs '+esc((o.peer_lbl||'su sector')+(o.cty_lbl||'')),o.v_peer,peerDet,-0.15,0.15)}
+    <div class="lens-g">${cell('vs '+esc((o.peer_lbl||'su sector')+(o.cty_lbl||'')),(M==='pe'&&!(o.eps_gap>0.4&&!o.eps_grow)&&o.fpe>0&&o.sec_fpe>0&&!o.cty_lbl)?o.fpe/o.sec_fpe-1:o.v_peer,peerDet,-0.15,0.15)}
     ${cell('vs su propia historia',o.v_hist,hd.join(' · ')||'Sin historial disponible',-0.10,0.10)}
     ${cell('vs analistas',o.v_an,o.n_an>=3&&o.target?`Objetivo US$ ${fmt(o.target)} (${o.n_an} analistas${o.n_an<5?', peso reducido':''})`:'Menos de 3 analistas',-0.20,0,1)}</div>
     ${o.audit&&o.audit.length?`<details style="margin-top:8px"><summary class="note" style="cursor:pointer">🔎 Cómo se valuó y particularidades de los datos (${o.audit.length})</summary><ul class="note" style="margin:6px 0 0;padding-left:18px">${o.audit.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`:''}</div>`;
 }
 const LIGHTN={cal:'Calidad',val:'Valuación',tec:'Técnico',evt:'Evento'};
 const lightTxt={cal:['Débil o caja negativa','Aceptable','Sólida'],val:['Cara o pico de ciclo','Neutral','Barata vs sector'],tec:['Débil','Neutral','Sano'],evt:['Balance en ≤7 días','Balance en ≤3 semanas','Sin balance cercano']};
-const lightsHtml=L=>L?`<span class="lights">${['cal','val','tec','evt'].map(k=>`<i class="l${L[k]==null?'null':L[k]}" title="${LIGHTN[k]}: ${L[k]==null?'sin dato':lightTxt[k][L[k]]}"></i>`).join('')}</span>`:'';
+const lightLbl=(o,k,v)=>v==null?'sin dato':(k==='evt'&&o&&o.earn_days!=null&&o.earn_days<0?`Balance reciente (hace ${-o.earn_days} día${o.earn_days===-1?'':'s'})`:lightTxt[k][v]);
+const lightsHtml=(L,o)=>L?`<span class="lights">${['cal','val','tec','evt'].map(k=>`<i class="l${L[k]==null?'null':L[k]}" title="${LIGHTN[k]}: ${lightLbl(o,k,L[k])}"></i>`).join('')}</span>`:'';
 function alertTags(o){const t=[];
   if(o.earn_days!=null&&o.earn_days>=0&&o.earn_days<=14)t.push(`⚠️ Balance en ${o.earn_days===0?'hoy':o.earn_days===1?'1 día':o.earn_days+' días'}`);
   if(o.cyc)t.push('⚠️ Pico de ciclo');
