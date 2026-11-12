@@ -1,8 +1,28 @@
 {
- "fecha": "2026-11-09",
+ "fecha": "2026-11-12",
  "cargados": [],
  "vencidas_quitadas": 0,
  "detalle": [
+  {
+   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-17",
+   "t": "S29E7",
+   "tipo": "REAPERTURA",
+   "venc_txt": "29 DE ENERO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 29 DE ENERO DE 2027 (S29E7 - reapertura) $ 2.540.482 $ 2.032.262 $ 2.154.197 $ 1.060,00 28,08% $ 7.008.588 BONO DEL TESORO NACIONAL CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE JUNIO DE 2027 (T30J7 - reapertura) $ 1.491.001 $ 1.223.803 $ 1.615.628 $ 1.320,17 30,36% $ 10.205.798 (*) Montos expresados en millones. b) Instrumento licitado en pesos con ajuste por",
+   "venc": "2027-01-29",
+   "fam": "LECAP",
+   "estado": "ya cargado"
+  },
+  {
+   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-17",
+   "t": "T30J7",
+   "tipo": "REAPERTURA",
+   "venc_txt": "30 DE JUNIO DE 2027",
+   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 30 DE JUNIO DE 2027 (T30J7 - reapertura) $ 1.491.001 $ 1.223.803 $ 1.615.628 $ 1.320,17 30,36% $ 10.205.798 (*) Montos expresados en millones. b) Instrumento licitado en pesos con ajuste por CER: INSTRUMENTO AJUSTADO POR CER VNO Ofertado (*) VNO Adjudicado (*) Valor Efectivo Adjudicado (*) Precio de corte por cada VNO $ 1.000 TIREA VNO Total en Circulación (*",
+   "venc": "2027-06-30",
+   "fam": "BONCAP",
+   "estado": "ya cargado"
+  },
   {
    "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-16",
    "t": "S29E7",
@@ -132,26 +152,6 @@
    "tipo": "REAPERTURA",
    "venc_txt": "13 DE NOVIEMBRE DE 2026",
    "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 13 DE NOVIEMBRE DE 2026 (S13N6 - reapertura) $ 5.411.797 $ 3.858.364 $ 4.066.407 $ 1.053,92 27,88% $ 8.036.440 (*) Montos expresados en millones. b) Instrumento a licitar en pesos con ajuste por CER: Instrumento ajustados por CER VNO Ofertado (*) VNO Adjudicado (*) Valor Efectivo Adjudicado (*) Precio de corte por cada VNO $ 1.000 TIREA VNO Total en Circulaci",
-   "venc": "2026-11-13",
-   "fam": "LECAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-12",
-   "t": "S13N6",
-   "tipo": "REAPERTURA",
-   "venc_txt": "13 DE NOVIEMBRE DE 2026",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 13 DE NOVIEMBRE DE 2026 (S13N6 - reapertura); Instrumento a licitar en pesos con ajuste por CER: b. LETRA DEL TESORO NACIONAL EN PESOS AJUSTADA POR CER A DESCUENTO VENCIMIENTO 29 DE ENERO DE 2027 (X29E7 - reapertura); Instrumento a licitar en pesos a tasa variable: c. BONO DEL TESORO NACIONAL EN PESOS A TASA TAMAR CON VENCIMIENTO 26 DE FEBRERO DE 2027 (TMF27 ",
-   "venc": "2026-11-13",
-   "fam": "LECAP",
-   "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-12",
-   "t": "S13N6",
-   "tipo": "REAPERTURA",
-   "venc_txt": "13 DE NOVIEMBRE DE 2026",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 13 DE NOVIEMBRE DE 2026 (S13N6 - reapertura); 13/11/2026 Precio Será determinado en la licitación Hasta el monto máximo autorizado por la normativa vigente Instrumento a licitar en pesos con ajuste por CER: Instrumento a Licitar Fecha de Vencimiento Parámetro a licitar Precio de colocación por cada VNO $ 1.000 Monto Máximo a Colocar LETRA DEL TESORO NACIONAL ",
    "venc": "2026-11-13",
    "fam": "LECAP",
    "estado": "ya cargado"
