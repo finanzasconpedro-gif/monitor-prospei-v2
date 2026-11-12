@@ -1,14 +1,13 @@
 {
- "cer_url": "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias/30?desde=2026-07-14&hasta=2026-11-11&limit=500",
+ "cer_url": "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias/30?desde=2026-07-15&hasta=2026-11-12&limit=500",
  "cer_n": 121,
- "tamar_url": "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias/44?desde=2026-07-14&hasta=2026-11-11&limit=500",
+ "tamar_url": "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias/44?desde=2026-07-15&hasta=2026-11-12&limit=500",
  "tamar_n": 80,
  "candidatos": [
   "CUAP",
   "D10Y7",
   "D15E7",
   "D30N6",
-  "D30O6",
   "D31M7",
   "DICP",
   "DIP0",
@@ -51,7 +50,7 @@
   {
    "t": "CUAP",
    "http": 200,
-   "nombre": "Cuasipar en $ 2045",
+   "nombre": "CUAP",
    "tipo": "CER",
    "n_flujos": 39
   },
@@ -59,7 +58,7 @@
    "t": "D10Y7",
    "http": 200,
    "nombre": "D10Y7",
-   "texto_flujo": "inos por WhatsApp Nuestros servicios ¿Qué ofrecemos? Aranceles Cotizaciones Acciones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D10Y7 D10Y7 Lelink u$s-linke Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 0,71% Duration mod. 0,49 Vencimiento 10/05/2027 Próximo pago 10/05/2027 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 10/05/2027 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba.",
+   "texto_flujo": "s Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D10Y7 D10Y7 Lelink u$s-linke 160.000,00 +3,90% 11/11 21:00 Anterior 154.000,00 Apertura 160.000,00 Máximo 160.000,00 Mínimo 160.000,00 Vol. nominal 2.327 Vol. efectivo 3.723.200,00 Vol. promedio 3.434,00 Volumen % 67,76% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR -6,80% Duration mod. 0,53 Vencimiento 10/05/2027 Próximo pago 10/05/2027 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 10/05/2027 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de",
    "tipo": "DL",
    "n_flujos": 1
   },
@@ -67,7 +66,7 @@
    "t": "D15E7",
    "http": 200,
    "nombre": "Lelink u$s-linked 0% vto 15.01.27",
-   "texto_flujo": "álisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D15E7 D15E7 Lelink u$s-linked 0% vto 15.01.27 154.000,00 -0,13% 06/11 18:45 Anterior 154.200,00 Apertura 154.400,00 Máximo 154.400,00 Mínimo 154.000,00 Vol. nominal 159.015 Vol. efectivo 244.889.482,00 Vol. promedio 18.376.673,16 Volumen % 0,87% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos Vencimiento 15/01/2027 Próximo pago 15/01/2027 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 15/01/2027 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco veo un plan B - me hace acordar ",
+   "texto_flujo": "de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D15E7 D15E7 Lelink u$s-linked 0% vto 15.01.27 153.300,00 -0,45% 11/11 21:00 Anterior 154.000,00 Apertura 154.000,00 Máximo 155.000,00 Mínimo 153.250,00 Vol. nominal 17.795.049 Vol. efectivo 27.313.860.212,00 Vol. promedio 18.347.591,95 Volumen % 96,99% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos Vencimiento 15/01/2027 Próximo pago 15/01/2027 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 15/01/2027 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco veo un plan B - me h",
    "tipo": "DL",
    "n_flujos": 1
   },
@@ -75,59 +74,51 @@
    "t": "D30N6",
    "http": 200,
    "nombre": "LETRA DEL",
-   "texto_flujo": "s Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D30N6 D30N6 LETRA DEL 154.750,00 -0,03% 06/11 18:45 Anterior 154.800,00 Apertura 155.200,00 Máximo 155.200,00 Mínimo 154.030,00 Vol. nominal 81.188 Vol. efectivo 125.520.071,00 Vol. promedio 59.095.887,42 Volumen % 0,14% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos Vencimiento 30/11/2026 Próximo pago 30/11/2026 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 30/11/2026 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan",
+   "texto_flujo": " de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D30N6 D30N6 LETRA DEL 154.210,00 -0,35% 11/11 21:00 Anterior 154.750,00 Apertura 155.200,00 Máximo 155.200,00 Mínimo 154.100,00 Vol. nominal 91.080.557 Vol. efectivo 140.555.856.510,00 Vol. promedio 60.695.120,90 Volumen % 150,06% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos Vencimiento 30/11/2026 Próximo pago 30/11/2026 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 30/11/2026 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:5",
    "tipo": "DL",
    "n_flujos": 1
   },
   {
-   "t": "D30O6",
-   "http": 200,
-   "nombre": "D30O6",
-   "texto_flujo": " D30O6 LELINK u$s-linked 0% Vto. 30.10.2026 | Cotizaciones | Rava Bursátil $refs.searchInput && $refs.searchInput.focus())\"> Abrí tu cuenta Clientes Abrí tu cuenta Clientes Escribinos por WhatsApp Nuestros servicios ¿Qué ofrecemos? Aranceles Cotizaciones Acciones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D30O6 D30O6 LELINK u$s-linked 0% Vto. 30.10.2026 Histórico Gráficos avanzados en Rava Mercado Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cant",
-   "tipo": "DL",
-   "n_flujos": 0
-  },
-  {
    "t": "D31M7",
    "http": 200,
-   "nombre": "D31M7",
-   "texto_flujo": "álisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D31M7 D31M7 LELINK u$s-linked 0% Vto. 31.03.2027 154.990,00 +0,81% 06/11 18:45 Anterior 153.750,00 Apertura 154.790,00 Máximo 154.990,00 Mínimo 152.540,00 Vol. nominal 14.354 Vol. efectivo 22.077.284,00 Vol. promedio 3.472.212,26 Volumen % 0,41% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR -0,76% Duration mod. 0,39 Vencimiento 31/03/2027 Próximo pago 31/03/2027 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 31/03/2027 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco ve",
+   "nombre": "LELINK u$s-linked 0% Vto. 31.03.2027",
+   "texto_flujo": "sis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono D31M7 D31M7 LELINK u$s-linked 0% Vto. 31.03.2027 152.300,00 -1,74% 11/11 21:00 Anterior 154.990,00 Apertura 153.730,00 Máximo 153.730,00 Mínimo 152.050,00 Vol. nominal 463.733 Vol. efectivo 706.788.324,00 Vol. promedio 3.321.788,30 Volumen % 13,96% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 3,14% Duration mod. 0,37 Vencimiento 31/03/2027 Próximo pago 31/03/2027 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 31/03/2027 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia.",
    "tipo": "DL",
    "n_flujos": 1
   },
   {
    "t": "DICP",
    "http": 200,
-   "nombre": "Discount $ Ley Arg. 2033",
+   "nombre": "DICP",
    "tipo": "CER",
    "n_flujos": 15
   },
   {
    "t": "DIP0",
    "http": 200,
-   "nombre": "Discount $ Ley Arg. Canje 2010",
+   "nombre": "DIP0",
    "tipo": "CER",
    "n_flujos": 15
   },
   {
    "t": "PAP0",
    "http": 200,
-   "nombre": "Par $ Ley Arg. Canje 2010",
+   "nombre": "PAP0",
    "tipo": "CER",
    "n_flujos": 25
   },
   {
    "t": "PARP",
    "http": 200,
-   "nombre": "Par $ Ley Arg. 2038",
+   "nombre": "PARP",
    "tipo": "CER",
    "n_flujos": 25
   },
   {
    "t": "TMF27",
    "http": 200,
-   "nombre": "Bonos del",
-   "texto_flujo": "s Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMF27 TMF27 Bonos del 127,80 -0,08% 06/11 18:45 Anterior 127,90 Apertura 128,50 Máximo 128,50 Mínimo 125,65 Vol. nominal 42.980.837 Vol. efectivo 54.850.777,00 Vol. promedio 18.187.213.254,53 Volumen % 0,24% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 28,28% Duration mod. 0,23 Vencimiento 26/02/2027 Próximo pago 26/02/2027 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 26/02/2027 37,48 100,00 137,48 0,00 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pag",
+   "nombre": "TMF27",
+   "texto_flujo": "ientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMF27 TMF27 Bonos del 128,05 +0,20% 11/11 21:00 Anterior 127,80 Apertura 128,25 Máximo 129,00 Mínimo 127,70 Vol. nominal 8.563.726.106 Vol. efectivo 10.967.796.661,00 Vol. promedio 17.706.038.897,10 Volumen % 48,37% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 27,38% Duration mod. 0,23 Vencimiento 26/02/2027 Próximo pago 26/02/2027 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 26/02/2027 37,47 100,00 137,47 0,00 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pagas impuestos jajaja que grande que es la argenti",
    "tipo": "TAMAR",
    "n_flujos": 1
   },
@@ -135,7 +126,7 @@
    "t": "TMF28",
    "http": 200,
    "nombre": "TMF28",
-   "texto_flujo": "binos por WhatsApp Nuestros servicios ¿Qué ofrecemos? Aranceles Cotizaciones Acciones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMF28 TMF28 BONO DEL TESORO Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 39,97% Duration mod. 0,92 Vencimiento 25/02/2028 Próximo pago 25/02/2028 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 25/02/2028 73,55 100,00 173,55 0,00 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pag",
+   "texto_flujo": "mientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMF28 TMF28 BONO DEL TESORO 113,50 +1,16% 11/11 21:00 Anterior 112,20 Apertura 112,30 Máximo 114,00 Mínimo 112,30 Vol. nominal 467.176.260 Vol. efectivo 527.789.851,00 Vol. promedio 171.257.723,16 Volumen % 272,79% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 41,19% Duration mod. 0,91 Vencimiento 25/02/2028 Próximo pago 25/02/2028 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 25/02/2028 73,56 100,00 173,56 0,00 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pagas impuestos jajaja que grande que es la argenti",
    "tipo": "TAMAR",
    "n_flujos": 1
   },
@@ -143,7 +134,7 @@
    "t": "TMG27",
    "http": 200,
    "nombre": "TMG27",
-   "texto_flujo": "s Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMG27 TMG27 BONAR 2027 $ 122,60 +0,41% 06/11 18:45 Anterior 122,10 Apertura 122,60 Máximo 122,65 Mínimo 122,60 Vol. nominal 2.931.704 Vol. efectivo 3.594.597,00 Vol. promedio 7.095.655.117,79 Volumen % 0,04% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 30,85% Duration mod. 0,62 Vencimiento 31/08/2027 Próximo pago 31/08/2027 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 31/08/2027 51,52 100,00 151,52 0,00 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pag",
+   "texto_flujo": "as Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMG27 TMG27 BONAR 2027 $ 122,70 +0,08% 11/11 21:00 Anterior 122,60 Apertura 121,55 Máximo 124,15 Mínimo 121,55 Vol. nominal 29.513.061.828 Vol. efectivo 36.199.552.638,00 Vol. promedio 8.216.525.453,30 Volumen % 359,19% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 30,32% Duration mod. 0,62 Vencimiento 31/08/2027 Próximo pago 31/08/2027 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 31/08/2027 51,52 100,00 151,52 0,00 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pagas impuestos jajaja que grande que es la argenti",
    "tipo": "TAMAR",
    "n_flujos": 1
   },
@@ -151,7 +142,7 @@
    "t": "TMG28",
    "http": 200,
    "nombre": "TMG28",
-   "texto_flujo": " TMG28 $108,55 (-0,60%) | Cotizaciones | Rava Bursátil $refs.searchInput && $refs.searchInput.focus())\"> Abrí tu cuenta Clientes Abrí tu cuenta Clientes Escribinos por WhatsApp Nuestros servicios ¿Qué ofrecemos? Aranceles Cotizaciones Acciones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres TMG28 TMG28 108,55 -0,60% 06/11 18:45 Anterior 109,20 Apertura 109,65 Máximo 109,80 Mínimo 108,55 Vol. nominal 28.609.719 Vol. efectivo 31.175.282,00 Vol. promedio 26.677.258.593,74 Volumen % 0,11% Histórico 10 días 1 mes 1 año Año hasta hoy Máximo Histórico completo Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperad",
+   "texto_flujo": " TMG28 $109,65 (+1,01%) | Cotizaciones | Rava Bursátil $refs.searchInput && $refs.searchInput.focus())\"> Abrí tu cuenta Clientes Abrí tu cuenta Clientes Escribinos por WhatsApp Nuestros servicios ¿Qué ofrecemos? Aranceles Cotizaciones Acciones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres TMG28 TMG28 109,65 +1,01% 11/11 21:00 Anterior 108,55 Apertura 110,20 Máximo 110,20 Mínimo 108,10 Vol. nominal 12.399.915.401 Vol. efectivo 13.507.183.675,00 Vol. promedio 25.963.391.434,10 Volumen % 47,76% Histórico 10 días 1 mes 1 año Año hasta hoy Máximo Histórico completo Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el",
    "tipo": "TAMAR",
    "n_flujos": 0
   },
@@ -159,23 +150,23 @@
    "t": "TML27",
    "http": 200,
    "nombre": "TML27",
-   "texto_flujo": "amientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TML27 TML27 Bono del Tesoro 113,30 +0,09% 06/11 18:45 Anterior 113,20 Apertura 113,80 Máximo 113,80 Mínimo 112,70 Vol. nominal 42.498.201 Vol. efectivo 48.081.404,00 Vol. promedio 30.398.178.808,37 Volumen % 0,14% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 30,36% Duration mod. 0,55 Vencimiento 30/07/2027 Próximo pago 30/07/2027 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 30/07/2027 36,66 100,00 136,66 0,00 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo gomez3 01/11/2026 · 09:52 Encima pag",
+   "texto_flujo": "Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TML27 TML27 Bono del Tesoro 113,40 +0,09% 11/11 21:00 Anterior 113,30 Apertura 114,00 Máximo 117,90 Mínimo 113,15 Vol. nominal 24.015.544.587 Vol. efectivo 27.205.820.823,00 Vol. promedio 30.079.047.097,30 Volumen % 79,84% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 29,94% Duration mod. 0,55 Vencimiento 30/07/2027 Próximo pago 30/07/2027 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 30/07/2027 36,66 100,00 136,66 0,00 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Cotizaciones históricas Fecha Apertura Máximo Mínimo Cierre Volumen 11/11/2026 114,00 117,90 113,15 113,40 24.015.544.587 06/11/2026 113,80 113,80 112,70 113,30 42.498.201 05/11/2026 115,10 115,10 113,20 113,20 3.303.567.972 04/11/2026 113,75 113,75 112,80 113,40 16.886.937.697 03/11/2026 112,65 113,10 112,40 112,85 17.274.845.132 02/11/2026 113,25 113,25 112,50 112,70 7.092.903.465 30/10/2026 113,70 113,70 112,45 112,60 8.767.011.217 29/10/2026 112,40 112,80 112,30 112,55 18.422.106.088 28/10/2026 112,50 112,50 111,90 112,10 713.599.100 27/10/2026 112,10 112,30 111,9",
    "tipo": "TAMAR",
    "n_flujos": 1
   },
   {
    "t": "TMVE8",
    "http": 200,
-   "nombre": "TMVE8",
-   "texto_flujo": "sis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMVE8 TMVE8 Bono DUAL 2028 $ u$s-linked/Tamar+0% 147.000,00 +0,34% 06/11 18:45 Anterior 146.500,00 Apertura 146.500,00 Máximo 147.330,00 Mínimo 146.160,00 Vol. nominal 344.777 Vol. efectivo 505.862.004,00 Vol. promedio 28.600.888,79 Volumen % 1,21% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 4,13% Duration mod. 1,21 Vencimiento 31/01/2028 Próximo pago 31/01/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 31/01/2028 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco veo",
+   "nombre": "Bono DUAL 2028 $ u$s-linked/Tamar+0%",
+   "texto_flujo": "bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TMVE8 TMVE8 Bono DUAL 2028 $ u$s-linked/Tamar+0% 146.900,00 -0,07% 11/11 21:00 Anterior 147.000,00 Apertura 147.010,00 Máximo 147.690,00 Mínimo 146.300,00 Vol. nominal 22.657.227 Vol. efectivo 33.275.835.092,00 Vol. promedio 28.303.705,70 Volumen % 80,05% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 4,38% Duration mod. 1,20 Vencimiento 31/01/2028 Próximo pago 31/01/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 31/01/2028 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia.",
    "tipo": "DUAL",
    "n_flujos": 1
   },
   {
    "t": "TTD26",
    "http": 200,
-   "nombre": "BONTE $ Dual",
-   "texto_flujo": "Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TTD26 TTD26 BONTE $ Dual 176,63 -0,10% 06/11 18:45 Anterior 176,80 Apertura 176,80 Máximo 176,80 Mínimo 176,40 Vol. nominal 45.538.168 Vol. efectivo 80.384.859,00 Vol. promedio 4.331.695.806,63 Volumen % 1,05% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 31,07% Duration mod. 0,07 Vencimiento 15/12/2026 Próximo pago 15/12/2026 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 15/12/2026 61,14 100,00 161,14 0,00 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Cuadro técnico Precio - % Día -% % Mes -% % Año -% P/E - Beta 0 SST 93 Media móvil Distancia Valor MM 21 -100,00% 175,08 MM 42 -100,00% 173,25 MM 200 -100,00% 158,10 Medias 21/42 Compra Días desde corte 389 Precio último corte 109,95 Var. desde corte 60,64% Próximo corte Proyección — Valor - Variación - MACD Venta Días desde corte 20 Precio último corte 174,74 Var. desde corte 1,08% Próximo corte Proyección — Valor - Variación - Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperado",
+   "nombre": "TTD26",
+   "texto_flujo": "entas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TTD26 TTD26 BONTE $ Dual 176,84 +0,12% 11/11 21:00 Anterior 176,63 Apertura 176,65 Máximo 177,16 Mínimo 176,26 Vol. nominal 3.871.689.073 Vol. efectivo 6.846.312.121,00 Vol. promedio 4.308.695.469,95 Volumen % 89,86% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 24,67% Duration mod. 0,07 Vencimiento 15/12/2026 Próximo pago 15/12/2026 Valor residual 100,00% Pagos futuros cada 100 nominales. Fecha Interés Amort. Total Saldo 15/12/2026 61,14 100,00 161,14 0,00 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Cuadro técnico Precio - % Día -% % Mes -% % Año -% P/E - Beta 0 SST 92 Media móvil Distancia Valor MM 21 -100,00% 175,11 MM 42 -100,00% 173,26 MM 200 -100,00% 158,10 Medias 21/42 Compra Días desde corte 390 Precio último corte 109,95 Var. desde corte 60,89% Próximo corte Proyección — Valor - Variación - MACD Venta Días desde corte 21 Precio último corte 174,74 Var. desde corte 1,24% Próximo corte Proyección C 1 día(s) Valor 176,99 Variación 0,05% Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y a",
    "tipo": "DUAL",
    "n_flujos": 1
   },
@@ -196,40 +187,40 @@
   {
    "t": "TXMD8",
    "http": 200,
-   "nombre": "Bono DUAL 2028",
-   "texto_flujo": "s Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMD8 TXMD8 Bono DUAL 2028 94,25 -1,22% 06/11 18:45 Anterior 95,41 Apertura 96,39 Máximo 97,00 Mínimo 94,25 Vol. nominal 99.625.801 Vol. efectivo 95.048.840,00 Vol. promedio 19.244.374.742,37 Volumen % 0,52% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 41,53% Duration mod. 1,48 Vencimiento 15/12/2028 Próximo pago 15/12/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 15/12/2028 0,00 110,10 110,10 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este a",
+   "nombre": "TXMD8",
+   "texto_flujo": "entas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMD8 TXMD8 Bono DUAL 2028 95,40 +1,22% 11/11 21:00 Anterior 94,25 Apertura 95,99 Máximo 96,00 Mínimo 94,29 Vol. nominal 11.906.886.716 Vol. efectivo 11.313.052.642,00 Vol. promedio 18.877.500.341,05 Volumen % 63,07% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 40,65% Duration mod. 1,49 Vencimiento 15/12/2028 Próximo pago 15/12/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 15/12/2028 0,00 110,30 110,30 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo go",
    "tipo": "DUAL",
    "n_flujos": 1
   },
   {
    "t": "TXMD9",
    "http": 200,
-   "nombre": "Bono DUAL 2029",
-   "texto_flujo": "s Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMD9 TXMD9 Bono DUAL 2029 87,61 -0,44% 06/11 18:45 Anterior 88,00 Apertura 90,89 Máximo 90,89 Mínimo 86,50 Vol. nominal 50.722.718 Vol. efectivo 43.925.320,00 Vol. promedio 97.220.763.042,16 Volumen % 0,05% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 41,00% Duration mod. 2,19 Vencimiento 14/12/2029 Próximo pago 14/12/2029 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 14/12/2029 0,00 110,10 110,10 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este a",
+   "nombre": "TXMD9",
+   "texto_flujo": "entas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMD9 TXMD9 Bono DUAL 2029 88,07 +0,53% 11/11 21:00 Anterior 87,61 Apertura 89,07 Máximo 89,58 Mínimo 87,22 Vol. nominal 13.345.838.818 Vol. efectivo 11.772.011.109,00 Vol. promedio 93.027.016.830,95 Volumen % 14,35% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 41,00% Duration mod. 2,19 Vencimiento 14/12/2029 Próximo pago 14/12/2029 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 14/12/2029 0,00 110,30 110,30 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo go",
    "tipo": "DUAL",
    "n_flujos": 1
   },
   {
    "t": "TXMJ0",
    "http": 200,
-   "nombre": "Bono DUAL 2030",
-   "texto_flujo": "s Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMJ0 TXMJ0 Bono DUAL 2030 84,80 -0,59% 06/11 18:45 Anterior 85,30 Apertura 86,39 Máximo 86,39 Mínimo 84,00 Vol. nominal 26.788.776 Vol. efectivo 22.657.030,00 Vol. promedio 53.170.725.940,84 Volumen % 0,05% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 39,71% Duration mod. 2,60 Vencimiento 28/06/2030 Próximo pago 28/06/2030 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 28/06/2030 0,00 110,10 110,10 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Cotizaciones históricas Fecha Apertura Máximo Mínimo Cierre Volumen 06/11/2026 86,39 86,39 84,00 84,80 26.788.776 05/11/2026 86,49 86,74 84,85 85,30 17.368.747.726 04/11/2026 82,71 86,47 81,72 86,40 745.966.593.238 03/11/2026 84,50 84,50 82,60 82,80 6.163.173.978 02/11/2026 84,69 85,10 83,24 83,80 16.753.086.717 30/10/2026 85,38 85,41 84,42 85,09 3.287.566.654 29/10/2026 85,49 85,49 84,66 85,05 12.454.322.097 28/10/2026 85,48 85,48 84,51 84,70 5.896.755.741 27/10/2026 85,14 85,14 84,61 84,85 3.065.0",
+   "nombre": "TXMJ0",
+   "texto_flujo": "amientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMJ0 TXMJ0 Bono DUAL 2030 85,00 +0,24% 11/11 21:00 Anterior 84,80 Apertura 86,12 Máximo 86,12 Mínimo 84,37 Vol. nominal 1.847.414.335 Vol. efectivo 1.570.427.977,00 Vol. promedio 50.604.560.360,55 Volumen % 3,65% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 40,80% Duration mod. 2,58 Vencimiento 28/06/2030 Próximo pago 28/06/2030 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 28/06/2030 0,00 110,30 110,30 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo go",
    "tipo": "DUAL",
    "n_flujos": 1
   },
   {
    "t": "TXMJ8",
    "http": 200,
-   "nombre": "TXMJ8",
-   "texto_flujo": "amientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMJ8 TXMJ8 BONO DEL TESORO 103,90 +0,48% 06/11 18:45 Anterior 103,40 Apertura 104,90 Máximo 104,90 Mínimo 103,50 Vol. nominal 36.710.111 Vol. efectivo 38.268.782,00 Vol. promedio 10.382.394.232,84 Volumen % 0,35% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 38,39% Duration mod. 1,18 Vencimiento 30/06/2028 Próximo pago 30/06/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 30/06/2028 0,00 113,26 113,26 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este a",
+   "nombre": "BONO DEL TESORO",
+   "texto_flujo": "s Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMJ8 TXMJ8 BONO DEL TESORO 103,15 -0,72% 11/11 21:00 Anterior 103,90 Apertura 102,70 Máximo 104,10 Mínimo 102,70 Vol. nominal 4.770.863.038 Vol. efectivo 4.917.978.988,00 Vol. promedio 10.101.817.673,10 Volumen % 47,23% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 38,61% Duration mod. 1,18 Vencimiento 30/06/2028 Próximo pago 30/06/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 30/06/2028 0,00 113,46 113,46 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo go",
    "tipo": "DUAL",
    "n_flujos": 1
   },
   {
    "t": "TXMJ9",
    "http": 200,
-   "nombre": "TXMJ9",
-   "texto_flujo": "s Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMJ9 TXMJ9 Bono DUAL 2029 95,00 +0,96% 06/11 18:45 Anterior 94,10 Apertura 93,25 Máximo 95,50 Mínimo 93,16 Vol. nominal 24.132.198 Vol. efectivo 22.715.306,00 Vol. promedio 25.373.318.785,47 Volumen % 0,10% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 35,56% Duration mod. 1,94 Vencimiento 29/06/2029 Próximo pago 29/06/2029 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 29/06/2029 0,00 115,04 115,04 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad j3bon 30/10/2026 · 16:31 Qué kiosko de cuarta que somos.... Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este a",
+   "nombre": "Bono DUAL 2029",
+   "texto_flujo": "entas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TXMJ9 TXMJ9 Bono DUAL 2029 94,40 -0,63% 11/11 21:00 Anterior 95,00 Apertura 94,23 Máximo 94,99 Mínimo 92,82 Vol. nominal 13.698.894.871 Vol. efectivo 12.909.751.222,00 Vol. promedio 24.789.597.589,75 Volumen % 55,26% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 35,94% Duration mod. 1,93 Vencimiento 29/06/2029 Próximo pago 29/06/2029 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 29/06/2029 0,00 115,25 115,25 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad Maotsetsung 30/10/2026 · 16:38 Son precios de kicci emperador. Aca toto nos dwja morir y aparte el fgs se hace de goma.. llegar a eleccionrs con los precios del sño pasado. Es criminal.. sebara 31/10/2026 · 18:23 Octubre en el MERDAL (MMSCI) uhhhh 01/11/2026 · 09:50 el contador me decía el año pasado como era posible que hubiera perdido, que todo el mundo habia ganado... yo solo opciones le explicaba. Este año no voy a quedar tan boludo despues de todo go",
    "tipo": "DUAL",
    "n_flujos": 1
   },
@@ -237,37 +228,37 @@
    "t": "TZV27",
    "http": 200,
    "nombre": "Bono del Tesoro Nacional 2027 u$s-linked 0%",
-   "texto_flujo": "s de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TZV27 TZV27 Bono del Tesoro Nacional 2027 u$s-linked 0% 153.200,00 -0,20% 06/11 18:45 Anterior 153.500,00 Apertura 153.450,00 Máximo 155.030,00 Mínimo 151.000,00 Vol. nominal 22.086 Vol. efectivo 33.912.179,00 Vol. promedio 371.697,74 Volumen % 5,94% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR -0,97% Duration mod. 0,64 Vencimiento 30/06/2027 Próximo pago 30/06/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en pesos. Fecha Interés Amort. Total Saldo 30/06/2027 0,00 100,00 100,00 0,00 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco veo un plan B - me hace acordar al gobierno de Macri (vá, este es el segundo mandat",
+   "texto_flujo": "e bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TZV27 TZV27 Bono del Tesoro Nacional 2027 u$s-linked 0% 151.500,00 -1,11% 11/11 21:00 Anterior 153.200,00 Apertura 153.200,00 Máximo 153.200,00 Mínimo 150.800,00 Vol. nominal 186.755 Vol. efectivo 282.355.693,00 Vol. promedio 362.450,60 Volumen % 51,53% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 3,73% Duration mod. 0,61 Vencimiento 30/06/2027 Próximo pago 30/06/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en pesos. Fecha Interés Amort. Total Saldo 30/06/2027 0,00 100,00 100,00 0,00 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco veo un plan B - me hace acordar al gobierno de Macri (vá, este es el seg",
    "tipo": "DL",
    "n_flujos": 1
   },
   {
    "t": "TZV28",
    "http": 200,
-   "nombre": "TZV28",
-   "texto_flujo": "lisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TZV28 TZV28 Bono del Tesoro Nacional 2028 u$s-linked 0% 126.850,00 +0,21% 06/11 18:45 Anterior 126.590,00 Apertura 127.000,00 Máximo 127.000,00 Mínimo 125.600,00 Vol. nominal 862 Vol. efectivo 1.086.547,00 Vol. promedio 456.863,42 Volumen % 0,19% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 13,52% Duration mod. 1,44 Vencimiento 30/06/2028 Próximo pago 30/06/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 30/06/2028 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco ve",
+   "nombre": "Bono del Tesoro Nacional 2028 u$s-linked 0%",
+   "texto_flujo": "e bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TZV28 TZV28 Bono del Tesoro Nacional 2028 u$s-linked 0% 124.840,00 -1,58% 11/11 21:00 Anterior 126.850,00 Apertura 127.850,00 Máximo 127.850,00 Mínimo 124.640,00 Vol. nominal 211.253 Vol. efectivo 264.367.192,00 Vol. promedio 444.582,90 Volumen % 47,52% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 14,01% Duration mod. 1,43 Vencimiento 30/06/2028 Próximo pago 30/06/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 30/06/2028 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia",
    "tipo": "DL",
    "n_flujos": 1
   },
   {
    "t": "TZVD8",
    "http": 200,
-   "nombre": "Bono del tesoro 2028 u$s-linked 0%",
-   "texto_flujo": "sas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TZVD8 TZVD8 Bono del tesoro 2028 u$s-linked 0% 117.000,00 -1,35% 06/11 18:45 Anterior 118.600,00 Apertura 119.000,00 Máximo 119.000,00 Mínimo 116.510,00 Vol. nominal 3.128 Vol. efectivo 3.716.883,00 Vol. promedio 636.758,89 Volumen % 0,49% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 14,22% Duration mod. 1,83 Vencimiento 15/12/2028 Próximo pago 15/12/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 10/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 15/12/2028 0,00 154.539,74 154.539,74 Flujo actualizado al 10/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia. Tampoco ve",
+   "nombre": "TZVD8",
+   "texto_flujo": "nálisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Bono TZVD8 TZVD8 Bono del tesoro 2028 u$s-linked 0% 117.500,00 +0,43% 11/11 21:00 Anterior 117.000,00 Apertura 119.490,00 Máximo 119.490,00 Mínimo 117.500,00 Vol. nominal 419.224 Vol. efectivo 494.826.472,00 Vol. promedio 625.882,15 Volumen % 66,98% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 14,01% Duration mod. 1,83 Vencimiento 15/12/2028 Próximo pago 15/12/2028 Pagos futuros cada 100 nominales, en pesos ajustados por CER o tipo de cambio al 11/11/2026. No incluyen proyección de inflación ni de tipo de cambio. Fecha Interés Amort. Total 15/12/2028 0,00 154.791,28 154.791,28 Flujo actualizado al 11/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Comunidad Rava Ir a la Comunidad TucoSalamanca 06/11/2026 · 06:24 Amigo, me equivoco o usted hizo un par de informes esta semana, uno detrás de otro, dando a entender que la baja en los bonos argentinos podían ser una oportunidad? UNSO 06/11/2026 · 06:34 notescribo 06/11/2026 · 09:03 Eso es otro cantar y no comparto muchas de sus ideas y creencias, pero de economía sabe. Lo que está claro para mi es que se le termina la cuerda al gobierno y sin el apoyo de Trump se acabó la magia",
    "tipo": "DL",
    "n_flujos": 1
   },
   {
    "t": "TZX27",
    "http": 200,
-   "nombre": "Boncer $ 2027",
+   "nombre": "TZX27",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZX28",
    "http": 200,
-   "nombre": "Boncer $ 2028",
+   "nombre": "TZX28",
    "tipo": "CER",
    "n_flujos": 1
   },
@@ -281,7 +272,7 @@
   {
    "t": "TZXD6",
    "http": 200,
-   "nombre": "Bono del Tesoro",
+   "nombre": "TZXD6",
    "tipo": "CER",
    "n_flujos": 1
   },
@@ -295,49 +286,49 @@
   {
    "t": "TZXD8",
    "http": 200,
-   "nombre": "BONCER 2028 $",
+   "nombre": "TZXD8",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZXM7",
    "http": 200,
-   "nombre": "BONCER 2027 $",
+   "nombre": "TZXM7",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZXM8",
    "http": 200,
-   "nombre": "TZXM8",
+   "nombre": "BONCER 2028 $",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZXM9",
    "http": 200,
-   "nombre": "BONO DEL TESORO",
+   "nombre": "TZXM9",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZXO7",
    "http": 200,
-   "nombre": "TZXO7",
+   "nombre": "BONCER 2027 $",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZXS7",
    "http": 200,
-   "nombre": "TZXS7",
+   "nombre": "BONCER 2027 $",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "TZXS8",
    "http": 200,
-   "nombre": "BONCER 2028 $",
+   "nombre": "TZXS8",
    "tipo": "CER",
    "n_flujos": 1
   },
@@ -351,14 +342,14 @@
   {
    "t": "X29E7",
    "http": 200,
-   "nombre": "X29E7",
+   "nombre": "LECER $ 0% vto.",
    "tipo": "CER",
    "n_flujos": 1
   },
   {
    "t": "X30N6",
    "http": 200,
-   "nombre": "LECER $ 0% vto.",
+   "nombre": "X30N6",
    "tipo": "CER",
    "n_flujos": 1
   }
