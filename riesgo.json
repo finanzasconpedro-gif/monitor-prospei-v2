@@ -1,9 +1,9 @@
 {
- "valor": 832.0,
+ "valor": 830.0,
  "fecha": "2026-11-13",
  "fuente": "Ámbito",
  "hora": "13-11-2026",
- "actualizado": "2026-11-13T20:26Z",
+ "actualizado": "2026-11-14T01:23Z",
  "fuentes": [
   {
    "valor": 829.0,
@@ -11,7 +11,7 @@
    "fuente": "ArgentinaDatos"
   },
   {
-   "valor": 832.0,
+   "valor": 830.0,
    "fecha": "2026-11-13",
    "fuente": "Ámbito",
    "hora": "13-11-2026"
@@ -96,7 +96,7 @@
   },
   {
    "fecha": "2026-11-13",
-   "valor": 832.0
+   "valor": 830.0
   }
  ]
 }
