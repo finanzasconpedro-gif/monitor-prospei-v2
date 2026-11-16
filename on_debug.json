@@ -2,10 +2,10 @@
  {
   "t": "YM44D",
   "http": 200,
-  "bytes": 113142,
+  "bytes": 117353,
   "fuente_flujo": "texto",
-  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">7,99%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">6,17</span></div>\n                                                <div class=\"p2-re",
-  "texto_flujo": "ones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable YM44D YM44D YPF 2035 u$s 99,15 +0,25% 06/11 18:45 Anterior 98,90 Apertura 99,19 Máximo 99,19 Mínimo 98,19 Vol. nominal 96.887 Vol. efectivo 95.912,00 Vol. promedio 877.451,25 Volumen % 11,04% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 7,99% Duration mod. 6,17 Vencimiento 18/06/2035 Próximo pago 18/06/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 18/06/2027 5,6625 0,00 5,6625 100,00 20/12/2027 3,7750 0,00 3,7750 100,00 19/06/2028 3,7750 0,00 3,7750 100,00 18/12/2028 3,7750 0,00 3,7750 100,00 18/06/2029 3,7750 0,00 3,7750 100,00 18/12/2029 3,7750 0,00 3,7750 100,00 18/06/2030 3,7750 0,00 3,7750 100,00 18/12/2030 3,7750 0,00 3,7750 100,00 18/06/2031 3,7750 0,00 3,7750 100,00 18/12/2031 3,7750 0,00 3,7750 100,00 18/06/2032 3,7750 0,00 3,7750 100,00",
+  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">8,21%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">6,13</span></div>\n                                                <div class=\"p2-re",
+  "texto_flujo": "es argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable YM44D YM44D YPF 2035 u$s 97,53 -0,48% 16/11 18:45 Anterior 98,00 Apertura 98,00 Máximo 98,90 Mínimo 97,50 Vol. nominal 710.469 Vol. efectivo 694.962,00 Vol. promedio 810.669,35 Volumen % 87,64% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 8,21% Duration mod. 6,13 Vencimiento 18/06/2035 Próximo pago 18/06/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 18/06/2027 5,6625 0,00 5,6625 100,00 20/12/2027 3,7750 0,00 3,7750 100,00 19/06/2028 3,7750 0,00 3,7750 100,00 18/12/2028 3,7750 0,00 3,7750 100,00 18/06/2029 3,7750 0,00 3,7750 100,00 18/12/2029 3,7750 0,00 3,7750 100,00 18/06/2030 3,7750 0,00 3,7750 100,00 18/12/2030 3,7750 0,00 3,7750 100,00 18/06/2031 3,7750 0,00 3,7750 100,00 18/12/2031 3,7750 0,00 3,7750 100,00 18/06/2032 3,7750 0,00 3,7750 100,00",
   "n_json": 1,
   "json_claves": [
    [
@@ -22,10 +22,10 @@
  {
   "t": "YM43D",
   "http": 200,
-  "bytes": 121359,
+  "bytes": 125582,
   "fuente_flujo": "texto",
-  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">6,48%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">2,98</span></div>\n                                                <div class=\"p2-re",
-  "texto_flujo": " argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable YM43D YM43D YPF 2030 u$s 100,45 +0,15% 06/11 18:45 Anterior 100,30 Apertura 100,30 Máximo 100,50 Mínimo 100,30 Vol. nominal 32.821 Vol. efectivo 32.961,00 Vol. promedio 798.893,40 Volumen % 4,11% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 6,48% Duration mod. 2,98 Vencimiento 14/04/2030 Próximo pago 14/01/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 14/01/2027 4,1438 0,00 4,1438 100,00 14/07/2027 2,7274 0,00 2,7274 100,00 14/01/2028 2,7726 0,00 2,7726 100,00 14/07/2028 2,7425 0,00 2,7425 100,00 15/01/2029 2,7726 0,00 2,7726 100,00 16/07/2029 2,7274 0,00 2,7274 100,00 14/01/2030 2,7726 0,00 2,7726 100,00 12/04/2030 1,3562 100,00 101,36 0,00 Flujo actualizado al 09/11/2026. Información orientativa: verificá las condiciones de emisión. Comunidad Rava ",
+  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">6,58%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">2,96</span></div>\n                                                <div class=\"p2-re",
+  "texto_flujo": "gentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable YM43D YM43D YPF 2030 u$s 100,30 -0,20% 16/11 18:45 Anterior 100,50 Apertura 100,85 Máximo 100,85 Mínimo 100,25 Vol. nominal 383.776 Vol. efectivo 385.341,00 Vol. promedio 822.170,40 Volumen % 46,68% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 6,58% Duration mod. 2,96 Vencimiento 14/04/2030 Próximo pago 14/01/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 14/01/2027 4,1438 0,00 4,1438 100,00 14/07/2027 2,7274 0,00 2,7274 100,00 14/01/2028 2,7726 0,00 2,7726 100,00 14/07/2028 2,7425 0,00 2,7425 100,00 15/01/2029 2,7726 0,00 2,7726 100,00 16/07/2029 2,7274 0,00 2,7274 100,00 14/01/2030 2,7726 0,00 2,7726 100,00 12/04/2030 1,3562 100,00 101,36 0,00 Flujo actualizado al 16/11/2026. Información orientativa: verificá las condiciones de emisión. Intradiario Com",
   "n_json": 1,
   "json_claves": [
    [
@@ -42,10 +42,10 @@
  {
   "t": "YM34D",
   "http": 200,
-  "bytes": 164525,
+  "bytes": 166980,
   "fuente_flujo": "texto",
-  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">7,43%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">4,76</span></div>\n                                                <div class=\"p2-re",
-  "texto_flujo": "gentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable YM34D YM34D YPF 2034 U$S 107,25 -0,14% 06/11 18:45 Anterior 107,40 Apertura 105,70 Máximo 108,80 Mínimo 105,70 Vol. nominal 184.904 Vol. efectivo 197.956,00 Vol. promedio 688.853,80 Volumen % 26,84% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 7,43% Duration mod. 4,76 Vencimiento 17/01/2034 Próximo pago 18/01/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 18/01/2027 4,1479 0,00 4,1479 100,00 19/07/2027 4,1479 0,00 4,1479 100,00 17/01/2028 4,0792 0,00 4,0792 100,00 17/07/2028 4,1250 0,00 4,1250 100,00 17/01/2029 4,1250 0,00 4,1250 100,00 17/07/2029 4,1250 0,00 4,1250 100,00 17/01/2030 4,1250 0,00 4,1250 100,00 17/07/2030 4,1250 0,00 4,1250 100,00 17/01/2031 4,1250 0,00 4,1250 100,00 17/07/2031 4,1250 0,00 4,1250 100,00 19/01/2032 4,1708 30,00 34,17 70,00 ",
+  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">7,53%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">4,74</span></div>\n                                                <div class=\"p2-re",
+  "texto_flujo": "tinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable YM34D YM34D YPF 2034 U$S 107,10 -0,14% 16/11 18:45 Anterior 107,25 Apertura 107,50 Máximo 107,50 Mínimo 106,15 Vol. nominal 953.877 Vol. efectivo 1.021.106,00 Vol. promedio 648.125,75 Volumen % 147,17% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 7,53% Duration mod. 4,74 Vencimiento 17/01/2034 Próximo pago 18/01/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 18/01/2027 4,1479 0,00 4,1479 100,00 19/07/2027 4,1479 0,00 4,1479 100,00 17/01/2028 4,0792 0,00 4,0792 100,00 17/07/2028 4,1250 0,00 4,1250 100,00 17/01/2029 4,1250 0,00 4,1250 100,00 17/07/2029 4,1250 0,00 4,1250 100,00 17/01/2030 4,1250 0,00 4,1250 100,00 17/07/2030 4,1250 0,00 4,1250 100,00 17/01/2031 4,1250 0,00 4,1250 100,00 17/07/2031 4,1250 0,00 4,1250 100,00 19/01/2032 4,1708 30,00 34,17 70,00 ",
   "n_json": 1,
   "json_claves": [
    [
@@ -62,10 +62,10 @@
  {
   "t": "PLC7D",
   "http": 200,
-  "bytes": 134541,
+  "bytes": 139038,
   "fuente_flujo": "texto",
-  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">8,13%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">6,64</span></div>\n                                                <div class=\"p2-re",
-  "texto_flujo": "ciones argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable PLC7D PLC7D Clase 7 99,80 +0,20% 06/11 18:45 Anterior 99,60 Apertura 99,90 Máximo 100,20 Mínimo 98,69 Vol. nominal 150.000 Vol. efectivo 149.439,00 Vol. promedio 521.200,00 Volumen % 28,78% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 8,13% Duration mod. 6,64 Vencimiento 30/09/2037 Próximo pago 30/03/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 30/03/2027 5,6625 0,00 5,6625 100,00 30/09/2027 3,7750 0,00 3,7750 100,00 30/03/2028 3,7750 0,00 3,7750 100,00 02/10/2028 3,7750 0,00 3,7750 100,00 30/03/2029 3,7750 0,00 3,7750 100,00 01/10/2029 3,7750 0,00 3,7750 100,00 01/04/2030 3,7750 0,00 3,7750 100,00 30/09/2030 3,7750 0,00 3,7750 100,00 31/03/2031 3,7750 0,00 3,7750 100,00 30/09/2031 3,7750 0,00 3,7750 100,00 30/03/2032 3,7750 0,00 3,7750 100,00",
+  "html_Flujo ": "=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg> Flujo de fondos</h2>\n            </div>\n            <div class=\"p2-ct-returns p2-flujo-kpis\">\n                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">TIR</span><span class=\"p2-ret-val\">8,10%</span></div>\n                                                <div class=\"p2-ret\"><span class=\"p2-ret-label\">Duration mod.</span><span class=\"p2-ret-val\">6,62</span></div>\n                                                <div class=\"p2-re",
+  "texto_flujo": "nes argentinas ADRs argentinos Dólares Cedears ETFs Bonos Letras Opciones Futuros Mercados globales Herramientas Balances de empresas Análisis de bonos Indicadores Mapa del mercado Información relevante de empresas Comunidad Centro de ayuda Preguntas frecuentes Contacto Nosotros Trabajá con nosotros Aviso legal Código de conducta Política de privacidad 25 de Mayo 277 5 24 (C1002ABE) Ciudad Autónoma de Buenos Aires, Argentina Teléfono: +54 11 7700-1888 / +54 11 4343-9421 Horario: 10 a 18hs 1\"> Por favor ingresá al menos dos caracteres Obligación negociable PLC7D PLC7D Clase 7 100,50 +0,35% 16/11 18:45 Anterior 100,15 Apertura 100,15 Máximo 100,50 Mínimo 99,83 Vol. nominal 368.000 Vol. efectivo 368.151,00 Vol. promedio 510.700,00 Volumen % 72,06% Histórico Gráficos avanzados en Rava Mercado Flujo de fondos TIR 8,10% Duration mod. 6,62 Vencimiento 30/09/2037 Próximo pago 30/03/2027 Valor residual 100,00% Pagos futuros cada 100 nominales, en dólares. Fecha Interés Amort. Total Saldo 30/03/2027 5,6625 0,00 5,6625 100,00 30/09/2027 3,7750 0,00 3,7750 100,00 30/03/2028 3,7750 0,00 3,7750 100,00 02/10/2028 3,7750 0,00 3,7750 100,00 30/03/2029 3,7750 0,00 3,7750 100,00 01/10/2029 3,7750 0,00 3,7750 100,00 01/04/2030 3,7750 0,00 3,7750 100,00 30/09/2030 3,7750 0,00 3,7750 100,00 31/03/2031 3,7750 0,00 3,7750 100,00 30/09/2031 3,7750 0,00 3,7750 100,00 30/03/2032 3,7750 0,00 3,7750 100,00",
   "n_json": 1,
   "json_claves": [
    [
@@ -82,7 +82,7 @@
  {
   "t": "VSCVD",
   "http": 200,
-  "bytes": 164025,
+  "bytes": 166488,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -100,7 +100,7 @@
  {
   "t": "TLCTD",
   "http": 200,
-  "bytes": 144667,
+  "bytes": 148886,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -118,7 +118,7 @@
  {
   "t": "YMCXD",
   "http": 200,
-  "bytes": 162776,
+  "bytes": 165235,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -136,7 +136,7 @@
  {
   "t": "VSCXD",
   "http": 200,
-  "bytes": 127781,
+  "bytes": 131995,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -154,7 +154,7 @@
  {
   "t": "PNXCD",
   "http": 200,
-  "bytes": 162175,
+  "bytes": 164627,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -172,7 +172,7 @@
  {
   "t": "DNCAD",
   "http": 200,
-  "bytes": 119537,
+  "bytes": 123745,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -190,7 +190,7 @@
  {
   "t": "TLCPD",
   "http": 200,
-  "bytes": 164041,
+  "bytes": 166501,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -208,7 +208,7 @@
  {
   "t": "YM38D",
   "http": 200,
-  "bytes": 160786,
+  "bytes": 163248,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -226,7 +226,7 @@
  {
   "t": "VMC1D",
   "http": 200,
-  "bytes": 103248,
+  "bytes": 107726,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -244,7 +244,7 @@
  {
   "t": "PLC4D",
   "http": 200,
-  "bytes": 163424,
+  "bytes": 165884,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -262,7 +262,7 @@
  {
   "t": "TTCDD",
   "http": 200,
-  "bytes": 161752,
+  "bytes": 163944,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -280,7 +280,7 @@
  {
   "t": "IRCPD",
   "http": 200,
-  "bytes": 165007,
+  "bytes": 167470,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -298,7 +298,7 @@
  {
   "t": "YM42D",
   "http": 200,
-  "bytes": 150780,
+  "bytes": 155003,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -316,7 +316,7 @@
  {
   "t": "YMCYD",
   "http": 200,
-  "bytes": 161964,
+  "bytes": 164706,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -334,7 +334,7 @@
  {
   "t": "BACGD",
   "http": 200,
-  "bytes": 161674,
+  "bytes": 164134,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -352,7 +352,7 @@
  {
   "t": "TLCMD",
   "http": 200,
-  "bytes": 163051,
+  "bytes": 165517,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -370,7 +370,7 @@
  {
   "t": "YM37D",
   "http": 200,
-  "bytes": 157978,
+  "bytes": 156119,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -387,7 +387,7 @@
  {
   "t": "PN36D",
   "http": 200,
-  "bytes": 162910,
+  "bytes": 165045,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -405,7 +405,7 @@
  {
   "t": "MCC3D",
   "http": 200,
-  "bytes": 136034,
+  "bytes": 142489,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -423,7 +423,7 @@
  {
   "t": "OLC7D",
   "http": 200,
-  "bytes": 132673,
+  "bytes": 136886,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -441,7 +441,7 @@
  {
   "t": "PLC5D",
   "http": 200,
-  "bytes": 160317,
+  "bytes": 164540,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -459,7 +459,7 @@
  {
   "t": "PN35D",
   "http": 200,
-  "bytes": 161748,
+  "bytes": 164204,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -477,7 +477,7 @@
  {
   "t": "RUCED",
   "http": 200,
-  "bytes": 132061,
+  "bytes": 136284,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -495,7 +495,7 @@
  {
   "t": "MGCRD",
   "http": 200,
-  "bytes": 165192,
+  "bytes": 169397,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -513,7 +513,7 @@
  {
   "t": "MGCOD",
   "http": 200,
-  "bytes": 165001,
+  "bytes": 167459,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -531,7 +531,7 @@
  {
   "t": "DNC7D",
   "http": 200,
-  "bytes": 162414,
+  "bytes": 164863,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -549,7 +549,7 @@
  {
   "t": "RC1CD",
   "http": 200,
-  "bytes": 163773,
+  "bytes": 166242,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -567,7 +567,7 @@
  {
   "t": "TSC4D",
   "http": 200,
-  "bytes": 157201,
+  "bytes": 161418,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -585,7 +585,7 @@
  {
   "t": "YM39D",
   "http": 200,
-  "bytes": 162186,
+  "bytes": 164897,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -603,7 +603,7 @@
  {
   "t": "VSCRD",
   "http": 200,
-  "bytes": 163037,
+  "bytes": 165485,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -621,7 +621,7 @@
  {
   "t": "OLC6D",
   "http": 200,
-  "bytes": 149553,
+  "bytes": 153770,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -639,7 +639,7 @@
  {
   "t": "HJCJD",
   "http": 200,
-  "bytes": 157182,
+  "bytes": 161393,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -649,14 +649,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "RCCRD",
   "http": 200,
-  "bytes": 159630,
+  "bytes": 161760,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -674,7 +675,7 @@
  {
   "t": "PLC2D",
   "http": 200,
-  "bytes": 162038,
+  "bytes": 164235,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -692,14 +693,14 @@
  {
   "t": "PFC3C",
   "http": 200,
-  "bytes": 59988,
+  "bytes": 60214,
   "fuente_flujo": "no encontrado",
   "n_json": 0
  },
  {
   "t": "PN38D",
   "http": 200,
-  "bytes": 158870,
+  "bytes": 161334,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -717,7 +718,7 @@
  {
   "t": "TSC3D",
   "http": 200,
-  "bytes": 161561,
+  "bytes": 164020,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -735,7 +736,7 @@
  {
   "t": "LOC5D",
   "http": 200,
-  "bytes": 160140,
+  "bytes": 162599,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -753,7 +754,7 @@
  {
   "t": "BYCHD",
   "http": 200,
-  "bytes": 156730,
+  "bytes": 160950,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -763,14 +764,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "MGCTD",
   "http": 200,
-  "bytes": 123247,
+  "bytes": 127463,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -788,7 +790,7 @@
  {
   "t": "SBC2D",
   "http": 200,
-  "bytes": 140246,
+  "bytes": 144452,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -806,7 +808,7 @@
  {
   "t": "YM40D",
   "http": 200,
-  "bytes": 161823,
+  "bytes": 164022,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -824,7 +826,7 @@
  {
   "t": "YMCJD",
   "http": 200,
-  "bytes": 163923,
+  "bytes": 158880,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -842,7 +844,7 @@
  {
   "t": "TTC9D",
   "http": 200,
-  "bytes": 161292,
+  "bytes": 163762,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -860,7 +862,7 @@
  {
   "t": "MGCMD",
   "http": 200,
-  "bytes": 160913,
+  "bytes": 163375,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -878,7 +880,7 @@
  {
   "t": "DNC3D",
   "http": 200,
-  "bytes": 159848,
+  "bytes": 162306,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -896,7 +898,7 @@
  {
   "t": "DNCBD",
   "http": 200,
-  "bytes": 101907,
+  "bytes": 106112,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -914,7 +916,7 @@
  {
   "t": "EAC4D",
   "http": 200,
-  "bytes": 110113,
+  "bytes": 114325,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -932,7 +934,7 @@
  {
   "t": "DNC5D",
   "http": 200,
-  "bytes": 160775,
+  "bytes": 163252,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -950,7 +952,7 @@
  {
   "t": "ARC1D",
   "http": 200,
-  "bytes": 165387,
+  "bytes": 167841,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -968,7 +970,7 @@
  {
   "t": "SBC3D",
   "http": 200,
-  "bytes": 134242,
+  "bytes": 138274,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -986,7 +988,7 @@
  {
   "t": "CP38D",
   "http": 200,
-  "bytes": 132587,
+  "bytes": 136538,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1004,7 +1006,7 @@
  {
   "t": "VSCUD",
   "http": 200,
-  "bytes": 161913,
+  "bytes": 164366,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1022,7 +1024,7 @@
  {
   "t": "VSCTD",
   "http": 200,
-  "bytes": 164474,
+  "bytes": 166932,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1040,7 +1042,7 @@
  {
   "t": "MGCQD",
   "http": 200,
-  "bytes": 160305,
+  "bytes": 162766,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1058,7 +1060,7 @@
  {
   "t": "OZC3D",
   "http": 200,
-  "bytes": 160108,
+  "bytes": 162607,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1076,7 +1078,7 @@
  {
   "t": "XMC1D",
   "http": 200,
-  "bytes": 157630,
+  "bytes": 161546,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1086,14 +1088,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "TLCOD",
   "http": 200,
-  "bytes": 160918,
+  "bytes": 163386,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1111,7 +1114,7 @@
  {
   "t": "CS47D",
   "http": 200,
-  "bytes": 160586,
+  "bytes": 163040,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1127,10 +1130,10 @@
   ]
  },
  {
-  "t": "AFCID",
+  "t": "AFCIC",
   "http": 200,
-  "bytes": 151866,
-  "fuente_flujo": "texto",
+  "bytes": 75744,
+  "fuente_flujo": "no encontrado",
   "n_json": 1,
   "json_claves": [
    [
@@ -1146,7 +1149,7 @@
  {
   "t": "CAC5D",
   "http": 200,
-  "bytes": 159192,
+  "bytes": 161658,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1164,7 +1167,7 @@
  {
   "t": "BACHD",
   "http": 200,
-  "bytes": 152010,
+  "bytes": 158548,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1174,14 +1177,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "RUCDD",
   "http": 200,
-  "bytes": 162320,
+  "bytes": 164800,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1199,7 +1203,7 @@
  {
   "t": "PLC6D",
   "http": 200,
-  "bytes": 131009,
+  "bytes": 135224,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1217,7 +1221,7 @@
  {
   "t": "LDCGD",
   "http": 200,
-  "bytes": 157838,
+  "bytes": 162057,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1227,14 +1231,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "LOC6D",
   "http": 200,
-  "bytes": 137732,
+  "bytes": 142214,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1252,7 +1257,7 @@
  {
   "t": "IRCOD",
   "http": 200,
-  "bytes": 161633,
+  "bytes": 164110,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1270,7 +1275,7 @@
  {
   "t": "OT42D",
   "http": 200,
-  "bytes": 163467,
+  "bytes": 165926,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1288,7 +1293,7 @@
  {
   "t": "MTC2D",
   "http": 200,
-  "bytes": 124897,
+  "bytes": 131598,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1298,14 +1303,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "TTCAD",
   "http": 200,
-  "bytes": 161402,
+  "bytes": 163883,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1323,7 +1329,7 @@
  {
   "t": "PN43D",
   "http": 200,
-  "bytes": 145307,
+  "bytes": 149525,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1341,7 +1347,7 @@
  {
   "t": "PQCSD",
   "http": 200,
-  "bytes": 162185,
+  "bytes": 164642,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1359,7 +1365,7 @@
  {
   "t": "TTCED",
   "http": 200,
-  "bytes": 137409,
+  "bytes": 141625,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1377,7 +1383,7 @@
  {
   "t": "NPCCD",
   "http": 200,
-  "bytes": 161250,
+  "bytes": 163718,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1395,7 +1401,7 @@
  {
   "t": "YMCID",
   "http": 200,
-  "bytes": 161387,
+  "bytes": 163831,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1413,7 +1419,7 @@
  {
   "t": "CP41D",
   "http": 200,
-  "bytes": 111445,
+  "bytes": 115647,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1431,7 +1437,7 @@
  {
   "t": "ZZC1C",
   "http": 200,
-  "bytes": 93263,
+  "bytes": 94177,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1448,7 +1454,7 @@
  {
   "t": "OZC8D",
   "http": 200,
-  "bytes": 121504,
+  "bytes": 126755,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1458,14 +1464,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "BYCWD",
   "http": 200,
-  "bytes": 135050,
+  "bytes": 141023,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1475,14 +1482,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "PN41D",
   "http": 200,
-  "bytes": 161272,
+  "bytes": 163737,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1500,7 +1508,7 @@
  {
   "t": "PLC3D",
   "http": 200,
-  "bytes": 160638,
+  "bytes": 163096,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1518,7 +1526,7 @@
  {
   "t": "JNC6D",
   "http": 200,
-  "bytes": 141977,
+  "bytes": 146544,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1528,14 +1536,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "LMS8D",
   "http": 200,
-  "bytes": 147798,
+  "bytes": 151979,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1545,14 +1554,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "MIC4D",
   "http": 200,
-  "bytes": 136208,
+  "bytes": 140161,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1570,7 +1580,7 @@
  {
   "t": "CACBD",
   "http": 200,
-  "bytes": 154576,
+  "bytes": 157064,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1588,7 +1598,7 @@
  {
   "t": "HJCLD",
   "http": 200,
-  "bytes": 122252,
+  "bytes": 126467,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1606,7 +1616,7 @@
  {
   "t": "CS50D",
   "http": 200,
-  "bytes": 147113,
+  "bytes": 151323,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1624,7 +1634,7 @@
  {
   "t": "T641D",
   "http": 200,
-  "bytes": 140529,
+  "bytes": 144402,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1634,14 +1644,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "MR46D",
   "http": 200,
-  "bytes": 107293,
+  "bytes": 111495,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1659,14 +1670,14 @@
  {
   "t": "NPCDC",
   "http": 200,
-  "bytes": 96691,
+  "bytes": 97496,
   "fuente_flujo": "texto",
   "n_json": 0
  },
  {
   "t": "CACDD",
   "http": 200,
-  "bytes": 134004,
+  "bytes": 137954,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1684,14 +1695,14 @@
  {
   "t": "CS53C",
   "http": 200,
-  "bytes": 71675,
+  "bytes": 72481,
   "fuente_flujo": "texto",
   "n_json": 0
  },
  {
   "t": "LUC5D",
   "http": 200,
-  "bytes": 130127,
+  "bytes": 134329,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1709,7 +1720,7 @@
  {
   "t": "YFCJD",
   "http": 200,
-  "bytes": 163598,
+  "bytes": 166061,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1727,7 +1738,7 @@
  {
   "t": "VSCZD",
   "http": 200,
-  "bytes": 99187,
+  "bytes": 103402,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1745,7 +1756,7 @@
  {
   "t": "RC5CD",
   "http": 200,
-  "bytes": 134735,
+  "bytes": 137852,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1763,7 +1774,7 @@
  {
   "t": "GN49D",
   "http": 200,
-  "bytes": 153442,
+  "bytes": 157658,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1781,7 +1792,7 @@
  {
   "t": "VSCPD",
   "http": 200,
-  "bytes": 160852,
+  "bytes": 163314,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1799,7 +1810,7 @@
  {
   "t": "MCC2D",
   "http": 200,
-  "bytes": 157935,
+  "bytes": 160416,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1817,7 +1828,7 @@
  {
   "t": "HJCKD",
   "http": 200,
-  "bytes": 137603,
+  "bytes": 141822,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1835,7 +1846,7 @@
  {
   "t": "IRCFD",
   "http": 200,
-  "bytes": 160012,
+  "bytes": 162469,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1853,7 +1864,7 @@
  {
   "t": "CS48D",
   "http": 200,
-  "bytes": 160942,
+  "bytes": 163406,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1871,7 +1882,7 @@
  {
   "t": "MCC1D",
   "http": 200,
-  "bytes": 159761,
+  "bytes": 162263,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1889,7 +1900,7 @@
  {
   "t": "MGCND",
   "http": 200,
-  "bytes": 160571,
+  "bytes": 163038,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1907,7 +1918,7 @@
  {
   "t": "WBS3D",
   "http": 200,
-  "bytes": 107375,
+  "bytes": 106757,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1924,7 +1935,7 @@
  {
   "t": "CICAD",
   "http": 200,
-  "bytes": 149162,
+  "bytes": 153376,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1942,7 +1953,7 @@
  {
   "t": "HJCID",
   "http": 200,
-  "bytes": 158216,
+  "bytes": 160697,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1960,7 +1971,7 @@
  {
   "t": "YM41D",
   "http": 200,
-  "bytes": 159201,
+  "bytes": 161665,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1978,7 +1989,7 @@
  {
   "t": "YFCPD",
   "http": 200,
-  "bytes": 112842,
+  "bytes": 105783,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -1996,7 +2007,7 @@
  {
   "t": "OTS7D",
   "http": 200,
-  "bytes": 107692,
+  "bytes": 111936,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2014,7 +2025,7 @@
  {
   "t": "VSCYD",
   "http": 200,
-  "bytes": 101582,
+  "bytes": 105794,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2032,7 +2043,7 @@
  {
   "t": "SIC2D",
   "http": 200,
-  "bytes": 131573,
+  "bytes": 135782,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2050,7 +2061,7 @@
  {
   "t": "OTS6D",
   "http": 200,
-  "bytes": 138327,
+  "bytes": 142279,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2066,9 +2077,9 @@
   ]
  },
  {
-  "t": "MIC3D",
+  "t": "MIC3C",
   "http": 200,
-  "bytes": 154889,
+  "bytes": 68744,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2085,7 +2096,7 @@
  {
   "t": "CICBD",
   "http": 200,
-  "bytes": 132601,
+  "bytes": 136821,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2103,7 +2114,7 @@
  {
   "t": "MIC6O",
   "http": 200,
-  "bytes": 136174,
+  "bytes": 140503,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2121,7 +2132,7 @@
  {
   "t": "TTCBD",
   "http": 200,
-  "bytes": 159253,
+  "bytes": 161706,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2139,7 +2150,7 @@
  {
   "t": "PN34D",
   "http": 200,
-  "bytes": 156921,
+  "bytes": 161152,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2149,14 +2160,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "YCAMD",
   "http": 200,
-  "bytes": 109353,
+  "bytes": 108877,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2173,7 +2185,7 @@
  {
   "t": "TLCUD",
   "http": 200,
-  "bytes": 128110,
+  "bytes": 132325,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2191,7 +2203,7 @@
  {
   "t": "OTS3D",
   "http": 200,
-  "bytes": 158177,
+  "bytes": 161000,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2209,7 +2221,7 @@
  {
   "t": "TLCQD",
   "http": 200,
-  "bytes": 159950,
+  "bytes": 162133,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2227,7 +2239,7 @@
  {
   "t": "IRCJD",
   "http": 200,
-  "bytes": 158849,
+  "bytes": 161304,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2243,26 +2255,14 @@
   ]
  },
  {
-  "t": "BGC4D",
-  "http": 200,
-  "bytes": 126161,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
+  "t": "BGC4C",
+  "http": 404,
+  "bytes": 50791
  },
  {
   "t": "SNEBD",
   "http": 200,
-  "bytes": 140538,
+  "bytes": 144400,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2280,7 +2280,7 @@
  {
   "t": "OLC5D",
   "http": 200,
-  "bytes": 159570,
+  "bytes": 161754,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2298,7 +2298,7 @@
  {
   "t": "TLCVD",
   "http": 200,
-  "bytes": 101914,
+  "bytes": 102840,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2315,7 +2315,7 @@
  {
   "t": "EMC1D",
   "http": 200,
-  "bytes": 157332,
+  "bytes": 159785,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2333,7 +2333,7 @@
  {
   "t": "EAC3D",
   "http": 200,
-  "bytes": 160073,
+  "bytes": 162893,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2351,7 +2351,7 @@
  {
   "t": "SNSDD",
   "http": 200,
-  "bytes": 138399,
+  "bytes": 142245,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2361,14 +2361,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "PLC1D",
   "http": 200,
-  "bytes": 160151,
+  "bytes": 162627,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2386,7 +2387,7 @@
  {
   "t": "YFCGD",
   "http": 200,
-  "bytes": 154122,
+  "bytes": 156833,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2404,7 +2405,7 @@
  {
   "t": "OT41D",
   "http": 200,
-  "bytes": 147260,
+  "bytes": 150434,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2422,7 +2423,7 @@
  {
   "t": "CP37D",
   "http": 200,
-  "bytes": 150882,
+  "bytes": 155213,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2432,14 +2433,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "OTS2D",
   "http": 200,
-  "bytes": 159614,
+  "bytes": 162328,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2457,7 +2459,7 @@
  {
   "t": "GN47D",
   "http": 200,
-  "bytes": 159818,
+  "bytes": 162311,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2475,7 +2477,7 @@
  {
   "t": "RZABD",
   "http": 200,
-  "bytes": 138541,
+  "bytes": 141711,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2485,14 +2487,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "YFCID",
   "http": 200,
-  "bytes": 155563,
+  "bytes": 158031,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2510,7 +2513,7 @@
  {
   "t": "SBC1D",
   "http": 200,
-  "bytes": 158794,
+  "bytes": 161237,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2528,7 +2531,7 @@
  {
   "t": "YFCMD",
   "http": 200,
-  "bytes": 160160,
+  "bytes": 162625,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2546,7 +2549,7 @@
  {
   "t": "YFCKD",
   "http": 200,
-  "bytes": 158353,
+  "bytes": 160839,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2564,7 +2567,7 @@
  {
   "t": "CP40D",
   "http": 200,
-  "bytes": 128032,
+  "bytes": 132253,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2582,7 +2585,7 @@
  {
   "t": "YFCLD",
   "http": 200,
-  "bytes": 161777,
+  "bytes": 164516,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2600,7 +2603,7 @@
  {
   "t": "PECND",
   "http": 200,
-  "bytes": 160096,
+  "bytes": 162562,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2618,7 +2621,7 @@
  {
   "t": "PQCRD",
   "http": 200,
-  "bytes": 153966,
+  "bytes": 156437,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2636,7 +2639,7 @@
  {
   "t": "LMS7D",
   "http": 200,
-  "bytes": 160200,
+  "bytes": 162649,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2654,7 +2657,7 @@
  {
   "t": "FO4AD",
   "http": 200,
-  "bytes": 119918,
+  "bytes": 125267,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2664,15 +2667,16 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
-  "t": "CIC7D",
+  "t": "CIC7C",
   "http": 200,
-  "bytes": 118202,
-  "fuente_flujo": "texto",
+  "bytes": 60409,
+  "fuente_flujo": "no encontrado",
   "n_json": 1,
   "json_claves": [
    [
@@ -2688,7 +2692,7 @@
  {
   "t": "GN48D",
   "http": 200,
-  "bytes": 139136,
+  "bytes": 143733,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2698,14 +2702,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "TTC8D",
   "http": 200,
-  "bytes": 159064,
+  "bytes": 161542,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2723,14 +2728,14 @@
  {
   "t": "CS52C",
   "http": 200,
-  "bytes": 59988,
+  "bytes": 60214,
   "fuente_flujo": "no encontrado",
   "n_json": 0
  },
  {
   "t": "HJCHD",
   "http": 200,
-  "bytes": 151762,
+  "bytes": 154235,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2748,7 +2753,7 @@
  {
   "t": "HJCGD",
   "http": 200,
-  "bytes": 142815,
+  "bytes": 145631,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2766,7 +2771,7 @@
  {
   "t": "PFC2D",
   "http": 200,
-  "bytes": 156284,
+  "bytes": 160499,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2776,14 +2781,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "AERBD",
   "http": 200,
-  "bytes": 159025,
+  "bytes": 161482,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2801,7 +2807,7 @@
  {
   "t": "GYC4D",
   "http": 200,
-  "bytes": 158186,
+  "bytes": 160688,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2819,14 +2825,14 @@
  {
   "t": "ZPC5C",
   "http": 200,
-  "bytes": 59988,
+  "bytes": 60214,
   "fuente_flujo": "no encontrado",
   "n_json": 0
  },
  {
   "t": "PNDCD",
   "http": 200,
-  "bytes": 155833,
+  "bytes": 158289,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2844,7 +2850,7 @@
  {
   "t": "MR47D",
   "http": 200,
-  "bytes": 102412,
+  "bytes": 106611,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2862,7 +2868,7 @@
  {
   "t": "TLCWD",
   "http": 200,
-  "bytes": 135582,
+  "bytes": 139794,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2880,7 +2886,7 @@
  {
   "t": "IRCND",
   "http": 200,
-  "bytes": 155304,
+  "bytes": 158463,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2898,41 +2904,7 @@
  {
   "t": "CIC8D",
   "http": 200,
-  "bytes": 103238,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "CP36D",
-  "http": 200,
-  "bytes": 155087,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "PFC4D",
-  "http": 200,
-  "bytes": 109820,
+  "bytes": 108880,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2948,9 +2920,44 @@
   ]
  },
  {
+  "t": "CP36D",
+  "http": 200,
+  "bytes": 160009,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "PFC4D",
+  "http": 200,
+  "bytes": 109338,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description"
+   ]
+  ]
+ },
+ {
   "t": "MSSGD",
   "http": 200,
-  "bytes": 152262,
+  "bytes": 155422,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2968,7 +2975,7 @@
  {
   "t": "PN42D",
   "http": 200,
-  "bytes": 159163,
+  "bytes": 161614,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2986,7 +2993,7 @@
  {
   "t": "CS51D",
   "http": 200,
-  "bytes": 128456,
+  "bytes": 133446,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -2996,14 +3003,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "DEC2D",
   "http": 200,
-  "bytes": 158799,
+  "bytes": 161281,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3021,7 +3029,7 @@
  {
   "t": "SIC1D",
   "http": 200,
-  "bytes": 153072,
+  "bytes": 157020,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3031,14 +3039,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "GYC5D",
   "http": 200,
-  "bytes": 150823,
+  "bytes": 153306,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3056,7 +3065,7 @@
  {
   "t": "YFCOD",
   "http": 200,
-  "bytes": 146806,
+  "bytes": 151022,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3074,7 +3083,7 @@
  {
   "t": "YMCZD",
   "http": 200,
-  "bytes": 148768,
+  "bytes": 151221,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3092,7 +3101,7 @@
  {
   "t": "ZPC3D",
   "http": 200,
-  "bytes": 146958,
+  "bytes": 149433,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3110,7 +3119,7 @@
  {
   "t": "CWC6D",
   "http": 200,
-  "bytes": 106354,
+  "bytes": 111578,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3120,14 +3129,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "MSSFD",
   "http": 200,
-  "bytes": 155901,
+  "bytes": 160151,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3137,14 +3147,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "CLI1D",
   "http": 200,
-  "bytes": 127225,
+  "bytes": 132119,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3154,7 +3165,8 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
@@ -3166,7 +3178,7 @@
  {
   "t": "CLSID",
   "http": 200,
-  "bytes": 145874,
+  "bytes": 149029,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3184,7 +3196,7 @@
  {
   "t": "FYC1D",
   "http": 200,
-  "bytes": 128194,
+  "bytes": 134854,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3194,14 +3206,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "AFCJD",
   "http": 200,
-  "bytes": 72345,
+  "bytes": 72921,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3218,7 +3231,7 @@
  {
   "t": "AFCKD",
   "http": 200,
-  "bytes": 76483,
+  "bytes": 76709,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3235,7 +3248,7 @@
  {
   "t": "BF39D",
   "http": 200,
-  "bytes": 96851,
+  "bytes": 97428,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3252,7 +3265,7 @@
  {
   "t": "BPCTD",
   "http": 200,
-  "bytes": 74873,
+  "bytes": 75099,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3269,7 +3282,7 @@
  {
   "t": "BPCUD",
   "http": 200,
-  "bytes": 83621,
+  "bytes": 84196,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3286,7 +3299,7 @@
  {
   "t": "BPCVD",
   "http": 200,
-  "bytes": 91296,
+  "bytes": 91522,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3303,7 +3316,7 @@
  {
   "t": "BVCRD",
   "http": 200,
-  "bytes": 69959,
+  "bytes": 70185,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3320,7 +3333,7 @@
  {
   "t": "BYCXD",
   "http": 200,
-  "bytes": 99037,
+  "bytes": 99963,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3337,7 +3350,7 @@
  {
   "t": "CIC9D",
   "http": 200,
-  "bytes": 134707,
+  "bytes": 138574,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3355,7 +3368,7 @@
  {
   "t": "GN43D",
   "http": 200,
-  "bytes": 143309,
+  "bytes": 146142,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3373,7 +3386,7 @@
  {
   "t": "GOC4D",
   "http": 200,
-  "bytes": 145518,
+  "bytes": 151517,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3390,7 +3403,7 @@
  {
   "t": "HBCDD",
   "http": 200,
-  "bytes": 102102,
+  "bytes": 102329,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3407,7 +3420,7 @@
  {
   "t": "IRCQD",
   "http": 200,
-  "bytes": 119435,
+  "bytes": 99034,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3424,7 +3437,7 @@
  {
   "t": "PN37D",
   "http": 200,
-  "bytes": 160465,
+  "bytes": 162604,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3442,7 +3455,7 @@
  {
   "t": "PQCTD",
   "http": 200,
-  "bytes": 151998,
+  "bytes": 154717,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3460,7 +3473,7 @@
  {
   "t": "PZCGD",
   "http": 200,
-  "bytes": 119200,
+  "bytes": 125152,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3470,14 +3483,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "RZ9BC",
   "http": 200,
-  "bytes": 60183,
+  "bytes": 60409,
   "fuente_flujo": "no encontrado",
   "n_json": 1,
   "json_claves": [
@@ -3494,7 +3508,7 @@
  {
   "t": "RZBBD",
   "http": 200,
-  "bytes": 91919,
+  "bytes": 92491,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3511,7 +3525,24 @@
  {
   "t": "RZBCD",
   "http": 200,
-  "bytes": 105051,
+  "bytes": 104577,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description"
+   ]
+  ]
+ },
+ {
+  "t": "T672D",
+  "http": 200,
+  "bytes": 100440,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3527,26 +3558,9 @@
   ]
  },
  {
-  "t": "T672D",
-  "http": 200,
-  "bytes": 94735,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
   "t": "VBC1D",
   "http": 200,
-  "bytes": 151893,
+  "bytes": 154352,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3564,7 +3578,7 @@
  {
   "t": "ZPC2D",
   "http": 200,
-  "bytes": 110505,
+  "bytes": 111429,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3575,13 +3589,121 @@
     "identifier",
     "url",
     "description"
+   ]
+  ]
+ },
+ {
+  "t": "MGCVD",
+  "http": 200,
+  "bytes": 88251,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "AERDD",
+  "http": 200,
+  "bytes": 107419,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "HJCMO",
+  "http": 200,
+  "bytes": 89780,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "GN50D",
+  "http": 200,
+  "bytes": 94134,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "LOC7D",
+  "http": 200,
+  "bytes": 106358,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "LQC1D",
+  "http": 200,
+  "bytes": 127601,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "AEC3D",
   "http": 200,
-  "bytes": 92991,
+  "bytes": 97474,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3597,9 +3719,16 @@
   ]
  },
  {
-  "t": "AFCRD",
+  "t": "NPCFC",
   "http": 200,
-  "bytes": 82950,
+  "bytes": 60214,
+  "fuente_flujo": "no encontrado",
+  "n_json": 0
+ },
+ {
+  "t": "MR44D",
+  "http": 200,
+  "bytes": 132748,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3609,49 +3738,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
-  "t": "BF44C",
+  "t": "MGCUD",
   "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "BF45C",
-  "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "BF48C",
-  "http": 200,
-  "bytes": 66982,
-  "fuente_flujo": "texto",
-  "n_json": 0
- },
- {
-  "t": "BF49C",
-  "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "BF50C",
-  "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "BPCWO",
-  "http": 200,
-  "bytes": 72522,
+  "bytes": 121690,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3661,14 +3756,15 @@
     "name",
     "identifier",
     "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
-  "t": "BPCXD",
+  "t": "JNC7D",
   "http": 200,
-  "bytes": 82725,
+  "bytes": 91119,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3678,144 +3774,22 @@
     "name",
     "identifier",
     "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "BVCVC",
-  "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "BYY2D",
-  "http": 200,
-  "bytes": 75787,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
+    "description",
+    "offers"
    ]
   ]
  },
  {
   "t": "BYZ1C",
   "http": 200,
-  "bytes": 52682,
+  "bytes": 60214,
   "fuente_flujo": "no encontrado",
   "n_json": 0
  },
  {
-  "t": "BYZ2C",
+  "t": "RC7CD",
   "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "CICDD",
-  "http": 200,
-  "bytes": 91451,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "COC4D",
-  "http": 200,
-  "bytes": 98700,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "CWCAD",
-  "http": 200,
-  "bytes": 85177,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "DEC4C",
-  "http": 200,
-  "bytes": 59988,
-  "fuente_flujo": "no encontrado",
-  "n_json": 0
- },
- {
-  "t": "DHSOD",
-  "http": 200,
-  "bytes": 85290,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "DKC1D",
-  "http": 200,
-  "bytes": 95338,
-  "fuente_flujo": "texto",
-  "n_json": 1,
-  "json_claves": [
-   [
-    "@context",
-    "@type",
-    "name",
-    "identifier",
-    "url",
-    "description"
-   ]
-  ]
- },
- {
-  "t": "EOC1O",
-  "http": 200,
-  "bytes": 101749,
+  "bytes": 110200,
   "fuente_flujo": "texto",
   "n_json": 1,
   "json_claves": [
@@ -3829,5 +3803,109 @@
     "offers"
    ]
   ]
+ },
+ {
+  "t": "BF40D",
+  "http": 200,
+  "bytes": 73468,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "NPCED",
+  "http": 200,
+  "bytes": 122478,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "SBC4D",
+  "http": 200,
+  "bytes": 114315,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "BGC5D",
+  "http": 200,
+  "bytes": 90199,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "MGCED",
+  "http": 200,
+  "bytes": 154197,
+  "fuente_flujo": "texto",
+  "n_json": 1,
+  "json_claves": [
+   [
+    "@context",
+    "@type",
+    "name",
+    "identifier",
+    "url",
+    "description",
+    "offers"
+   ]
+  ]
+ },
+ {
+  "t": "MR45C",
+  "http": 200,
+  "bytes": 60214,
+  "fuente_flujo": "no encontrado",
+  "n_json": 0
+ },
+ {
+  "t": "DEC4C",
+  "http": 200,
+  "bytes": 60214,
+  "fuente_flujo": "no encontrado",
+  "n_json": 0
  }
 ]
