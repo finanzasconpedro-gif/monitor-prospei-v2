@@ -1018,7 +1018,7 @@ function cedBoxExtra(code,ratio,usPx){
   if(!(c&&ok(c.c)&&pr&&ccl&&usPx))return '';
   const o=cedCalc({c:c.c,cD:d&&ok(d.c)?d.c:null,volD:d&&ok(d.v)?d.v*d.c:0,uc:usPx,sh:pr.b/pr.a,tc:d&&ok(d.c)?c.c/d.c:null},ccl,mep);
   let h=`<br>En pesos: <b>$ ${fmt(c.c)}</b> · justo $ ${fmt(o.justo)} · ${desvPill(o.desv,o.badA,o.rawDesv)}`;
-  if(o.cD)h+=`<br>En dólares (${esc(code)}D): <b>US$ ${fmt(o.cD,2)}</b> · justo US$ ${fmt(o.justoD,2)} · ${desvPill(o.desvD,o.badD,o.rawDesvD)}`;
+  if(o.cD)h+=`<br>En dólares (${esc(code)}D): <b>US$ ${fmt(o.cD,2)}</b> · justo US$ ${fmt(o.justoD,2)} · ${desvPill(o.desvD,o.badD,o.rawDesvD)}${mep?` <span class="note">(justo = US$ ${fmt(usPx)} en Nueva York ÷ ${esc(ratio)} × canje CCL/MEP ${pct(ccl/mep-1,1)}: el CEDEAR en dólares MEP incorpora la brecha con el cable)</span>`:''}`;
   if(o.best)h+=`<br>Conviene comprar en: <b>${o.best==='D'?'dólares (D)':o.best==='$'?'pesos':'indistinto'}</b>`;
   return h;
 }
@@ -1844,6 +1844,18 @@ function chartSvg(cl){
 }
 function openDetail(t){
   if(!S.scr)return;const r0=S.scr.rows.find(x=>x.t===t);if(!r0)return;const o=enrich(r0);
+  /* Todo el análisis (recorrido, stop, medias, P/E, potencial) está calculado con el cierre de la última corrida.
+     Para que la ficha no mezcle precios, se muestra con ese cierre; el precio en vivo va aparte, con sus alertas. */
+  const cdt=(S.scr.spy&&S.scr.spy.asof)||S.scr.run_date||'';
+  const cLbl=cdt?cdt.slice(8,10)+'/'+cdt.slice(5,7):'';
+  const LV=o.live&&o.px&&o.p&&Math.abs(o.px/o.p-1)>0.0005?{px:o.px,chg:o.chg}:null;
+  const usPx=o.px;   // el CEDEAR se compara contra el precio en vivo de Nueva York (los dos cotizan ahora)
+  if(LV){o.px=o.p;o.chg=o.r1d;if(o.target)o.upside=o.target/o.p-1}
+  const lvAl=[];if(LV){
+    if(o.et_stop&&LV.px<o.et_stop)lvAl.push(`perforó el stop sugerido (US$ ${fmt(o.et_stop)})`);
+    if(o.lo52&&LV.px<o.lo52)lvAl.push('nuevo mínimo de 52 semanas');
+    if(o.fair&&o.fair_up!=null&&Math.sign(o.fair/LV.px-1)!==Math.sign(o.fair_up))lvAl.push(`cruzó su valor justo (US$ ${fmt(o.fair)})`);
+  }
   const kv=(l,v)=>`<div><span>${l}</span><b class="num">${v}</b></div>`;
   const pill=(l,v)=>`<div><div class="l">${l}</div>${sbar(v)}</div>`;
   const li=a=>a&&a.length?a.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="note">Sin datos suficientes.</li>';
@@ -1852,7 +1864,7 @@ function openDetail(t){
   if(o.ced&&o.ced.type==='ced'){
     const cm={};(S.data.cedears||[]).forEach(c=>{if(c&&c.symbol)cm[c.symbol]=c});
     const c=cm[o.ced.code],pr=parseRatio(o.ced.ratio),ccl=S.cedRef||(S.ref.ccl&&S.ref.ccl.v);
-    const extra=cedBoxExtra(o.ced.code,o.ced.ratio,o.px);
+    const extra=cedBoxExtra(o.ced.code,o.ced.ratio,usPx);
     ced=`<div class="cedbox">🇦🇷 Se puede comprar desde Argentina como <b>CEDEAR ${esc(o.ced.code)}</b> (ratio ${esc(o.ced.ratio)}).${extra}</div>`;
   }else if(o.ced&&o.ced.type==='local'){
     const st=(S.data.stocks||[]).find(x=>x.symbol===o.ced.code);
@@ -1867,10 +1879,11 @@ function openDetail(t){
         <div class="nm">${esc(o.name)} · ${esc(o.sector)} · ${esc(o.region)}${o.extra?' · <span class="vd-cons" style="margin:0">seguimiento propio</span>':''}</div>
         <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <span style="font-size:22px;font-weight:700" class="num">US$ ${fmt(o.px)}</span>
-          <span class="pill ${cls(o.chg)}">${pct(o.chg)}</span>
+          <span class="pill ${cls(o.chg)}">${pct(o.chg)}</span>${cLbl?`<span class="note">cierre del ${cLbl}</span>`:''}
           ${setupChip(o.setup)}
           ${o.elig?'':'<span class="pill warn">Fuera del filtro de oportunidades</span>'}
         </div>
+        ${LV?`<div class="note" style="margin-top:6px">Ahora: <b class="num">US$ ${fmt(LV.px)}</b> <span class="${cls(LV.chg)}">${pct(LV.chg)}</span> en la rueda de hoy. El análisis usa el cierre del ${cLbl}; se recalcula con el cierre de hoy.${lvAl.length?` <span class="alert-tag">⚠️ Hoy ${lvAl.join(' · ')}</span>`:''}</div>`:''}
       </div>
       <div class="bigscore" style="background:${scoreCol(o.score)}"><b>${Math.round(o.score)}</b><small>Puntaje PROSPEI</small></div>
       <button class="chip no-print" id="pdf-btn" data-t="${esc(o.t)}" style="align-self:center" title="Descargar la ficha en PDF">⬇ Descargar PDF</button>
@@ -1887,7 +1900,7 @@ function openDetail(t){
     ${earlyHtml(o)}
     ${valLensHtml(o)}
     <div class="fh" id="fh-box" data-t="${esc(o.t)}"><p class="note">Cargando historia de ganancias y valuación…</p></div>
-    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.perfil&&o.perfil.val==='low'?` <span class="note">(en ${esc(o.sector)} para comprar solo se exige no superar su valor justo: en 10 años, filtrar por valuación le restó rendimiento al sector)</span>`:o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · etapa <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
+    ${o.vm_z?`<div class="cedbox" style="margin-top:10px">◎ Valor justo estimado${o.vm_doubt?' <span class="alert-tag">⚠️ valuación dudosa: revisar</span>':''}: <b>US$ ${fmt(o.fair)}</b> <span class="note">(${esc(o.fair_src)})</span> · recorrido restante <b class="${cls(o.fair_up)}">${pct(o.fair_up,1)}</b>${o.perfil&&o.perfil.val==='low'?` <span class="note">(en ${esc(o.sector)} para comprar solo se exige no superar su valor justo: en 10 años, filtrar por valuación le restó rendimiento al sector)</span>`:o.up_req?` <span class="note">(para comprar se exige ${pct(o.up_req,0).replace('+','')} por su volatilidad)</span>`:''} · mapa valor/momentum <span class="fase" style="background:${ZCOL[o.vm_z]}22;color:${ZCOL[o.vm_z]}">${esc(o.vm_z)}</span> ${esc(o.vm_st)}${o.verdict&&o.vm_z&&o.verdict!==o.vm_z&&!(o.verdict||'').startsWith(o.vm_z)?` <span class="note">(es una de las miradas; el veredicto final es <b>${esc(o.verdict)}</b>${o.verdict_why?': '+esc(o.verdict_why.replace(/^[^:]{0,40}:\s*/,'')):''})</span>`:''}${o.vm_zp&&o.vm_zp!==o.vm_z?` <span class="note">(hace 8 semanas: ${esc(o.vm_zp)})</span>`:''}</div>`:''}
     <div class="lists">
       <div class="pro"><h4>Por qué aparece como oportunidad</h4><ul>${li(o.pro)}</ul></div>
       <div class="gro"><h4>Perspectiva de crecimiento</h4><ul>${li(o.grow)}</ul></div>
@@ -1989,7 +2002,8 @@ function fhChart(o){
   if(yr){[0,.5,1].forEach(f=>{const v=rmn+f*(rmx-rmn);s+=`<text x="${L+2}" y="${(yr(v)-3).toFixed(1)}" font-size="10.5" style="fill:var(--muted)">${o.ryf?o.ryf(v):fmt(v,1)}</text>`})}
   (o.marks||[]).forEach(m=>{if(m.v==null||!isFinite(m.v))return;const cx=x(m.i),cy=(m.right?yr:y)(m.v);
     s+=m.shape==='d'?`<path d="M${cx} ${cy-7}L${cx+7} ${cy}L${cx} ${cy+7}L${cx-7} ${cy}Z" style="fill:${m.c};stroke:var(--card)" stroke-width="1.5"/>`:`<circle cx="${cx}" cy="${cy}" r="5.5" style="fill:${m.c};stroke:var(--card)" stroke-width="1.5"/>`;
-    if(m.lbl)s+=`<text x="${cx-9}" y="${cy-9}" font-size="11.5" font-weight="600" text-anchor="end" style="fill:${m.c}">${esc(m.lbl)}</text>`});
+    const near=(o.marks||[]).some(q=>q!==m&&q.i===m.i&&q.v!=null&&isFinite(q.v)&&Math.abs((q.right?yr:y)(q.v)-cy)<18&&(q.right?yr:y)(q.v)<cy);
+    if(m.lbl)s+=`<text x="${cx-9}" y="${near?cy+19:cy-9}" font-size="11.5" font-weight="600" text-anchor="end" style="fill:${m.c}">${esc(m.lbl)}</text>`});
   const step=Math.max(1,Math.round(N/Math.max(3,Math.floor(W/150))));o.labels.forEach((l,i)=>{if(i%step===0&&i<N-step/2)s+=`<text x="${x(i).toFixed(1)}" y="${H-6}" font-size="11" text-anchor="${i===0?'start':'middle'}" style="fill:var(--muted)">${esc(l)}</text>`});
   s+=`<text x="${x(N-1).toFixed(1)}" y="${H-6}" font-size="11" text-anchor="end" style="fill:var(--muted)">hoy</text></svg>`;
   if(o.legend)s+=`<div class="legend">${o.legend.map(l=>`<span><i style="background:${l.c}${l.dash?';opacity:.7':''}"></i>${l.t}</span>`).join('')}</div>`;
