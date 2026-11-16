@@ -914,8 +914,33 @@ def build(universe, prices, infos, hist=None):
                 "div5", "ps", "pe_hist", "ps_hist", "hist_n", "bvps", "pb_hist"]
     for col in num_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
+    # Flujo de caja libre: Yahoo da el "levered FCF" de su proveedor, que a veces difiere mucho del de los balances
+    # (NVDA: US$ 42 mil M contra US$ 127 mil M de la SEC). Si hay dato de la SEC (fund_sum.json, en millones) y la
+    # diferencia supera 40%, se usa el de la SEC: es el mismo que muestra el gráfico de caja de la ficha.
+    df["fcf_sec"] = False
+    try:
+        with open("fund_sum.json", encoding="utf-8") as f:
+            fs = (json.load(f) or {}).get("rows") or {}
+        sec = df.t.map(lambda t: (fs.get(t) or {}).get("fcf")).astype(float) * 1e6
+        usar = sec.notna() & (df.fin_cur.isin(["USD", ""])) & (df.fcf.isna() | ((df.fcf / sec - 1).abs() > 0.4))
+        df.loc[usar, "fcf"] = sec[usar]
+        df.loc[usar, "fcf_sec"] = True
+    except Exception as e:
+        print("fund_sum.json:", e)
     df["fcf_y"] = df.fcf / df.mcap
+    # Dividendo contra su promedio de 5 años: solo sirve si la política de dividendos no cambió. Si el rendimiento
+    # actual es más de 3 veces el promedio, la empresa subió el dividendo (NVDA pasó de US$ 0,01 a 0,25 por trimestre):
+    # el rendimiento alto no significa que la acción esté barata, así que se descarta la comparación.
+    df["div_chg"] = (df["div"] > 3 * df.div5) & (df.div5 > 0)
+    df.loc[df.div_chg, "div5"] = np.nan
     df = audit_and_model(df)
+    for i, r in df[df.fcf_sec | df.div_chg].iterrows():
+        if r.fcf_sec:
+            df.at[i, "audit"].append("Flujo de caja libre tomado de los balances presentados a la SEC: el dato de Yahoo "
+                                     "difería más de 40%.")
+        if r.div_chg:
+            df.at[i, "audit"].append("Subió mucho el dividendo en los últimos años: no se compara su rendimiento contra el "
+                                     "promedio de 5 años (un rendimiento más alto no indica que esté barata).")
     # ---- giro temprano: 6 señales; solo tiene sentido después de una caída
     spy = technical(*prices[BENCH]) if BENCH in prices else None
     df["et_rs"] = ((df.r1m - spy["r1m"]) > 0) if spy and spy.get("r1m") is not None else False
