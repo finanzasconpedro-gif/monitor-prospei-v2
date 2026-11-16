@@ -1,7 +1,7 @@
 {
- "fecha": "2026-11-12",
+ "fecha": "2026-11-16",
  "cargados": [],
- "vencidas_quitadas": 0,
+ "vencidas_quitadas": 1,
  "detalle": [
   {
    "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-17",
@@ -145,16 +145,6 @@
   {
    "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-para-la-conversion-de-la-lelink-d30s6-con-vencimiento-30-de",
    "nota": "sin LECAP/BONCAP reconocibles"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-12",
-   "t": "S13N6",
-   "tipo": "REAPERTURA",
-   "venc_txt": "13 DE NOVIEMBRE DE 2026",
-   "texto": "CAPITALIZABLE EN PESOS CON VENCIMIENTO 13 DE NOVIEMBRE DE 2026 (S13N6 - reapertura) $ 5.411.797 $ 3.858.364 $ 4.066.407 $ 1.053,92 27,88% $ 8.036.440 (*) Montos expresados en millones. b) Instrumento a licitar en pesos con ajuste por CER: Instrumento ajustados por CER VNO Ofertado (*) VNO Adjudicado (*) Valor Efectivo Adjudicado (*) Precio de corte por cada VNO $ 1.000 TIREA VNO Total en Circulaci",
-   "venc": "2026-11-13",
-   "fam": "LECAP",
-   "estado": "ya cargado"
   }
  ]
 }
