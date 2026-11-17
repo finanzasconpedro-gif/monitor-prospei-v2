@@ -3,8 +3,13 @@
  "fecha": "2026-11-16",
  "fuente": "Ámbito",
  "hora": "16-11-2026",
- "actualizado": "2026-11-16T22:50Z",
+ "actualizado": "2026-11-17T05:01Z",
  "fuentes": [
+  {
+   "valor": 855.0,
+   "fecha": "2026-11-16",
+   "fuente": "ArgentinaDatos"
+  },
   {
    "valor": 855.0,
    "fecha": "2026-11-16",
