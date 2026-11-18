@@ -108,6 +108,13 @@ table.rf-sens td,table.rf-sens th{padding:6px 8px;font-size:12.5px}table.rf-sens
 .pill.warn{background:var(--warnbg);color:var(--warn)}
 tr.best td{background:var(--best)}
 tr.dim td{opacity:.5}
+.sel-card{border-color:var(--bestline);box-shadow:0 0 0 1px var(--bestline) inset}
+.sel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px}
+.sel-it{border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:var(--bg,transparent);transition:border-color .15s}
+.sel-it:hover{border-color:var(--bestline)}
+.sel-it .t{font-weight:800;font-size:16px}.sel-it .n{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-it .px{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
+.sel-ad{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .tag{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--bestline);color:#1a1300;margin-left:6px;vertical-align:middle}
 .star{cursor:pointer;color:var(--muted);font-size:15px;background:none;border:none;padding:0}
 .star.on{color:#e0a800}
@@ -302,6 +309,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
 
   <!-- OPORTUNIDADES -->
   <section id="t-opo">
+    <div class="card sel-card hide" id="sel-card"></div>
     <div class="card" id="buy-card">
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
@@ -1074,7 +1082,7 @@ async function loadScreener(){
     S.scr=null;
     $('#opo-meta').innerHTML='Todavía no hay análisis generado. En GitHub entrá a <b>Actions → Screener diario PROSPEI → Run workflow</b> y esperá unos 15 minutos.';
   }
-  renderKpisUS();renderBuy();renderTop();renderAudit();if(!$('#t-pf').classList.contains('hide'))renderPf();renderHeat();renderSecPerf();renderUni();if(!$('#t-rot').classList.contains('hide')){renderRotSec();renderVM()}
+  renderKpisUS();renderSel();renderBuy();renderTop();renderAudit();if(!$('#t-pf').classList.contains('hide'))renderPf();renderHeat();renderSecPerf();renderUni();if(!$('#t-rot').classList.contains('hide')){renderRotSec();renderVM()}
 }
 function liveOf(t){const us=S.data.us||{};for(const k of [t,t.replace('-','.'),t.replace('-','')]){const x=us[k];if(x&&ok(x.c))return x}return null}
 function cedearOf(r){
@@ -1209,6 +1217,59 @@ $('#pf-add').onclick=()=>{
 };
 $('#pf-exp').onclick=()=>{const b=new Blob([JSON.stringify(S.pf,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='mi-cartera-prospei.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('#pf-imp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d))throw 0;const okRows=d.filter(x=>x&&x.t&&x.d&&x.p>0&&['us','ars','mep'].includes(x.i));if(!confirm(`¿Importar ${okRows.length} posiciones? Reemplaza las que tenés cargadas en este navegador.`))return;S.pf=okRows;pfSave();renderPf()}catch(err){alert('El archivo no es válido.')}e.target.value=''};
+/* ---------- Nuestra selección (PROSPEI elige entre las Comprar / Comprar en partes del motor) ----------
+   seleccion.json: {updated, abiertas:[{t,fecha,precio}], cerradas:[{t,fecha,precio,fecha_out,precio_out}]}
+   Se edita entrando con ?editar=prospei (borrador en este navegador) y se publica subiendo seleccion.json a GitHub. */
+const SEL_ADMIN=(()=>{try{const q=new URLSearchParams(location.search).get('editar');return q==='prospei'||(q==null&&localStorage.getItem('carAdmin')==='1')}catch(e){return false}})();
+async function loadSel(){if(S.selDef!==undefined)return S.selDef;try{S.selDef=await getJ('seleccion.json?v='+Date.now())}catch(e){S.selDef={abiertas:[],cerradas:[]}}return S.selDef}
+function selData(){if(SEL_ADMIN){try{const d=JSON.parse(localStorage.getItem('selDraft')||'null');if(d)return d}catch(e){}}return S.selDef||{abiertas:[],cerradas:[]}}
+function selSave(d){try{localStorage.setItem('selDraft',JSON.stringify(d))}catch(e){}renderSel()}
+const selDays=(a,b)=>Math.max(0,Math.round((new Date(b)-new Date(a))/864e5));
+function renderSel(){
+  const el=$('#sel-card');if(!el)return;
+  if(S.selDef===undefined){loadSel().then(renderSel);return}
+  if(!S.scr){el.classList.add('hide');return}
+  const D=selData(),A=D.abiertas||[],C=D.cerradas||[],hoy=rfToday().toISOString().slice(0,10);
+  if(!A.length&&!C.length&&!SEL_ADMIN){el.classList.add('hide');return}
+  el.classList.remove('hide');
+  const by={};S.scr.rows.forEach(r=>by[r.t]=r);
+  const cur=t=>{const r=by[t];return r?enrich(r):null};
+  const cards=A.map((x,i)=>{const o=cur(x.t),px=o&&o.px,res=px&&x.precio?px/x.precio-1:null;
+    return `<div class="sel-it" data-sel="${esc(x.t)}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span class="t">${esc(x.t)}</span>${o?vdChip(o):''}</div>
+      <div class="n">${esc(o?o.name:'')}${o&&o.sector?' · '+esc(o.sector):''}</div>
+      <div class="px"><span class="num">US$ ${fmt(px)}</span><b class="num ${cls(res)}">${pct(res,1)}</b></div>
+      <div class="note">Seleccionada el ${x.fecha.slice(8,10)}/${x.fecha.slice(5,7)}/${x.fecha.slice(0,4)} a US$ ${fmt(x.precio)} · ${selDays(x.fecha,hoy)} días</div>
+      ${SEL_ADMIN?`<div class="sel-ad"><button class="chip" data-close="${i}">Cerrar (vender)</button><button class="chip" data-del="${i}" title="Borrar si fue un error">✕</button></div>`:''}
+    </div>`}).join('');
+  const rs=C.map(x=>x.precio_out/x.precio-1).filter(isFinite),win=rs.filter(r=>r>0).length;
+  const hist=C.length?`<details style="margin-top:12px"><summary class="note" style="cursor:pointer"><b>Historial de la selección</b> · ${C.length} cerrada${C.length>1?'s':''} · ${win} con ganancia (${pct(win/C.length,0).replace('+','')}) · resultado promedio <b class="${cls(rs.reduce((a,b)=>a+b,0)/rs.length)}">${pct(rs.reduce((a,b)=>a+b,0)/rs.length,1)}</b></summary>
+    <div class="tw"><table><thead><tr><th>Papel</th><th>Entrada</th><th class="r">Precio</th><th>Salida</th><th class="r">Precio</th><th class="r">Días</th><th class="r">Resultado</th>${SEL_ADMIN?'<th></th>':''}</tr></thead><tbody>
+    ${C.map((x,i)=>{const r=x.precio_out/x.precio-1;return `<tr data-t="${esc(x.t)}"><td><b>${esc(x.t)}</b></td><td>${esc(x.fecha)}</td><td class="r num">${fmt(x.precio)}</td><td>${esc(x.fecha_out)}</td><td class="r num">${fmt(x.precio_out)}</td><td class="r num">${selDays(x.fecha,x.fecha_out)}</td><td class="r num ${cls(r)}"><b>${pct(r,1)}</b></td>${SEL_ADMIN?`<td><button class="chip" data-cdel="${i}" title="Borrar">✕</button></td>`:''}</tr>`}).join('')}
+    </tbody></table></div></details>`:'';
+  const cand=S.scr.rows.filter(r=>r.verdict==='Comprar'||r.verdict==='Comprar en partes').map(r=>r.t).filter(t=>!A.some(x=>x.t===t)).sort();
+  const admin=SEL_ADMIN?`<div class="rf-new" style="margin-top:12px"><b>✎ Modo edición</b> (solo vos lo ves). Agregar a la selección:
+      <input id="sel-q" list="sel-dl" placeholder="Ticker" style="width:110px;text-transform:uppercase"> <datalist id="sel-dl">${cand.map(t=>`<option value="${t}">${esc(by[t].verdict)}</option>`).join('')}</datalist>
+      <button class="chip" id="sel-add">Agregar</button> <button class="chip" id="sel-dl-btn">Descargar seleccion.json</button>
+      ${localStorage.getItem('selDraft')?'<button class="chip" id="sel-reset" title="Descartar el borrador y volver a lo publicado">Descartar borrador</button>':''}
+      <div class="note" style="margin-top:6px">Al agregar se guarda la fecha de hoy y el precio actual; al cerrar, el precio de ese momento y pasa al historial. Los cambios quedan en este navegador hasta que descargues <b>seleccion.json</b> y lo subas a GitHub.</div></div>`:'';
+  el.innerHTML=`<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h2 style="margin:0">★ Nuestra selección</h2><span class="note">De todas las acciones que el motor marca para comprar, estas son las que elegimos en PROSPEI.</span></div>
+    ${A.length?`<div class="sel-grid">${cards}</div>`:'<p class="note" style="margin-top:8px">Por ahora no hay acciones seleccionadas.</p>'}${hist}${admin}`;
+  el.querySelectorAll('[data-sel]').forEach(d=>d.onclick=e=>{if(e.target.closest('button'))return;openDetail(d.dataset.sel)});
+  el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('button'))return;openDetail(tr.dataset.t)});
+  if(!SEL_ADMIN)return;
+  const W=()=>JSON.parse(JSON.stringify({abiertas:A,cerradas:C}));
+  $('#sel-add').onclick=()=>{const t=($('#sel-q').value||'').trim().toUpperCase();const o=cur(t);if(!o){alert('No encuentro '+t+' en el monitor.');return}
+    if(A.some(x=>x.t===t))return;if(o.verdict!=='Comprar'&&o.verdict!=='Comprar en partes'&&!confirm(t+' hoy está en "'+(o.verdict||'sin veredicto')+'". ¿Agregarla igual?'))return;
+    const d=W();d.abiertas.push({t,fecha:hoy,precio:+(+o.px).toFixed(2)});selSave(d)};
+  el.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{const d=W(),x=d.abiertas[+b.dataset.close],o=cur(x.t);
+    const p=prompt('Precio de salida de '+x.t+' (US$):',o&&o.px?(+o.px).toFixed(2):'');if(p==null)return;const v=parseFloat(String(p).replace(',','.'));if(!(v>0))return;
+    d.abiertas.splice(+b.dataset.close,1);d.cerradas.unshift({...x,fecha_out:hoy,precio_out:v});selSave(d)});
+  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(!confirm('¿Borrar '+A[+b.dataset.del].t+' sin pasarla al historial?'))return;const d=W();d.abiertas.splice(+b.dataset.del,1);selSave(d)});
+  el.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{if(!confirm('¿Borrar esta operación del historial?'))return;const d=W();d.cerradas.splice(+b.dataset.cdel,1);selSave(d)});
+  $('#sel-dl-btn').onclick=()=>{const out={updated:hoy,...W()};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));a.download='seleccion.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+  const rb=$('#sel-reset');if(rb)rb.onclick=()=>{if(!confirm('¿Descartar el borrador?'))return;localStorage.removeItem('selDraft');renderSel()};
+}
 function renderBuy(){
   if(!S.scr){$('#buy-card').classList.add('hide');return}
   const all=S.scr.rows.map(enrich);
