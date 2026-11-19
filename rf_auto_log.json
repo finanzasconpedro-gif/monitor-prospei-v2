@@ -1,8 +1,12 @@
 {
- "fecha": "2026-11-16",
+ "fecha": "2026-11-19",
  "cargados": [],
- "vencidas_quitadas": 1,
+ "vencidas_quitadas": 0,
  "detalle": [
+  {
+   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-para-la-conversion-de-la-lelink-d30n6-en-el-marco-del-articulo",
+   "nota": "sin LECAP/BONCAP reconocibles"
+  },
   {
    "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-por-efectivo-de-instrumentos-del-tesoro-nacional-denominados-17",
    "t": "S29E7",
