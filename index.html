@@ -1082,7 +1082,7 @@ async function loadScreener(){
     S.scr=null;
     $('#opo-meta').innerHTML='Todavía no hay análisis generado. En GitHub entrá a <b>Actions → Screener diario PROSPEI → Run workflow</b> y esperá unos 15 minutos.';
   }
-  renderKpisUS();renderSel();renderBuy();renderTop();renderAudit();if(!$('#t-pf').classList.contains('hide'))renderPf();renderHeat();renderSecPerf();renderUni();if(!$('#t-rot').classList.contains('hide')){renderRotSec();renderVM()}
+  renderKpisUS();renderSel();renderBuy();if(!S._deep){S._deep=1;try{const dt=new URLSearchParams(location.search).get('t');if(dt)setTimeout(()=>openDetail(dt.toUpperCase()),400)}catch(e){}}renderTop();renderAudit();if(!$('#t-pf').classList.contains('hide'))renderPf();renderHeat();renderSecPerf();renderUni();if(!$('#t-rot').classList.contains('hide')){renderRotSec();renderVM()}
 }
 function liveOf(t){const us=S.data.us||{};for(const k of [t,t.replace('-','.'),t.replace('-','')]){const x=us[k];if(x&&ok(x.c))return x}return null}
 function cedearOf(r){
@@ -1220,7 +1220,7 @@ $('#pf-imp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const
 /* ---------- Nuestra selección (PROSPEI elige entre las Comprar / Comprar en partes del motor) ----------
    seleccion.json: {updated, abiertas:[{t,fecha,precio}], cerradas:[{t,fecha,precio,fecha_out,precio_out}]}
    Se edita entrando con ?editar=prospei (borrador en este navegador) y se publica subiendo seleccion.json a GitHub. */
-const SEL_ADMIN=(()=>{try{const q=new URLSearchParams(location.search).get('editar');return q==='prospei'||(q==null&&localStorage.getItem('carAdmin')==='1')}catch(e){return false}})();
+const SEL_ADMIN=false;   // la selección se elige en control.html (página interna); acá los clientes solo la ven
 async function loadSel(){if(S.selDef!==undefined)return S.selDef;try{S.selDef=await getJ('seleccion.json?v='+Date.now())}catch(e){S.selDef={abiertas:[],cerradas:[]}}return S.selDef}
 function selData(){if(SEL_ADMIN){try{const d=JSON.parse(localStorage.getItem('selDraft')||'null');if(d)return d}catch(e){}}return S.selDef||{abiertas:[],cerradas:[]}}
 function selSave(d){try{localStorage.setItem('selDraft',JSON.stringify(d))}catch(e){}renderSel()}
@@ -1253,7 +1253,7 @@ function renderSel(){
       <button class="chip" id="sel-add">Agregar</button> <button class="chip" id="sel-dl-btn">Descargar seleccion.json</button>
       ${localStorage.getItem('selDraft')?'<button class="chip" id="sel-reset" title="Descartar el borrador y volver a lo publicado">Descartar borrador</button>':''}
       <div class="note" style="margin-top:6px">Al agregar se guarda la fecha de hoy y el precio actual; al cerrar, el precio de ese momento y pasa al historial. Los cambios quedan en este navegador hasta que descargues <b>seleccion.json</b> y lo subas a GitHub.</div></div>`:'';
-  el.innerHTML=`<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h2 style="margin:0">★ Nuestra selección</h2><span class="note">De todas las acciones que el motor marca para comprar, estas son las que elegimos en PROSPEI.</span></div>
+  el.innerHTML=`<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h2 style="margin:0">★ Nuestra selección</h2><span class="note">De todas las acciones que el monitor marca para comprar, estas son las que recomendamos en PROSPEI.</span></div>
     ${A.length?`<div class="sel-grid">${cards}</div>`:'<p class="note" style="margin-top:8px">Por ahora no hay acciones seleccionadas.</p>'}${hist}${admin}`;
   el.querySelectorAll('[data-sel]').forEach(d=>d.onclick=e=>{if(e.target.closest('button'))return;openDetail(d.dataset.sel)});
   el.querySelectorAll('tr[data-t]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('button'))return;openDetail(tr.dataset.t)});
