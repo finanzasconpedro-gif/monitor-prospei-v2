@@ -207,7 +207,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <section id="t-sel" data-pane="sel">
     <div class="card" style="border-color:var(--bestline)">
       <h2>★ Nuestra selección · elegir</h2>
-      <p class="sub">Las acciones que hoy el motor marca como <b>Comprar</b> o <b>Comprar en partes</b>. Tildá las que PROSPEI recomienda: aparecen en el bloque "Nuestra selección" del monitor, arriba de Oportunidades. Al tildar se guarda la fecha de hoy y el precio actual; al cerrar, el precio de salida, y pasa al historial. Los cambios quedan en este navegador hasta que toques <b>Descargar seleccion.json</b> y lo subas a GitHub (raíz del repo, al lado de carteras.json).</p>
+      <p class="sub">Las acciones que hoy el motor marca como <b>Comprar</b> o <b>Comprar en partes</b>. Tildá las que PROSPEI recomienda y aparecen en el bloque "★ Nuestra selección" del monitor, arriba de Oportunidades. Al tildar se guarda el precio y la fecha del último cierre del monitor; al cerrar (vender), el precio de salida, y pasa al historial. Con la publicación automática conectada, cada cambio se publica solo (los clientes lo ven en 1 o 2 minutos).</p>
       <div id="sel-now"></div>
       <div class="bar" style="margin:10px 0" id="sel-bar"></div>
       <div class="tw"><table id="tb-sel"></table></div>
@@ -700,20 +700,56 @@ async function loadSel(){
   }catch(e){$('#tb-sel').innerHTML='<tr><td class="note">No se pudo leer data.json.</td></tr>';return}
   renderSelCtl();
 }
+const GH={repo:'finanzasconpedro-gif/monitor-prospei-v2',path:'seleccion.json',branch:'main'};
+const ghTok=()=>{try{return localStorage.getItem('prospei_ghtoken')||''}catch(e){return ''}};
+const b64=str=>btoa(unescape(encodeURIComponent(str)));
+S.sel.st=S.sel.st||'';
+async function ghPublish(d){
+  const tok=ghTok();if(!tok)return;
+  clearTimeout(S.sel.tm);S.sel.st='Publicando…';selStatus();
+  S.sel.tm=setTimeout(async()=>{
+    const H={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'};
+    const url=`https://api.github.com/repos/${GH.repo}/contents/${GH.path}`;
+    try{
+      for(let intento=0;intento<2;intento++){
+        let sha;const g=await fetch(url+'?ref='+GH.branch+'&t='+Date.now(),{headers:H,cache:'no-store'});
+        if(g.status===401||g.status===403)throw new Error('El token no tiene permiso (revisá que sea para este repositorio con "Contents: Read and write").');
+        if(g.ok)sha=(await g.json()).sha;
+        const out={updated:shoy(),abiertas:d.abiertas,cerradas:d.cerradas};
+        const r=await fetch(url,{method:'PUT',headers:H,body:JSON.stringify({message:'Nuestra selección: '+(S.sel.msg||'actualiza'),content:b64(JSON.stringify(out,null,1)),branch:GH.branch,...(sha?{sha}:{})})});
+        if(r.status===409&&intento===0)continue;   // alguien commiteó justo antes: se reintenta con el sha nuevo
+        if(!r.ok)throw new Error('GitHub respondió '+r.status+'. '+((await r.json().catch(()=>({}))).message||''));
+        S.sel.pub=out;store('selDraft',null);try{localStorage.removeItem('prospei_selDraft')}catch(e){}
+        S.sel.st='✓ Publicado '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})+' · los clientes lo ven en 1 o 2 minutos';
+        break}
+    }catch(e){S.sel.st='⚠ No se pudo publicar: '+e.message+' Queda guardado como borrador.'}
+    renderSelCtl()},1200);
+}
+function selStatus(){const el=$('#sel-st');if(el)el.textContent=S.sel.st}
 function selCur(){const d=store('selDraft');return d||{abiertas:(S.sel.pub.abiertas||[]),cerradas:(S.sel.pub.cerradas||[])}}
-function selPut(d){store('selDraft',JSON.parse(JSON.stringify(d)));renderSelCtl()}
+function selPut(d,msg){store('selDraft',JSON.parse(JSON.stringify(d)));S.sel.msg=msg;renderSelCtl();ghPublish(d)}
 function renderSelCtl(){
   const D=S.sel.D,rows=D.rows||[],by={};rows.forEach(r=>by[r.t]=r);
-  const W=selCur(),A=W.abiertas||[],C=W.cerradas||[],hoy=shoy(),draft=!!store('selDraft');
+  const W=selCur(),A=W.abiertas||[],C=W.cerradas||[],hoy=shoy(),draft=!!store('selDraft'),pxDate=(D.spy&&D.spy.asof)||D.run_date||hoy;
   const inSel=t=>A.some(x=>x.t===t);
   /* selección vigente + historial */
   const rs=C.map(x=>x.precio_out/x.precio-1).filter(isFinite),avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
   $('#sel-now').innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-      <b>Seleccionadas hoy: ${A.length}</b>${draft?'<span class="pill warn">Borrador sin publicar</span>':'<span class="note">igual a lo publicado</span>'}
-      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="chip" id="sel-dl" style="border-color:var(--bestline);font-weight:600">⬇ Descargar seleccion.json</button>${draft?'<button class="chip" id="sel-reset">Descartar borrador</button>':''}</span></div>
+      <b>Seleccionadas: ${A.length}</b>${draft?'<span class="pill warn">Sin publicar</span>':'<span class="pill up">Publicado</span>'}<span class="note" id="sel-st">${esc(S.sel.st)}</span>
+      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">${ghTok()?`<span class="note">🔗 Publicación automática conectada</span>${draft?'<button class="chip" id="sel-pub" style="border-color:var(--bestline);font-weight:600">Publicar ahora</button>':''}<button class="chip" id="sel-gh-off" title="Borrar el token de este navegador">Desconectar</button>`:`<button class="chip" id="sel-gh-on" style="border-color:var(--bestline);font-weight:600">🔗 Conectar publicación automática</button><button class="chip" id="sel-dl">⬇ Descargar seleccion.json</button>`}${draft?'<button class="chip" id="sel-reset">Descartar cambios</button>':''}</span></div>
+    <div id="sel-gh-form" hidden style="margin:0 0 10px;padding:12px;border:1px solid var(--bestline);border-radius:10px;background:var(--best)">
+      <b>Conectar la publicación automática (una sola vez, en esta compu)</b>
+      <ol class="note" style="margin:6px 0 8px 18px;padding:0;line-height:1.6">
+        <li>En GitHub: tu foto → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
+        <li>Nombre: "Selección PROSPEI". Vencimiento: 1 año. <b>Repository access</b>: <i>Only select repositories</i> → <b>monitor-prospei-v2</b>.</li>
+        <li><b>Permissions</b> → Repository permissions → <b>Contents: Read and write</b>. Nada más. <b>Generate token</b> y copialo.</li>
+      </ol>
+      <input id="sel-tok" type="password" placeholder="Pegá el token (github_pat_…)" style="font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:min(420px,100%)"> <button class="chip" id="sel-tok-ok">Guardar</button>
+      <div class="note" style="margin-top:6px">El token queda guardado solo en este navegador y solo sirve para escribir en este repositorio. No lo compartas.</div>
+    </div>
     ${A.length?`<div class="tw" style="margin-bottom:8px"><table><thead><tr><th>Papel</th><th>Veredicto hoy</th><th>Seleccionada</th><th class="n">Precio entrada</th><th class="n">Precio hoy</th><th class="n">Resultado</th><th class="n">Días</th><th></th></tr></thead><tbody>
       ${A.map((x,i)=>{const r=by[x.t],p=r&&r.p,res=p&&x.precio?p/x.precio-1:null;return `<tr><td><b>${esc(x.t)}</b> <span class="note">${esc(r?r.name:'')}</span></td><td>${r&&r.verdict?`<span class="pill ${VDC[r.verdict]||''}">${esc(r.verdict)}</span>`:'—'}</td><td>${sdate(x.fecha)}</td><td class="n">${fmt(x.precio)}</td><td class="n">${fmt(p)}</td><td class="n ${cls(res)}"><b>${pct(res,1)}</b></td><td class="n">${sdays(x.fecha,hoy)}</td>
-        <td style="white-space:nowrap"><button class="chip" data-close="${i}">Cerrar (vender)</button> <button class="chip" data-del="${i}" title="Borrar sin pasar al historial (error de carga)">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">Todavía no hay acciones seleccionadas: tildalas en la tabla de abajo.</p>'}
+        <td style="white-space:nowrap"><button class="chip" data-close="${i}">Cerrar (vender)</button> <button class="chip" data-del="${i}" title="Sacarla de la selección sin pasarla al historial">Eliminar</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">Todavía no hay acciones seleccionadas: tildalas en la tabla de abajo.</p>'}
     ${C.length?`<details><summary class="note" style="cursor:pointer"><b>Historial</b> · ${C.length} cerrada${C.length>1?'s':''} · ${rs.filter(r=>r>0).length} con ganancia · promedio <b class="${cls(avg)}">${pct(avg,1)}</b></summary>
       <div class="tw" style="margin-top:6px"><table><thead><tr><th>Papel</th><th>Entrada</th><th class="n">Precio</th><th>Salida</th><th class="n">Precio</th><th class="n">Días</th><th class="n">Resultado</th><th></th></tr></thead><tbody>
       ${C.map((x,i)=>{const r=x.precio_out/x.precio-1;return `<tr><td><b>${esc(x.t)}</b></td><td>${sdate(x.fecha)}</td><td class="n">${fmt(x.precio)}</td><td>${sdate(x.fecha_out)}</td><td class="n">${fmt(x.precio_out)}</td><td class="n">${sdays(x.fecha,x.fecha_out)}</td><td class="n ${cls(r)}"><b>${pct(r,1)}</b></td><td><button class="chip" data-cdel="${i}" title="Borrar del historial">✕</button></td></tr>`}).join('')}
@@ -746,17 +782,22 @@ function renderSelCtl(){
   $$('#sel-bar [data-sf]').forEach(b=>b.onclick=()=>{S.sel.f=b.dataset.sf;renderSelCtl()});
   $$('#tb-sel th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k,c=cols.find(x=>x.k===k);S.sel.sort=[k,S.sel.sort[0]===k?-S.sel.sort[1]:(c.n||k==='sel'?-1:1)];renderSelCtl()});
   $$('#tb-sel [data-pick]').forEach(cb=>cb.onchange=()=>{const t=cb.dataset.pick,d=selCur();
-    if(cb.checked){if(!d.abiertas.some(x=>x.t===t))d.abiertas.push({t,fecha:hoy,precio:+(+by[t].p).toFixed(2)})}
+    if(cb.checked){if(!d.abiertas.some(x=>x.t===t))d.abiertas.push({t,fecha:pxDate,precio:+(+by[t].p).toFixed(2)});selPut(d,'agrega '+t);return}
     else{const i=d.abiertas.findIndex(x=>x.t===t),x=d.abiertas[i];
-      if(x.fecha===hoy||confirm(`¿Sacar ${t} sin pasarla al historial? (para venderla y guardar el resultado usá "Cerrar" arriba)`))d.abiertas.splice(i,1);else{cb.checked=true;return}}
-    selPut(d)});
+      if(x.fecha>=pxDate||confirm(`¿Sacar ${t} sin pasarla al historial? (para venderla y guardar el resultado usá "Cerrar" arriba)`))d.abiertas.splice(i,1);else{cb.checked=true;return}}
+    selPut(d,'saca '+t)});
   $$('#sel-now [data-close]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.close,x=d.abiertas[i],r=by[x.t];
     const v=prompt(`Precio de salida de ${x.t} (US$):`,r&&r.p?(+r.p).toFixed(2):'');if(v==null)return;const pv=parseFloat(String(v).replace(',','.'));if(!(pv>0))return;
-    d.abiertas.splice(i,1);d.cerradas.unshift({...x,fecha_out:hoy,precio_out:pv});selPut(d)});
-  $$('#sel-now [data-del]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.del;if(!confirm(`¿Borrar ${d.abiertas[i].t} sin pasarla al historial?`))return;d.abiertas.splice(i,1);selPut(d)});
-  $$('#sel-now [data-cdel]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.cdel;if(!confirm('¿Borrar esta operación del historial?'))return;d.cerradas.splice(i,1);selPut(d)});
-  $('#sel-dl').onclick=()=>{const d=selCur(),out={updated:hoy,abiertas:d.abiertas,cerradas:d.cerradas};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));a.download='seleccion.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
-  const rb=$('#sel-reset');if(rb)rb.onclick=()=>{if(!confirm('¿Descartar el borrador y volver a lo publicado?'))return;store('selDraft',null);try{localStorage.removeItem('prospei_selDraft')}catch(e){}renderSelCtl()};
+    d.abiertas.splice(i,1);d.cerradas.unshift({...x,fecha_out:hoy,precio_out:pv});selPut(d,'cierra '+x.t)});
+  $$('#sel-now [data-del]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.del;const tt=d.abiertas[i].t;if(!confirm(`¿Eliminar ${tt} de la selección sin pasarla al historial?`))return;d.abiertas.splice(i,1);selPut(d,'elimina '+tt)});
+  $$('#sel-now [data-cdel]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.cdel;if(!confirm('¿Borrar esta operación del historial?'))return;const tt=d.cerradas[i].t;d.cerradas.splice(i,1);selPut(d,'borra del historial '+tt)});
+  const on=$('#sel-gh-on');if(on)on.onclick=()=>{$('#sel-gh-form').hidden=false;$('#sel-tok').focus()};
+  const tk=$('#sel-tok-ok');if(tk)tk.onclick=()=>{const v=($('#sel-tok').value||'').trim();if(!/^(github_pat_|ghp_)/.test(v)){alert('Eso no parece un token de GitHub (empieza con github_pat_).');return}
+    try{localStorage.setItem('prospei_ghtoken',v)}catch(e){}S.sel.st='Conectado: desde ahora cada cambio se publica solo.';renderSelCtl()};
+  const off=$('#sel-gh-off');if(off)off.onclick=()=>{if(!confirm('¿Desconectar? Vas a tener que volver a pegar el token para publicar automáticamente.'))return;try{localStorage.removeItem('prospei_ghtoken')}catch(e){}S.sel.st='';renderSelCtl()};
+  const pb=$('#sel-pub');if(pb)pb.onclick=()=>{S.sel.msg='actualiza';ghPublish(selCur())};
+  const dlb=$('#sel-dl');if(dlb)dlb.onclick=()=>{const d=selCur(),out={updated:hoy,abiertas:d.abiertas,cerradas:d.cerradas};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));a.download='seleccion.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+  const rb=$('#sel-reset');if(rb)rb.onclick=()=>{if(!confirm('¿Descartar los cambios sin publicar y volver a lo publicado?'))return;store('selDraft',null);try{localStorage.removeItem('prospei_selDraft')}catch(e){}renderSelCtl()};
 }
 function setCTab(t){$$('.ctab').forEach(b=>b.classList.toggle('on',b.dataset.ct===t));$$('[data-pane]').forEach(s=>s.hidden=s.dataset.pane!==t);store('ctab',t)}
 $$('.ctab').forEach(b=>b.onclick=()=>setCTab(b.dataset.ct));
