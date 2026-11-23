@@ -1999,7 +1999,25 @@ def main():
     with ThreadPoolExecutor(max_workers=4) as ex:
         for sym, inf in ex.map(fetch_info, [s for s in prices if s in set(syms)]):
             infos[sym] = inf
-    print("Con fundamentales:", sum(1 for v in infos.values() if v))
+    # Yahoo a veces responde la ficha "recortada" (nombre y beta, sin P/E, ganancia ni capitalización). Pasó el
+    # 20/11/2026: todas las acciones quedaron sin valuación ni puntaje fundamental y el veredicto salió mal.
+    # Se reintenta lo que falte y, si igual faltan en más de la mitad, no se actualiza data.json (queda el de ayer).
+    full = lambda v: bool(v) and v.get("marketCap") is not None
+    for intento in range(2):
+        faltan = [s for s in infos if not full(infos[s])]
+        if len(faltan) <= 0.1 * len(infos):
+            break
+        print(f"Fundamentales incompletos en {len(faltan)} de {len(infos)}: reintento {intento + 1}")
+        time.sleep(60)
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            for sym, inf in ex.map(fetch_info, faltan):
+                if full(inf):
+                    infos[sym] = inf
+    ok = sum(1 for v in infos.values() if full(v))
+    print("Con fundamentales:", ok, "de", len(infos))
+    if ok < 0.5 * len(infos):
+        raise SystemExit(f"Yahoo Finance devolvió fundamentales completos solo para {ok} de {len(infos)} acciones; "
+                         "no se actualiza data.json (queda el de la corrida anterior). Reintentá más tarde.")
 
     global TNX_YIELD
     macro = build_macro(series)
