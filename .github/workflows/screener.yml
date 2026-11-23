@@ -2,7 +2,7 @@ name: Screener diario PROSPEI
 
 on:
   schedule:
-    - cron: "35 21 * * 1-5"   # 18:35 hora Argentina, lunes a viernes
+    - cron: "20 22 * * 1-5"   # 19:20 hora Argentina, lunes a viernes (Wall Street cierra 18:00 en el invierno de EE.UU. y 17:00 en su verano)
   workflow_dispatch:           # boton "Run workflow" para correrlo a mano
 
 permissions:
