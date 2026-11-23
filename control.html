@@ -48,6 +48,10 @@ main{max-width:1280px;margin:0 auto;padding:16px}
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
 .tab{background:none;border:none;border-bottom:3px solid transparent;padding:10px 12px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
 .tab.on{color:var(--accent);border-color:var(--accent)}
+.ctabs{display:flex;gap:6px;margin:0 0 14px;border-bottom:1px solid var(--line)}
+.ctab{all:unset;cursor:pointer;padding:10px 16px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.ctab:hover{color:var(--ink)}.ctab.on{color:var(--ink);border-bottom-color:var(--accent)}
+[data-pane][hidden]{display:none!important}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
 .card h2{font-size:16px;margin:0 0 4px}
 .card p.sub{margin:0 0 12px;color:var(--muted);font-size:12.5px;line-height:1.45}
@@ -190,7 +194,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
 <body>
 <header>
   <div class="hwrap">
-    <div class="logo">PROSPEI <small>Control interno · ¿Funcionan las señales del monitor?</small></div>
+    <div class="logo">PROSPEI <small>Uso interno · selección y control del monitor</small></div>
     <div class="hright">
       <a class="btn" href="/" style="text-decoration:none">← Volver al monitor</a>
       <button class="btn" id="theme">◐ Tema</button>
@@ -198,8 +202,9 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   </div>
 </header>
 <main>
+  <nav class="ctabs"><button class="ctab" data-ct="sel">★ Selección</button><button class="ctab" data-ct="ctl">Control</button></nav>
   <!-- NUESTRA SELECCIÓN: elegir entre las Comprar / Comprar en partes -->
-  <section id="t-sel">
+  <section id="t-sel" data-pane="sel">
     <div class="card" style="border-color:var(--bestline)">
       <h2>★ Nuestra selección · elegir</h2>
       <p class="sub">Las acciones que hoy el motor marca como <b>Comprar</b> o <b>Comprar en partes</b>. Tildá las que PROSPEI recomienda: aparecen en el bloque "Nuestra selección" del monitor, arriba de Oportunidades. Al tildar se guarda la fecha de hoy y el precio actual; al cerrar, el precio de salida, y pasa al historial. Los cambios quedan en este navegador hasta que toques <b>Descargar seleccion.json</b> y lo subas a GitHub (raíz del repo, al lado de carteras.json).</p>
@@ -210,7 +215,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   </section>
 
   <!-- TRACK RÉCORD -->
-  <section id="t-one">
+  <section id="t-one" data-pane="ctl">
     <div class="card">
       <h2>Probar una empresa</h2>
       <p class="sub">Escribí un ticker del monitor (por ejemplo MU) para ver en qué momentos de los últimos años hubiera dado la señal de compra y cómo le fue después.</p>
@@ -219,7 +224,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     </div>
   </section>
 
-  <section id="t-live">
+  <section id="t-live" data-pane="ctl">
     <div class="card">
       <h2>Señales reales del monitor</h2>
       <p class="sub">Cada "Comprar" y "Comprar en partes" que dio el monitor, con el precio de ese día, comparado contra el precio de hoy y contra el S&amp;P 500 en el mismo período. Acá sí está la señal completa (con valor justo y analistas). Una misma acción vuelve a contar recién 30 días después.</p>
@@ -227,7 +232,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     </div>
   </section>
 
-  <section id="t-rot">
+  <section id="t-rot" data-pane="ctl">
     <div class="card">
       <h2>Rotación de sectores: ¿se le gana al S&amp;P comprando y vendiendo ETFs según el gráfico de rotación?</h2>
       <p class="sub">10 años con los 11 ETF sectoriales (XLK, XLV, XLF…) y el mismo gráfico de rotación de la pestaña Rotación del monitor. Cada estrategia decide con el cierre de cada viernes y mantiene hasta el viernes siguiente; se descuenta 0,10% por cada compra o venta. Si una estrategia no elige ningún sector, queda en el S&amp;P 500. Rendimientos con dividendos.</p>
@@ -235,7 +240,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
     </div>
   </section>
 
-  <section id="t-bt">
+  <section id="t-bt" data-pane="ctl">
     <div class="card">
       <h2>Track récord de "Comprar hoy"</h2>
       <p class="sub">Cada día del período analizado (ver fechas abajo) se reconstruyó la señal con la información que existía ese día y se midió qué pasó después. Se prueba en dos grupos: las 3 más grandes de cada sector (las ganadoras de hoy) y una muestra de 100 acciones al azar del S&amp;P 500, que incluye las que anduvieron mal y es la prueba más exigente. Una señal cuenta una sola vez: para contar otra en la misma acción tienen que pasar 20 ruedas sin señal. Se compra al cierre del día siguiente.</p>
@@ -753,6 +758,9 @@ function renderSelCtl(){
   $('#sel-dl').onclick=()=>{const d=selCur(),out={updated:hoy,abiertas:d.abiertas,cerradas:d.cerradas};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));a.download='seleccion.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
   const rb=$('#sel-reset');if(rb)rb.onclick=()=>{if(!confirm('¿Descartar el borrador y volver a lo publicado?'))return;store('selDraft',null);try{localStorage.removeItem('prospei_selDraft')}catch(e){}renderSelCtl()};
 }
+function setCTab(t){$$('.ctab').forEach(b=>b.classList.toggle('on',b.dataset.ct===t));$$('[data-pane]').forEach(s=>s.hidden=s.dataset.pane!==t);store('ctab',t)}
+$$('.ctab').forEach(b=>b.onclick=()=>setCTab(b.dataset.ct));
+setCTab(store('ctab')||'sel');
 loadSel();
 loadBT();loadLive();initOne();loadRot();
 </script>
