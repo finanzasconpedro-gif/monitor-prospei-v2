@@ -198,6 +198,17 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   </div>
 </header>
 <main>
+  <!-- NUESTRA SELECCIÓN: elegir entre las Comprar / Comprar en partes -->
+  <section id="t-sel">
+    <div class="card" style="border-color:var(--bestline)">
+      <h2>★ Nuestra selección · elegir</h2>
+      <p class="sub">Las acciones que hoy el motor marca como <b>Comprar</b> o <b>Comprar en partes</b>. Tildá las que PROSPEI recomienda: aparecen en el bloque "Nuestra selección" del monitor, arriba de Oportunidades. Al tildar se guarda la fecha de hoy y el precio actual; al cerrar, el precio de salida, y pasa al historial. Los cambios quedan en este navegador hasta que toques <b>Descargar seleccion.json</b> y lo subas a GitHub (raíz del repo, al lado de carteras.json).</p>
+      <div id="sel-now"></div>
+      <div class="bar" style="margin:10px 0" id="sel-bar"></div>
+      <div class="tw"><table id="tb-sel"></table></div>
+    </div>
+  </section>
+
   <!-- TRACK RÉCORD -->
   <section id="t-one">
     <div class="card">
@@ -671,6 +682,78 @@ function renderRot(){
   $$('[data-rf]').forEach(b=>b.onclick=()=>{S.rotF=b.dataset.rf==='1';S.rotSel=null;renderRot()});
   $$('[data-rs]').forEach(b=>b.onchange=()=>{const k=b.dataset.rs;if(b.checked){S.rotSel.push(k);if(S.rotSel.length>4)S.rotSel.shift()}else S.rotSel=S.rotSel.filter(x=>x!==k);renderRot()});
 }
+/* ---------- Nuestra selección ---------- */
+S.sel={f:'ambas',sort:['score',-1]};
+const sdate=d=>d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'—';
+const sdays=(a,b)=>Math.max(0,Math.round((new Date(b)-new Date(a))/864e5));
+const shoy=()=>{const n=new Date(Date.now()-3*3600e3);return n.toISOString().slice(0,10)};
+const VDC={'Comprar':'up','Comprar en partes':'up','Vigilar':'warn','Mantener':'warn','Evitar':'down'};
+async function loadSel(){
+  try{
+    const [a,b]=await Promise.all([fetch('data.json?v='+Date.now(),{cache:'no-store'}),fetch('seleccion.json?v='+Date.now(),{cache:'no-store'})]);
+    S.sel.D=await a.json();S.sel.pub=b.ok?await b.json():{abiertas:[],cerradas:[]};
+  }catch(e){$('#tb-sel').innerHTML='<tr><td class="note">No se pudo leer data.json.</td></tr>';return}
+  renderSelCtl();
+}
+function selCur(){const d=store('selDraft');return d||{abiertas:(S.sel.pub.abiertas||[]),cerradas:(S.sel.pub.cerradas||[])}}
+function selPut(d){store('selDraft',JSON.parse(JSON.stringify(d)));renderSelCtl()}
+function renderSelCtl(){
+  const D=S.sel.D,rows=D.rows||[],by={};rows.forEach(r=>by[r.t]=r);
+  const W=selCur(),A=W.abiertas||[],C=W.cerradas||[],hoy=shoy(),draft=!!store('selDraft');
+  const inSel=t=>A.some(x=>x.t===t);
+  /* selección vigente + historial */
+  const rs=C.map(x=>x.precio_out/x.precio-1).filter(isFinite),avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
+  $('#sel-now').innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <b>Seleccionadas hoy: ${A.length}</b>${draft?'<span class="pill warn">Borrador sin publicar</span>':'<span class="note">igual a lo publicado</span>'}
+      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="chip" id="sel-dl" style="border-color:var(--bestline);font-weight:600">⬇ Descargar seleccion.json</button>${draft?'<button class="chip" id="sel-reset">Descartar borrador</button>':''}</span></div>
+    ${A.length?`<div class="tw" style="margin-bottom:8px"><table><thead><tr><th>Papel</th><th>Veredicto hoy</th><th>Seleccionada</th><th class="n">Precio entrada</th><th class="n">Precio hoy</th><th class="n">Resultado</th><th class="n">Días</th><th></th></tr></thead><tbody>
+      ${A.map((x,i)=>{const r=by[x.t],p=r&&r.p,res=p&&x.precio?p/x.precio-1:null;return `<tr><td><b>${esc(x.t)}</b> <span class="note">${esc(r?r.name:'')}</span></td><td>${r&&r.verdict?`<span class="pill ${VDC[r.verdict]||''}">${esc(r.verdict)}</span>`:'—'}</td><td>${sdate(x.fecha)}</td><td class="n">${fmt(x.precio)}</td><td class="n">${fmt(p)}</td><td class="n ${cls(res)}"><b>${pct(res,1)}</b></td><td class="n">${sdays(x.fecha,hoy)}</td>
+        <td style="white-space:nowrap"><button class="chip" data-close="${i}">Cerrar (vender)</button> <button class="chip" data-del="${i}" title="Borrar sin pasar al historial (error de carga)">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">Todavía no hay acciones seleccionadas: tildalas en la tabla de abajo.</p>'}
+    ${C.length?`<details><summary class="note" style="cursor:pointer"><b>Historial</b> · ${C.length} cerrada${C.length>1?'s':''} · ${rs.filter(r=>r>0).length} con ganancia · promedio <b class="${cls(avg)}">${pct(avg,1)}</b></summary>
+      <div class="tw" style="margin-top:6px"><table><thead><tr><th>Papel</th><th>Entrada</th><th class="n">Precio</th><th>Salida</th><th class="n">Precio</th><th class="n">Días</th><th class="n">Resultado</th><th></th></tr></thead><tbody>
+      ${C.map((x,i)=>{const r=x.precio_out/x.precio-1;return `<tr><td><b>${esc(x.t)}</b></td><td>${sdate(x.fecha)}</td><td class="n">${fmt(x.precio)}</td><td>${sdate(x.fecha_out)}</td><td class="n">${fmt(x.precio_out)}</td><td class="n">${sdays(x.fecha,x.fecha_out)}</td><td class="n ${cls(r)}"><b>${pct(r,1)}</b></td><td><button class="chip" data-cdel="${i}" title="Borrar del historial">✕</button></td></tr>`}).join('')}
+      </tbody></table></div></details>`:''}`;
+  /* candidatos: réplica de Oportunidades AT + AF (Comprar y Comprar en partes) */
+  const cnt=v=>rows.filter(r=>r.verdict===v).length;
+  $('#sel-bar').innerHTML=[['ambas',`Comprar y Comprar en partes (${cnt('Comprar')+cnt('Comprar en partes')})`],['Comprar',`Comprar (${cnt('Comprar')})`],['Comprar en partes',`Comprar en partes (${cnt('Comprar en partes')})`]]
+    .map(([k,l])=>`<button class="chip${S.sel.f===k?' on':''}" data-sf="${esc(k)}">${esc(l)}</button>`).join('')+
+    `<span class="note" style="margin-left:8px">Datos al cierre del ${esc(sdate((D.spy&&D.spy.asof)||D.run_date))} · la ficha completa se abre en el monitor (↗)</span>`;
+  let L=rows.filter(r=>S.sel.f==='ambas'?(r.verdict==='Comprar'||r.verdict==='Comprar en partes'):r.verdict===S.sel.f);
+  A.forEach(x=>{if(!L.some(r=>r.t===x.t)&&by[x.t])L.push(by[x.t])});   // las ya elegidas siempre a la vista
+  const cols=[
+    {k:'sel',l:'★',f:r=>`<input type="checkbox" data-pick="${esc(r.t)}" ${inSel(r.t)?'checked':''} style="width:18px;height:18px;cursor:pointer">`},
+    {k:'t',l:'Papel',f:r=>`<b>${esc(r.t)}</b> <a href="/?t=${encodeURIComponent(r.t)}" target="_blank" title="Abrir la ficha en el monitor" style="text-decoration:none">↗</a>`},
+    {k:'name',l:'Empresa',f:r=>`${esc(r.name||'')}<div class="note">${esc(r.sector||'')}${r.industry?' · '+esc(r.industry):''}</div>`},
+    {k:'verdict',l:'Veredicto',f:r=>r.verdict?`<span class="pill ${VDC[r.verdict]||''}">${esc(r.verdict)}</span>`:'—'},
+    {k:'p',l:'Precio',n:1,f:r=>fmt(r.p)},
+    {k:'r1d',l:'Día',n:1,f:r=>`<span class="${cls(r.r1d)}">${pct(r.r1d,1)}</span>`},
+    {k:'score',l:'Puntaje',n:1,f:r=>fmt(r.score,0)},
+    {k:'at',l:'AT',n:1,f:r=>fmt(r.at,0)},
+    {k:'af',l:'AF',n:1,f:r=>fmt(r.af,0)},
+    {k:'fair_up',l:'Recorrido',n:1,f:r=>`<span class="${cls(r.fair_up)}">${pct(r.fair_up,0)}</span>`},
+    {k:'upside',l:'Analistas',n:1,f:r=>`<span class="${cls(r.upside)}">${pct(r.upside,0)}</span>`},
+    {k:'setup',l:'Situación',f:r=>`${esc(r.setup||'')}<div class="note" title="${esc(r.verdict_why||'')}" style="max-width:380px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.verdict_why||'')}</div>`}];
+  const [sk,sd]=S.sel.sort;
+  L.sort((a,b)=>{if(sk==='sel')return sd*((inSel(a.t)?1:0)-(inSel(b.t)?1:0));const x=a[sk],y=b[sk];if(x==null)return 1;if(y==null)return -1;return (typeof x==='string'?x.localeCompare(y):x-y)*sd});
+  $('#tb-sel').innerHTML=`<thead><tr>${cols.map(c=>`<th data-k="${c.k}" class="${c.n?'n':''}">${c.l}${sk===c.k?(sd>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>
+    ${L.map(r=>`<tr${inSel(r.t)?' style="background:var(--best)"':''}>${cols.map(c=>`<td class="${c.n?'n':''}">${c.f(r)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="note">Hoy el motor no tiene acciones en compra.</td></tr>`}</tbody>`;
+  /* eventos */
+  $$('#sel-bar [data-sf]').forEach(b=>b.onclick=()=>{S.sel.f=b.dataset.sf;renderSelCtl()});
+  $$('#tb-sel th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k,c=cols.find(x=>x.k===k);S.sel.sort=[k,S.sel.sort[0]===k?-S.sel.sort[1]:(c.n||k==='sel'?-1:1)];renderSelCtl()});
+  $$('#tb-sel [data-pick]').forEach(cb=>cb.onchange=()=>{const t=cb.dataset.pick,d=selCur();
+    if(cb.checked){if(!d.abiertas.some(x=>x.t===t))d.abiertas.push({t,fecha:hoy,precio:+(+by[t].p).toFixed(2)})}
+    else{const i=d.abiertas.findIndex(x=>x.t===t),x=d.abiertas[i];
+      if(x.fecha===hoy||confirm(`¿Sacar ${t} sin pasarla al historial? (para venderla y guardar el resultado usá "Cerrar" arriba)`))d.abiertas.splice(i,1);else{cb.checked=true;return}}
+    selPut(d)});
+  $$('#sel-now [data-close]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.close,x=d.abiertas[i],r=by[x.t];
+    const v=prompt(`Precio de salida de ${x.t} (US$):`,r&&r.p?(+r.p).toFixed(2):'');if(v==null)return;const pv=parseFloat(String(v).replace(',','.'));if(!(pv>0))return;
+    d.abiertas.splice(i,1);d.cerradas.unshift({...x,fecha_out:hoy,precio_out:pv});selPut(d)});
+  $$('#sel-now [data-del]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.del;if(!confirm(`¿Borrar ${d.abiertas[i].t} sin pasarla al historial?`))return;d.abiertas.splice(i,1);selPut(d)});
+  $$('#sel-now [data-cdel]').forEach(b=>b.onclick=()=>{const d=selCur(),i=+b.dataset.cdel;if(!confirm('¿Borrar esta operación del historial?'))return;d.cerradas.splice(i,1);selPut(d)});
+  $('#sel-dl').onclick=()=>{const d=selCur(),out={updated:hoy,abiertas:d.abiertas,cerradas:d.cerradas};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));a.download='seleccion.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+  const rb=$('#sel-reset');if(rb)rb.onclick=()=>{if(!confirm('¿Descartar el borrador y volver a lo publicado?'))return;store('selDraft',null);try{localStorage.removeItem('prospei_selDraft')}catch(e){}renderSelCtl()};
+}
+loadSel();
 loadBT();loadLive();initOne();loadRot();
 </script>
 </body>
