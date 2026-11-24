@@ -1,20 +1,20 @@
 {
- "valor": 1070.0,
- "fecha": "2026-11-20",
+ "valor": 1035.0,
+ "fecha": "2026-11-23",
  "fuente": "Ámbito",
- "hora": "20-11-2026",
- "actualizado": "2026-11-21T02:05Z",
+ "hora": "23-11-2026",
+ "actualizado": "2026-11-24T00:43Z",
  "fuentes": [
-  {
-   "valor": 931.0,
-   "fecha": "2026-11-19",
-   "fuente": "ArgentinaDatos"
-  },
   {
    "valor": 1070.0,
    "fecha": "2026-11-20",
+   "fuente": "ArgentinaDatos"
+  },
+  {
+   "valor": 1035.0,
+   "fecha": "2026-11-23",
    "fuente": "Ámbito",
-   "hora": "20-11-2026"
+   "hora": "23-11-2026"
   }
  ],
  "hist": [
@@ -117,6 +117,10 @@
   {
    "fecha": "2026-11-20",
    "valor": 1070.0
+  },
+  {
+   "fecha": "2026-11-23",
+   "valor": 1035.0
   }
  ]
 }
