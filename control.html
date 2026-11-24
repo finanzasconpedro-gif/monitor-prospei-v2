@@ -207,7 +207,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <section id="t-sel" data-pane="sel">
     <div class="card" style="border-color:var(--bestline)">
       <h2>★ Nuestra selección · elegir</h2>
-      <p class="sub">Las acciones que hoy el motor marca como <b>Comprar</b> o <b>Comprar en partes</b>. Tildá las que PROSPEI recomienda y aparecen en el bloque "★ Nuestra selección" del monitor, arriba de Oportunidades. Al tildar se guarda el precio y la fecha del último cierre del monitor; al cerrar (vender), el precio de salida, y pasa al historial. Con la publicación automática conectada, cada cambio se publica solo (los clientes lo ven en 1 o 2 minutos).</p>
+      <p class="sub">Las acciones que hoy el motor marca como <b>Comprar</b> o <b>Comprar en partes</b>, y las que están en <b>sobreventa con tendencia alcista</b>. Tildá las que PROSPEI recomienda y aparecen en el bloque "★ Nuestra selección" del monitor, arriba de Oportunidades. Al tildar se guarda el precio y la fecha del último cierre del monitor; al cerrar (vender), el precio de salida, y pasa al historial. Con la publicación automática conectada, cada cambio se publica solo (los clientes lo ven en 1 o 2 minutos).</p>
       <div id="sel-now"></div>
       <div class="bar" style="margin:10px 0" id="sel-bar"></div>
       <div class="tw"><table id="tb-sel"></table></div>
@@ -756,20 +756,26 @@ function renderSelCtl(){
       </tbody></table></div></details>`:''}`;
   /* candidatos: réplica de Oportunidades AT + AF (Comprar y Comprar en partes) */
   const cnt=v=>rows.filter(r=>r.verdict===v).length;
-  $('#sel-bar').innerHTML=[['ambas',`Comprar y Comprar en partes (${cnt('Comprar')+cnt('Comprar en partes')})`],['Comprar',`Comprar (${cnt('Comprar')})`],['Comprar en partes',`Comprar en partes (${cnt('Comprar en partes')})`]]
+  /* Sobreventa con tendencia alcista: la misma regla del monitor (RSI < 35 y arriba de su media de 200, o hasta 10% debajo
+     con la media subiendo; acciones de EE.UU. de consumo básico, industrial, salud y financiero) */
+  const OVS_SECT=['Consumo básico','Industrial','Salud','Financiero'];
+  const isOvs=r=>r.region==='EE.UU.'&&OVS_SECT.includes(r.sector)&&r.rsi!=null&&r.rsi<35&&r.p!=null&&r.sma200!=null&&(r.p>r.sma200||(r.slope200_pct!=null&&r.slope200_pct>0&&r.p>=0.9*r.sma200));
+  const nOvs=rows.filter(isOvs).length;
+  $('#sel-bar').innerHTML=[['ambas',`Comprar y Comprar en partes (${cnt('Comprar')+cnt('Comprar en partes')})`],['Comprar',`Comprar (${cnt('Comprar')})`],['Comprar en partes',`Comprar en partes (${cnt('Comprar en partes')})`],['ovs',`Sobreventa con tendencia alcista (${nOvs})`]]
     .map(([k,l])=>`<button class="chip${S.sel.f===k?' on':''}" data-sf="${esc(k)}">${esc(l)}</button>`).join('')+
     `<span class="note" style="margin-left:8px">Datos al cierre del ${esc(sdate((D.spy&&D.spy.asof)||D.run_date))} · la ficha completa se abre en el monitor (↗)</span>`;
-  let L=rows.filter(r=>S.sel.f==='ambas'?(r.verdict==='Comprar'||r.verdict==='Comprar en partes'):r.verdict===S.sel.f);
+  let L=rows.filter(r=>S.sel.f==='ovs'?isOvs(r):S.sel.f==='ambas'?(r.verdict==='Comprar'||r.verdict==='Comprar en partes'):r.verdict===S.sel.f);
   A.forEach(x=>{if(!L.some(r=>r.t===x.t)&&by[x.t])L.push(by[x.t])});   // las ya elegidas siempre a la vista
   const cols=[
     {k:'sel',l:'★',f:r=>`<input type="checkbox" data-pick="${esc(r.t)}" ${inSel(r.t)?'checked':''} style="width:18px;height:18px;cursor:pointer">`},
     {k:'t',l:'Papel',f:r=>`<b>${esc(r.t)}</b> <a href="/?t=${encodeURIComponent(r.t)}" target="_blank" title="Abrir la ficha en el monitor" style="text-decoration:none">↗</a>`},
     {k:'name',l:'Empresa',f:r=>`${esc(r.name||'')}<div class="note">${esc(r.sector||'')}${r.industry?' · '+esc(r.industry):''}</div>`},
-    {k:'verdict',l:'Veredicto',f:r=>r.verdict?`<span class="pill ${VDC[r.verdict]||''}">${esc(r.verdict)}</span>`:'—'},
+    {k:'verdict',l:'Veredicto',f:r=>(r.verdict?`<span class="pill ${VDC[r.verdict]||''}">${esc(r.verdict)}</span>`:'—')+(isOvs(r)?'<div class="note" style="margin-top:3px">Sobreventa en tendencia alcista</div>':'')},
     {k:'p',l:'Precio',n:1,f:r=>fmt(r.p)},
     {k:'r1d',l:'Día',n:1,f:r=>`<span class="${cls(r.r1d)}">${pct(r.r1d,1)}</span>`},
     {k:'score',l:'Puntaje',n:1,f:r=>fmt(r.score,0)},
     {k:'at',l:'AT',n:1,f:r=>fmt(r.at,0)},
+    {k:'rsi',l:'RSI',n:1,f:r=>`<span class="${r.rsi!=null&&r.rsi<35?'up':''}">${fmt(r.rsi,0)}</span>`},
     {k:'af',l:'AF',n:1,f:r=>fmt(r.af,0)},
     {k:'fair_up',l:'Recorrido',n:1,f:r=>`<span class="${cls(r.fair_up)}">${pct(r.fair_up,0)}</span>`},
     {k:'upside',l:'Analistas',n:1,f:r=>`<span class="${cls(r.upside)}">${pct(r.upside,0)}</span>`},
@@ -782,7 +788,7 @@ function renderSelCtl(){
   $$('#sel-bar [data-sf]').forEach(b=>b.onclick=()=>{S.sel.f=b.dataset.sf;renderSelCtl()});
   $$('#tb-sel th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k,c=cols.find(x=>x.k===k);S.sel.sort=[k,S.sel.sort[0]===k?-S.sel.sort[1]:(c.n||k==='sel'?-1:1)];renderSelCtl()});
   $$('#tb-sel [data-pick]').forEach(cb=>cb.onchange=()=>{const t=cb.dataset.pick,d=selCur();
-    if(cb.checked){if(!d.abiertas.some(x=>x.t===t))d.abiertas.push({t,fecha:pxDate,precio:+(+by[t].p).toFixed(2)});selPut(d,'agrega '+t);return}
+    if(cb.checked){const rr=by[t],mot=(rr.verdict==='Comprar'||rr.verdict==='Comprar en partes')?rr.verdict:isOvs(rr)?'ovs':(rr.verdict||'');if(!d.abiertas.some(x=>x.t===t))d.abiertas.push({t,fecha:pxDate,precio:+(+rr.p).toFixed(2),motivo:mot});selPut(d,'agrega '+t);return}
     else{const i=d.abiertas.findIndex(x=>x.t===t),x=d.abiertas[i];
       if(x.fecha>=pxDate||confirm(`¿Sacar ${t} sin pasarla al historial? (para venderla y guardar el resultado usá "Cerrar" arriba)`))d.abiertas.splice(i,1);else{cb.checked=true;return}}
     selPut(d,'saca '+t)});
