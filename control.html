@@ -765,7 +765,6 @@ function renderSelCtl(){
     .map(([k,l])=>`<button class="chip${S.sel.f===k?' on':''}" data-sf="${esc(k)}">${esc(l)}</button>`).join('')+
     `<span class="note" style="margin-left:8px">Datos al cierre del ${esc(sdate((D.spy&&D.spy.asof)||D.run_date))} · la ficha completa se abre en el monitor (↗)</span>`;
   let L=rows.filter(r=>S.sel.f==='ovs'?isOvs(r):S.sel.f==='ambas'?(r.verdict==='Comprar'||r.verdict==='Comprar en partes'):r.verdict===S.sel.f);
-  A.forEach(x=>{if(!L.some(r=>r.t===x.t)&&by[x.t])L.push(by[x.t])});   // las ya elegidas siempre a la vista
   const cols=[
     {k:'sel',l:'★',f:r=>`<input type="checkbox" data-pick="${esc(r.t)}" ${inSel(r.t)?'checked':''} style="width:18px;height:18px;cursor:pointer">`},
     {k:'t',l:'Papel',f:r=>`<b>${esc(r.t)}</b> <a href="/?t=${encodeURIComponent(r.t)}" target="_blank" title="Abrir la ficha en el monitor" style="text-decoration:none">↗</a>`},
