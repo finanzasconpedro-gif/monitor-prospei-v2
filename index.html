@@ -1221,7 +1221,12 @@ $('#pf-imp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const
    seleccion.json: {updated, abiertas:[{t,fecha,precio}], cerradas:[{t,fecha,precio,fecha_out,precio_out}]}
    Se edita entrando con ?editar=prospei (borrador en este navegador) y se publica subiendo seleccion.json a GitHub. */
 const SEL_ADMIN=false;   // la selección se elige en control.html (página interna); acá los clientes solo la ven
-async function loadSel(){if(S.selDef!==undefined)return S.selDef;try{S.selDef=await getJ('seleccion.json?v='+Date.now())}catch(e){S.selDef={abiertas:[],cerradas:[]}}return S.selDef}
+/* La selección se lee directo de GitHub: se ve apenas se publica, sin esperar a que Vercel vuelva a armar la página
+   (con varios cambios seguidos, Vercel a veces queda publicando una versión anterior). Si GitHub no responde, la copia local. */
+const SEL_RAW='https://raw.githubusercontent.com/finanzasconpedro-gif/monitor-prospei-v2/main/seleccion.json';
+async function loadSel(){if(S.selDef!==undefined)return S.selDef;
+  for(const u of [SEL_RAW+'?v='+Date.now(),'seleccion.json?v='+Date.now()]){try{const r=await fetch(u,{cache:'no-store'});if(r.ok){S.selDef=await r.json();return S.selDef}}catch(e){}}
+  S.selDef={abiertas:[],cerradas:[]};return S.selDef}
 function selData(){if(SEL_ADMIN){try{const d=JSON.parse(localStorage.getItem('selDraft')||'null');if(d)return d}catch(e){}}return S.selDef||{abiertas:[],cerradas:[]}}
 function selSave(d){try{localStorage.setItem('selDraft',JSON.stringify(d))}catch(e){}renderSel()}
 const selDays=(a,b)=>Math.max(0,Math.round((new Date(b)-new Date(a))/864e5));
