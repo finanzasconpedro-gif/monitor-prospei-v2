@@ -695,7 +695,7 @@ const shoy=()=>{const n=new Date(Date.now()-3*3600e3);return n.toISOString().sli
 const VDC={'Comprar':'up','Comprar en partes':'up','Vigilar':'warn','Mantener':'warn','Evitar':'down'};
 async function loadSel(){
   try{
-    const [a,b]=await Promise.all([fetch('data.json?v='+Date.now(),{cache:'no-store'}),fetch('seleccion.json?v='+Date.now(),{cache:'no-store'})]);
+    const [a,b]=await Promise.all([fetch('data.json?v='+Date.now(),{cache:'no-store'}),fetch('https://raw.githubusercontent.com/finanzasconpedro-gif/monitor-prospei-v2/main/seleccion.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r:fetch('seleccion.json?v='+Date.now(),{cache:'no-store'})).catch(()=>fetch('seleccion.json?v='+Date.now(),{cache:'no-store'}))]);
     S.sel.D=await a.json();S.sel.pub=b.ok?await b.json():{abiertas:[],cerradas:[]};
   }catch(e){$('#tb-sel').innerHTML='<tr><td class="note">No se pudo leer data.json.</td></tr>';return}
   renderSelCtl();
