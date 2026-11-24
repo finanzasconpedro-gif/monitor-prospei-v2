@@ -20,6 +20,11 @@
    "t": "SNDK",
    "fecha": "2026-11-20",
    "precio": 94.39
+  },
+  {
+   "t": "NVDA",
+   "fecha": "2026-11-20",
+   "precio": 125.53
   }
  ],
  "cerradas": []
