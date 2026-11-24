@@ -1236,7 +1236,7 @@ function renderSel(){
   const cur=t=>{const r=by[t];return r?enrich(r):null};
   const cards=A.map((x,i)=>{const o=cur(x.t),px=o&&o.px,res=px&&x.precio?px/x.precio-1:null;
     return `<div class="sel-it" data-sel="${esc(x.t)}">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span class="t">${esc(x.t)}</span>${o?vdChip(o):''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span class="t">${esc(x.t)}</span>${o?(x.motivo==='ovs'&&o.verdict!=='Comprar'&&o.verdict!=='Comprar en partes'?'<span class="pill up" title="Precio castigado (RSI bajo) dentro de una tendencia alcista">Sobreventa en tendencia alcista</span>':vdChip(o)):''}</div>
       <div class="n">${esc(o?o.name:'')}${o&&o.sector?' · '+esc(o.sector):''}</div>
       <div class="px"><span class="num">US$ ${fmt(px)}</span><b class="num ${cls(res)}">${pct(res,1)}</b></div>
       <div class="note">Seleccionada el ${x.fecha.slice(8,10)}/${x.fecha.slice(5,7)}/${x.fecha.slice(0,4)} a US$ ${fmt(x.precio)} · ${selDays(x.fecha,hoy)} días</div>
