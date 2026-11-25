@@ -3,6 +3,7 @@ name: Screener diario PROSPEI
 on:
   schedule:
     - cron: "20 22 * * 1-5"   # 19:20 hora Argentina, lunes a viernes (Wall Street cierra 18:00 en el invierno de EE.UU. y 17:00 en su verano)
+    - cron: "20 1 * * 2-6"    # 22:20 hora Argentina, de respaldo: GitHub a veces demora o saltea las tareas programadas
   workflow_dispatch:           # boton "Run workflow" para correrlo a mano
 
 permissions:
