@@ -3,20 +3,8 @@
  "abiertas": [
   {
    "t": "SNDK",
-   "fecha": "2026-11-24",
+   "fecha": "2026-11-25",
    "precio": 94.39,
-   "motivo": "Comprar en partes"
-  },
-  {
-   "t": "NOW",
-   "fecha": "2026-11-24",
-   "precio": 91.74,
-   "motivo": "Comprar en partes"
-  },
-  {
-   "t": "MELI",
-   "fecha": "2026-11-24",
-   "precio": 1450.31,
    "motivo": "Comprar en partes"
   }
  ],
