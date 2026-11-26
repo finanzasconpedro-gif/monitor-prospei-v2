@@ -1,5 +1,12 @@
 {
- "updated": "2026-11-25",
- "abiertas": [],
+ "updated": "2026-11-26",
+ "abiertas": [
+  {
+   "t": "SNDK",
+   "fecha": "2026-11-24",
+   "precio": 94.39,
+   "motivo": "Comprar en partes"
+  }
+ ],
  "cerradas": []
 }
