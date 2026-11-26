@@ -1,8 +1,12 @@
 {
- "fecha": "2026-11-24",
+ "fecha": "2026-11-26",
  "cargados": [],
  "vencidas_quitadas": 0,
  "detalle": [
+  {
+   "url": "https://www.argentina.gob.ar/noticias/llamado-licitacion-de-instrumentos-del-tesoro-nacional-denominados-en-pesos-y-en-dolares-17",
+   "nota": "sin LECAP/BONCAP reconocibles"
+  },
   {
    "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-para-la-conversion-de-la-lelink-d30n6-en-el-marco-del-articulo",
    "nota": "sin LECAP/BONCAP reconocibles"
@@ -145,10 +149,6 @@
    "venc": "2027-01-15",
    "fam": "BONCAP",
    "estado": "ya cargado"
-  },
-  {
-   "url": "https://www.argentina.gob.ar/noticias/resultado-de-la-licitacion-para-la-conversion-de-la-lelink-d30s6-con-vencimiento-30-de",
-   "nota": "sin LECAP/BONCAP reconocibles"
   }
  ]
 }
