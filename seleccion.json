@@ -6,6 +6,12 @@
    "fecha": "2026-11-24",
    "precio": 94.39,
    "motivo": "Comprar en partes"
+  },
+  {
+   "t": "NOW",
+   "fecha": "2026-11-24",
+   "precio": 91.74,
+   "motivo": "Comprar en partes"
   }
  ],
  "cerradas": []
