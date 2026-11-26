@@ -12,6 +12,12 @@
    "fecha": "2026-11-25",
    "precio": 92.16,
    "motivo": "Comprar en partes"
+  },
+  {
+   "t": "AMZN",
+   "fecha": "2026-11-25",
+   "precio": 244.43,
+   "motivo": "Comprar en partes"
   }
  ],
  "cerradas": []
