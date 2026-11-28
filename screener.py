@@ -580,6 +580,9 @@ def reasons(r):
 
 
 # ---------------------------------------------------------------- datos
+STALE = []
+
+
 def fetch_info(sym):
     import yfinance as yf
     for i in range(3):
@@ -1862,7 +1865,7 @@ def to_json(df, n_universe, spy=None, etfs=None, vm_dates=None, macro=None):
         heat.append({"sector": sec, "n": int(len(g)), "score": r2(g.score.mean(), 1),
                      "r1d": r2(g.r1d.median()), "r1m": r2(g.r1m.median())})
     return {"generated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"),
-            "run_date": today_ar(), "verdict_base": df.attrs.get("verdict_base", {}), "verdict_base_date": PREV_DATE,
+            "run_date": today_ar(), "stale": STALE, "verdict_base": df.attrs.get("verdict_base", {}), "verdict_base_date": PREV_DATE,
             "universe": n_universe, "analyzed": int(len(df)), "top_n": TOP_N,
             "method": "AT 50% (tendencia, momentum, RSI/MACD, posición vs máximo) + AF 50% (valuación vs sector, crecimiento, calidad, solidez, analistas).",
             "sectors": sorted(heat, key=lambda h: -h["score"]), "spy": spy, "etfs": etfs or [],
@@ -1991,6 +1994,25 @@ def main():
         print("Última rueda:", ASOF)
     except Exception:
         pass
+    # Precios congelados: Yahoo a veces deja de actualizar la serie de un papel y repite el último precio viejo
+    # (SNDK quedó fijo en US$ 94,40 desde el 20/11/2026 mientras cotizaba ~US$ 570). Si la última rueda de un papel
+    # tiene más de 4 días de atraso contra la del S&P 500, o si su precio quedó idéntico en las últimas 4 ruedas
+    # mientras el mercado sí, se descarta ese papel en esta corrida: mejor sin dato que con un precio falso.
+    global STALE
+    STALE = []
+    try:
+        ref = pd.Timestamp(series[BENCH].index[-1])
+        for x in [x for x in list(prices) if x in set(syms)]:
+            last = pd.Timestamp(series[x].index[-1])
+            c = prices[x][0]
+            frozen = len(c) > 4 and np.all(c[-4:] == c[-1])
+            if (ref - last).days > 4 or frozen:
+                STALE.append(x)
+                prices.pop(x, None); series.pop(x, None); hilo.pop(x, None)
+        if STALE:
+            print("Precios congelados o atrasados, se excluyen hoy:", ", ".join(STALE))
+    except Exception as e:
+        print("Control de precios congelados:", e)
     print("Con precios:", len(prices))
     if len(prices) < 100:
         raise SystemExit("Yahoo Finance devolvió muy pocos precios; no se actualiza data.json. Reintentá más tarde.")
