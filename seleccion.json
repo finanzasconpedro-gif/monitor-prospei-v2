@@ -18,6 +18,12 @@
    "fecha": "2026-11-25",
    "precio": 1467.3,
    "motivo": "Comprar en partes"
+  },
+  {
+   "t": "SNDK",
+   "fecha": "2026-11-25",
+   "precio": 94.39,
+   "motivo": "Comprar en partes"
   }
  ],
  "cerradas": []
