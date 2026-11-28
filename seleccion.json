@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26",
+ "updated": "2026-11-27",
  "abiertas": [
   {
    "t": "SNDK",
@@ -17,6 +17,12 @@
    "t": "AMZN",
    "fecha": "2026-11-25",
    "precio": 244.43,
+   "motivo": "Comprar en partes"
+  },
+  {
+   "t": "MELI",
+   "fecha": "2026-11-25",
+   "precio": 1467.3,
    "motivo": "Comprar en partes"
   }
  ],
