@@ -1768,6 +1768,12 @@ def save_signals(df, spy, path=SIGNAL_LOG):
         log = []
     today = today_ar()
     log = [e for e in log if e.get("date") != today]          # si se corre dos veces el mismo día, se rehace
+    # Señales inválidas que se descartan del registro:
+    #  - las de la corrida del 20/11/2026, que salió sin fundamentales (Yahoo devolvió las fichas recortadas);
+    #  - las de papeles con el precio congelado (SNDK y AES quedaron fijos desde el 20/11/2026) y las de los
+    #    papeles que hoy se excluyen por el mismo motivo.
+    malos = {"SNDK", "AES"} | set(STALE)
+    log = [e for e in log if e.get("date") != "2026-11-20" and not (e.get("t") in malos and e.get("date", "") >= "2026-11-20")]
     last = {}
     for e in log:
         last[(e["t"], e["verdict"])] = max(last.get((e["t"], e["verdict"]), ""), e["date"])
